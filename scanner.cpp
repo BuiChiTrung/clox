@@ -2,6 +2,7 @@
 #include "lox.hpp"
 #include "token.hpp"
 #include <cctype>
+#include <string>
 
 Scanner::Scanner(std::string src) { this->src = src; }
 
@@ -98,7 +99,7 @@ void Scanner::scan_token() {
   }
 }
 
-void Scanner::add_token(TokenType type, std::string literal) {
+void Scanner::add_token(TokenType type, std::any literal) {
   std::string lexeme =
       src.substr(lexeme_start_pos, current_pos - lexeme_start_pos);
   tokens.push_back(Token(type, lexeme, literal, line));
@@ -149,7 +150,8 @@ void Scanner::parse_num() {
   }
 
   std::string num_str = src.substr(str_start_pos, current_pos - str_start_pos);
-  add_token(NUMBER, num_str);
+  double num = std::stod(num_str);
+  add_token(NUMBER, num);
 }
 
 void Scanner::parse_identifier() {

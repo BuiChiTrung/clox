@@ -1,4 +1,5 @@
 #pragma once
+#include <any>
 #include <map>
 #include <sys/types.h>
 
@@ -61,11 +62,11 @@ class Token {
 private:
   TokenType type;
   std::string lexeme;
-  std::string literal;
+  std::any literal;
   uint line;
 
 public:
-  Token(TokenType type, std::string lexeme, std::string literal, uint line) {
+  Token(TokenType type, std::string lexeme, std::any literal, uint line) {
     this->type = type;
     this->lexeme = lexeme;
     this->literal = literal;
@@ -77,8 +78,6 @@ public:
     s += this->type;
     s += " ";
     s += this->lexeme;
-    s += " ";
-    s += this->literal;
     s += " ";
     s += std::to_string(this->line);
     return s;
