@@ -1,4 +1,4 @@
-// Function to split a string by a delimiter
+#pragma once
 #include <sstream>
 #include <string>
 #include <vector>

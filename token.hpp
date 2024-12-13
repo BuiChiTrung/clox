@@ -60,13 +60,12 @@ const std::map<std::string, TokenType> reserved_kws = {
 };
 
 class Token {
-  private:
+  public:
     TokenType type;
     std::string lexeme;
     std::any literal;
     uint line;
 
-  public:
     Token() {}
     Token(TokenType type, std::string lexeme, std::any literal, uint line) {
         this->type = type;

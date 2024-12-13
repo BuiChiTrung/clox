@@ -1,10 +1,9 @@
 #include "helper.hpp"
-#include <format>
 #include <fstream>
 #include <iostream>
 #include <vector>
 
-std::ofstream out("../ast/expr.hpp");
+std::ofstream out("../ast/expr_gen.hpp");
 
 void define_preprocessor() { out << "#include \"../token.hpp\"\n\n"; }
 
@@ -18,7 +17,8 @@ void define_class_fields(std::vector<std::string> class_fields) {
 
 void define_classes(std::string base_class,
                     std::vector<std::string> sub_classes) {
-    out << "class Expr {};\n\n";
+    out << "class Expr {}\n\n";
+
     for (std::string sub_class : sub_classes) {
         std::vector<std::string> parts = split_string(sub_class, '#');
         if (parts.size() != 2) {
