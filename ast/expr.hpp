@@ -13,10 +13,10 @@ using Variant = std::variant<std::string, std::monostate>;
 
 class IVisitor {
   public:
-    virtual Variant visit_binary(std::shared_ptr<Binary> b) = 0;
-    virtual Variant visit_grouping(std::shared_ptr<Grouping> g) = 0;
-    virtual Variant visit_literal(Literal *l) = 0;
-    virtual Variant visit_unary(std::shared_ptr<Unary> u) = 0;
+    virtual Variant visit_literal(const Literal &l) = 0;
+    virtual Variant visit_grouping(const Grouping &g) = 0;
+    virtual Variant visit_unary(const Unary &u) = 0;
+    virtual Variant visit_binary(const Binary &b) = 0;
 };
 
 class Expr {
@@ -35,7 +35,7 @@ class Binary : public Expr {
         : left(left), op(op), right(right) {}
 
     Variant accept(IVisitor &visitor) override {
-        return visitor.visit_binary(std::shared_ptr<Binary>(this));
+        return visitor.visit_binary(*this);
     }
 };
 
@@ -46,7 +46,7 @@ class Grouping : public Expr {
     Grouping(std::shared_ptr<Expr> &expression) : expression(expression) {}
 
     Variant accept(IVisitor &visitor) override {
-        return visitor.visit_grouping(std::shared_ptr<Grouping>(this));
+        return visitor.visit_grouping(*this);
     }
 };
 
@@ -57,7 +57,7 @@ class Literal : public Expr {
     Literal(std::any value) { this->value = value; }
 
     Variant accept(IVisitor &visitor) override {
-        return visitor.visit_literal(this);
+        return visitor.visit_literal(*this);
     }
 };
 
@@ -70,6 +70,6 @@ class Unary : public Expr {
         : op(op), right(right) {}
 
     Variant accept(IVisitor &visitor) override {
-        return visitor.visit_unary(std::shared_ptr<Unary>(this));
+        return visitor.visit_unary(*this);
     }
 };

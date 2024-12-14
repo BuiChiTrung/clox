@@ -2,26 +2,19 @@
 #include "../ast/printer_visitor.hpp"
 #include "../token.hpp"
 #include <iostream>
+#include <memory>
 
 int main() {
     PrinterVisitor printer_visitor = PrinterVisitor();
-    // Token t = Token(MINUS, "-", "", 1);
-    // Literal l = Literal(123);
-    // Unary u = Unary(t, l);
+    auto t = std::make_shared<Token>(MINUS, "-", "", 1);
+    std::shared_ptr<Expr> l = std::make_shared<Literal>(std::string("123"));
+    std::shared_ptr<Expr> u = std::make_shared<Unary>(t, l);
 
-    // Token t1 = Token(STAR, "*", "", 1);
+    auto t1 = std::make_shared<Token>(STAR, "*", "", 1);
+    std::shared_ptr<Expr> l1 = std::make_shared<Literal>(45.67);
+    std::shared_ptr<Expr> g = std::make_shared<Grouping>(l1);
 
-    // Literal l1 = Literal(45.67);
-    // Grouping g = Grouping(l1);
+    std::shared_ptr<Expr> b = std::make_shared<Binary>(u, t1, g);
 
-    // Binary b = Binary(u, t1, g);
-
-    // // std::cout << b.accept(printer_visitor);
-
-    // Expr e = Literal("12");
-    // std::cout << std::get<std::string>(e.accept(printer_visitor));
-    // std::cout << l1.accept(printer_visitor);
-
-    std::shared_ptr<Literal> l = std::make_shared<Literal>(std::string("abc"));
-    std::cout << std::get<std::string>(l->accept(printer_visitor));
+    std::cout << std::get<std::string>(b->accept(printer_visitor));
 }

@@ -21,24 +21,24 @@ class PrinterVisitor : public IVisitor {
         return builder.str();
     }
 
-    Variant visit_unary(std::shared_ptr<Unary> u) {
-        return this->print_expr(u->op->lexeme, {u->right});
+    Variant visit_unary(const Unary &u) {
+        return this->print_expr(u.op->lexeme, {u.right});
     }
 
-    Variant visit_binary(std::shared_ptr<Binary> b) {
-        return this->print_expr(b->op->lexeme, {b->left, b->right});
+    Variant visit_binary(const Binary &b) {
+        return this->print_expr(b.op->lexeme, {b.left, b.right});
     }
 
-    Variant visit_grouping(std::shared_ptr<Grouping> g) {
-        return this->print_expr("Group", {g->expression});
+    Variant visit_grouping(const Grouping &g) {
+        return this->print_expr("group", {g.expression});
     }
 
-    Variant visit_literal(Literal *l) {
-        if (l->value.type() == typeid(double)) {
-            return std::to_string(std::any_cast<double>(l->value));
+    Variant visit_literal(const Literal &l) {
+        if (l.value.type() == typeid(double)) {
+            return std::to_string(std::any_cast<double>(l.value));
         }
-        else if (l->value.type() == typeid(std::string)) {
-            return std::any_cast<std::string>(l->value);
+        else if (l.value.type() == typeid(std::string)) {
+            return std::any_cast<std::string>(l.value);
         }
         else {
             std::cout << "Invalid literal value" << "\n";
