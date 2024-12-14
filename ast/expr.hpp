@@ -1,49 +1,52 @@
 #pragma once
 #include "../token.hpp"
+#include <iostream>
+#include <memory>
+#include <variant>
 
 class Unary;
 class Binary;
 class Grouping;
 class Literal;
 
-template <typename T> class Visitor {
+using Variant = std::variant<std::string, std::monostate>;
+
+class IVisitor {
   public:
-    virtual T visit_binary(Binary &b) = 0;
-    virtual T visit_grouping(Grouping &g) = 0;
-    virtual T visit_literal(Literal &l) = 0;
-    virtual T visit_unary(Unary &u) = 0;
+    virtual Variant visit_binary(std::shared_ptr<Binary> b) = 0;
+    virtual Variant visit_grouping(std::shared_ptr<Grouping> g) = 0;
+    virtual Variant visit_literal(Literal *l) = 0;
+    virtual Variant visit_unary(std::shared_ptr<Unary> u) = 0;
 };
 
 class Expr {
   public:
-    template <typename T> T accept(Visitor<T> &visitor);
+    virtual Variant accept(IVisitor &visitor) { return "a"; }
 };
 
 class Binary : public Expr {
   public:
-    Expr left;
-    Token op;
-    Expr right;
+    std::shared_ptr<Expr> left;
+    std::shared_ptr<Token> op;
+    std::shared_ptr<Expr> right;
 
-    Binary(Expr &left, Token &op, Expr &right) {
-        this->left = left;
-        this->op = op;
-        this->right = right;
-    }
+    Binary(std::shared_ptr<Expr> &left, std::shared_ptr<Token> &op,
+           std::shared_ptr<Expr> &right)
+        : left(left), op(op), right(right) {}
 
-    template <typename T> T accept(Visitor<T> &visitor) {
-        return visitor.visit_binary(*this);
+    Variant accept(IVisitor &visitor) override {
+        return visitor.visit_binary(std::shared_ptr<Binary>(this));
     }
 };
 
 class Grouping : public Expr {
   public:
-    Expr expression;
+    std::shared_ptr<Expr> expression;
 
-    Grouping(Expr &expr) { this->expression = expr; }
+    Grouping(std::shared_ptr<Expr> &expression) : expression(expression) {}
 
-    template <typename T> T accept(Visitor<T> &visitor) {
-        return visitor.visit_grouping(*this);
+    Variant accept(IVisitor &visitor) override {
+        return visitor.visit_grouping(std::shared_ptr<Grouping>(this));
     }
 };
 
@@ -53,22 +56,20 @@ class Literal : public Expr {
 
     Literal(std::any value) { this->value = value; }
 
-    template <typename T> T accept(Visitor<T> &visitor) {
-        return visitor.visit_literal(*this);
+    Variant accept(IVisitor &visitor) override {
+        return visitor.visit_literal(this);
     }
 };
 
 class Unary : public Expr {
   public:
-    Token op;
-    Expr right;
+    std::shared_ptr<Token> op;
+    std::shared_ptr<Expr> right;
 
-    Unary(Token &op, Expr &right) {
-        this->op = op;
-        this->right = right;
-    }
+    Unary(std::shared_ptr<Token> &op, std::shared_ptr<Expr> &right)
+        : op(op), right(right) {}
 
-    template <typename T> T accept(Visitor<T> &visitor) {
-        return visitor.visit_unary(*this);
+    Variant accept(IVisitor &visitor) override {
+        return visitor.visit_unary(std::shared_ptr<Unary>(this));
     }
 };
