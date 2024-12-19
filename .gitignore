@@ -1,2 +1,4 @@
-stuff/
 .vscode/
+.cache/
+build/
+stuff/

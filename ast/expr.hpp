@@ -21,7 +21,7 @@ class IVisitor {
 
 class Expr {
   public:
-    virtual Variant accept(IVisitor &visitor) { return "a"; }
+    virtual Variant accept(IVisitor &visitor) = 0;
 };
 
 class Binary : public Expr {
