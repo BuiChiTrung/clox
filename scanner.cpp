@@ -1,5 +1,6 @@
 #include "scanner.hpp"
 #include "error_manager.hpp"
+#include "token.hpp"
 #include <cctype>
 #include <string>
 
@@ -24,46 +25,48 @@ void Scanner::scan_token() {
 
     switch (c) {
     case '(':
-        add_token(LEFT_PAREN);
+        add_token(TokenType::LEFT_PAREN);
         break;
     case ')':
-        add_token(RIGHT_PAREN);
+        add_token(TokenType::RIGHT_PAREN);
         break;
     case '{':
-        add_token(LEFT_BRACE);
+        add_token(TokenType::LEFT_BRACE);
         break;
     case '}':
-        add_token(RIGHT_BRACE);
+        add_token(TokenType::RIGHT_BRACE);
         break;
     case ',':
-        add_token(COMMA);
+        add_token(TokenType::COMMA);
         break;
     case '.':
-        add_token(DOT);
+        add_token(TokenType::DOT);
         break;
     case '-':
-        add_token(MINUS);
+        add_token(TokenType::MINUS);
         break;
     case '+':
-        add_token(PLUS);
+        add_token(TokenType::PLUS);
         break;
     case ';':
-        add_token(SEMICOLON);
+        add_token(TokenType::SEMICOLON);
         break;
     case '*':
-        add_token(STAR);
+        add_token(TokenType::STAR);
         break;
     case '!':
-        add_token(next_char_is('=') ? BANG_EQUAL : BANG);
+        add_token(next_char_is('=') ? TokenType::BANG_EQUAL : TokenType::BANG);
         break;
     case '=':
-        add_token(next_char_is('=') ? EQUAL_EQUAL : EQUAL);
+        add_token(next_char_is('=') ? TokenType::EQUAL_EQUAL
+                                    : TokenType::EQUAL);
         break;
     case '<':
-        add_token(next_char_is('=') ? LESS_EQUAL : LESS);
+        add_token(next_char_is('=') ? TokenType::LESS_EQUAL : TokenType::LESS);
         break;
     case '>':
-        add_token(next_char_is('=') ? GREATER_EQUAL : GREATER);
+        add_token(next_char_is('=') ? TokenType::GREATER_EQUAL
+                                    : TokenType::GREATER);
         break;
     case '/':
         if (next_char_is('/')) {
@@ -72,7 +75,7 @@ void Scanner::scan_token() {
             }
         }
         else {
-            add_token(SLASH);
+            add_token(TokenType::SLASH);
         }
         break;
     case ' ':
@@ -121,7 +124,8 @@ bool Scanner::next_char_is(char expected) {
 }
 
 void Scanner::parse_str() {
-    uint str_start_pos = current_pos + 1;
+    uint str_start_pos = current_pos;
+
     while (!is_end_of_src() and src.at(current_pos) != '"') {
         if (src.at(current_pos) == '\n') {
             line++;
@@ -135,15 +139,17 @@ void Scanner::parse_str() {
     }
 
     std::string str = src.substr(str_start_pos, current_pos - str_start_pos);
-    add_token(STRING, str);
+    add_token(TokenType::STRING, str);
     current_pos++;
 }
 
 void Scanner::parse_num() {
     uint str_start_pos = current_pos - 1;
+
     while (!is_end_of_src() and std::isdigit(src.at(current_pos))) {
         current_pos++;
     }
+
     if (!is_end_of_src() && src.at(current_pos) == '.') {
         current_pos++;
         while (!is_end_of_src() and std::isdigit(src.at(current_pos))) {
@@ -154,11 +160,11 @@ void Scanner::parse_num() {
     std::string num_str =
         src.substr(str_start_pos, current_pos - str_start_pos);
     double num = std::stod(num_str);
-    add_token(NUMBER, num);
+    add_token(TokenType::NUMBER, num);
 }
 
 void Scanner::parse_identifier() {
-    uint str_start_pos = current_pos;
+    uint str_start_pos = current_pos - 1;
 
     while (!is_end_of_src() &&
            (std::isalnum(src.at(current_pos)) || src.at(current_pos) == '_')) {
@@ -168,7 +174,7 @@ void Scanner::parse_identifier() {
     std::string identifier_str =
         src.substr(str_start_pos, current_pos - str_start_pos);
     if (reserved_kws.find(identifier_str) == reserved_kws.end()) {
-        add_token(IDENTIFIER, identifier_str);
+        add_token(TokenType::IDENTIFIER, identifier_str);
     }
     else {
         add_token(reserved_kws.at(identifier_str));

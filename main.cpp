@@ -3,7 +3,6 @@
 #include <iostream>
 
 int main(int argc, char *argv[]) {
-    std::cout << argc << " " << argv << std::endl;
     if (argc > 2) {
         std::cout << "Usage: lox [script]" << std::endl;
         exit(1);

@@ -1,10 +1,12 @@
 #pragma once
 #include <sys/types.h>
 
+#include "./utils/magic_enum.hpp"
 #include <any>
+#include <format>
 #include <map>
 
-enum TokenType {
+enum class TokenType {
     // Single-character tokens.
     LEFT_PAREN,
     RIGHT_PAREN,
@@ -53,10 +55,14 @@ enum TokenType {
 };
 
 const std::map<std::string, TokenType> reserved_kws = {
-    {"and", AND},   {"class", CLASS}, {"else", ELSE},     {"false", FALSE},
-    {"for", FOR},   {"fun", FUN},     {"if", IF},         {"nil", NIL},
-    {"or", OR},     {"print", PRINT}, {"return", RETURN}, {"super", SUPER},
-    {"this", THIS}, {"true", TRUE},   {"var", VAR},       {"while", WHILE},
+    {"and", TokenType::AND},       {"class", TokenType::CLASS},
+    {"else", TokenType::ELSE},     {"false", TokenType::FALSE},
+    {"for", TokenType::FOR},       {"fun", TokenType::FUN},
+    {"if", TokenType::IF},         {"nil", TokenType::NIL},
+    {"or", TokenType::OR},         {"print", TokenType::PRINT},
+    {"return", TokenType::RETURN}, {"super", TokenType::SUPER},
+    {"this", TokenType::THIS},     {"true", TokenType::TRUE},
+    {"var", TokenType::VAR},       {"while", TokenType::WHILE},
 };
 
 class Token {
@@ -75,12 +81,8 @@ class Token {
     }
 
     std::string toString() {
-        std::string s = "";
-        s += this->type;
-        s += " ";
-        s += this->lexeme;
-        s += " ";
-        s += std::to_string(this->line);
-        return s;
+        return std::format("Token: {:15} | Line: {:3} | Lexeme: {}",
+                           magic_enum::enum_name(this->type), this->line,
+                           this->lexeme);
     }
 };

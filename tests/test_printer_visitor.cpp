@@ -6,11 +6,11 @@
 
 int main() {
     PrinterVisitor printer_visitor = PrinterVisitor();
-    auto t = std::make_shared<Token>(MINUS, "-", "", 1);
+    auto t = std::make_shared<Token>(TokenType::MINUS, "-", "", 1);
     std::shared_ptr<Expr> l = std::make_shared<Literal>(std::string("123"));
     std::shared_ptr<Expr> u = std::make_shared<Unary>(t, l);
 
-    auto t1 = std::make_shared<Token>(STAR, "*", "", 1);
+    auto t1 = std::make_shared<Token>(TokenType::STAR, "*", "", 1);
     std::shared_ptr<Expr> l1 = std::make_shared<Literal>(45.67);
     std::shared_ptr<Expr> g = std::make_shared<Grouping>(l1);
 
