@@ -1,19 +1,20 @@
 #pragma once
 #include "token.hpp"
+#include <memory>
 #include <vector>
 
 // Scan the whole file or a single line to return a vector of tokens
 class Scanner {
   private:
     std::string src;
-    std::vector<Token> tokens;
+    std::vector<std::shared_ptr<Token>> tokens;
     uint lexeme_start_pos = 0;
     uint current_pos = 0;
     uint line = 1;
 
   public:
     Scanner(std::string src);
-    std::vector<Token> scan_tokens();
+    std::vector<std::shared_ptr<Token>> scan_tokens();
 
   private:
     void scan_token();

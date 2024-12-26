@@ -2,11 +2,12 @@
 #include "error_manager.hpp"
 #include "token.hpp"
 #include <cctype>
+#include <memory>
 #include <string>
 
 Scanner::Scanner(std::string src) { this->src = src; }
 
-std::vector<Token> Scanner::scan_tokens() {
+std::vector<std::shared_ptr<Token>> Scanner::scan_tokens() {
     while (!is_end_of_src()) {
         lexeme_start_pos = current_pos;
         scan_token();
@@ -107,7 +108,7 @@ void Scanner::scan_token() {
 void Scanner::add_token(TokenType type, std::any literal) {
     std::string lexeme =
         src.substr(lexeme_start_pos, current_pos - lexeme_start_pos);
-    tokens.push_back(Token(type, lexeme, literal, line));
+    tokens.push_back(std::make_shared<Token>(type, lexeme, literal, line));
 }
 
 bool Scanner::next_char_is(char expected) {

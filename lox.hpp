@@ -1,8 +1,11 @@
 #pragma once
+#include "ast/printer_visitor.hpp"
 #include "error_manager.hpp"
+#include "parser.hpp"
 #include "scanner.hpp"
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <ostream>
 #include <vector>
 
@@ -11,11 +14,23 @@ class CLox {
     // Process one line or a whole file
     static void run(std::string source) {
         Scanner *scanner = new Scanner(source);
-        std::vector<Token> tokens = scanner->scan_tokens();
+        std::vector<std::shared_ptr<Token>> tokens = scanner->scan_tokens();
 
-        for (Token token : tokens) {
-            std::cout << token.toString() << std::endl;
+        for (auto token : tokens) {
+            std::cout << token->toString() << std::endl;
         }
+
+        // auto parser = std::make_unique<Parser>(tokens);
+        // auto expression = parser->parse();
+
+        // if (ErrorManager::had_error) {
+        //     std::cout << "Parser error occurs" << std::endl;
+        //     return;
+        // }
+
+        // PrinterVisitor printer_visitor = PrinterVisitor();
+        // std::cout <<
+        // std::get<std::string>(expression->accept(printer_visitor));
     }
 
     static void run_file(std::string path) {
