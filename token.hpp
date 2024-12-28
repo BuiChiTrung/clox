@@ -52,6 +52,8 @@ enum class TokenType {
     TRUE,
     VAR,
     WHILE,
+
+    NONE,
 };
 
 const std::map<std::string, TokenType> reserved_kws = {
@@ -67,18 +69,14 @@ const std::map<std::string, TokenType> reserved_kws = {
 
 class Token {
   public:
-    TokenType type;
-    std::string lexeme;
-    std::any literal;
-    uint line;
+    TokenType type = TokenType::NONE;
+    std::string lexeme = "";
+    std::any literal = "";
+    uint line = 0;
 
     Token() {}
-    Token(TokenType type, std::string lexeme, std::any literal, uint line) {
-        this->type = type;
-        this->lexeme = lexeme;
-        this->literal = literal;
-        this->line = line;
-    }
+    Token(TokenType type, std::string lexeme, std::any literal, uint line)
+        : type(type), lexeme(lexeme), literal(literal), line(line) {}
 
     std::string toString() {
         return std::format("Token: {:15} | Line: {:3} | Lexeme: {}",

@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(clox main.cpp scanner.cpp error_manager.cpp)
+add_executable(clox lox.cpp scanner.cpp parser.cpp)
 # file(GLOB TEST_SOURCES tests/*.cpp)
 # foreach(TEST_SOURCE ${TEST_SOURCES})
 #     get_filename_component(TEST_NAME ${TEST_SOURCE} NAME_WE)

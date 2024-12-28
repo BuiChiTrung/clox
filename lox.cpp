@@ -1,8 +1,8 @@
-#pragma once
 #include "ast/printer_visitor.hpp"
 #include "error_manager.hpp"
 #include "parser.hpp"
 #include "scanner.hpp"
+
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -13,24 +13,23 @@ class CLox {
   public:
     // Process one line or a whole file
     static void run(std::string source) {
-        Scanner *scanner = new Scanner(source);
+        auto scanner = std::make_unique<Scanner>(source);
         std::vector<std::shared_ptr<Token>> tokens = scanner->scan_tokens();
 
         for (auto token : tokens) {
             std::cout << token->toString() << std::endl;
         }
 
-        // auto parser = std::make_unique<Parser>(tokens);
-        // auto expression = parser->parse();
+        auto parser = Parser(tokens);
+        auto expression = parser.parse();
 
-        // if (ErrorManager::had_error) {
-        //     std::cout << "Parser error occurs" << std::endl;
-        //     return;
-        // }
+        if (ErrorManager::had_error) {
+            std::cout << "Parser error occurs" << std::endl;
+            return;
+        }
 
-        // PrinterVisitor printer_visitor = PrinterVisitor();
-        // std::cout <<
-        // std::get<std::string>(expression->accept(printer_visitor));
+        PrinterVisitor printer_visitor = PrinterVisitor();
+        std::cout << std::get<std::string>(expression->accept(printer_visitor));
     }
 
     static void run_file(std::string path) {
@@ -66,3 +65,19 @@ class CLox {
         }
     }
 };
+
+int main(int argc, char *argv[]) {
+    if (argc > 2) {
+        std::cout << "Usage: lox [script]" << std::endl;
+        exit(1);
+    }
+    else if (argc == 2) {
+        CLox::run_file(argv[1]);
+        if (ErrorManager::had_error) {
+            exit(1);
+        }
+    }
+    else {
+        CLox::run_prompt();
+    }
+}
