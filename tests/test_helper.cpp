@@ -1,28 +1,23 @@
 #include "../utils/helper.hpp"
-#include <iostream>
+#include <gtest/gtest.h>
+#include <string>
+#include <vector>
 
-void test_split_string() {
+TEST(TestHelper, SplitString) {
     std::string input = "a,b,c,d";
     char delimiter = ',';
     std::vector<std::string> expected = {"a", "b", "c", "d"};
     std::vector<std::string> result = split_string(input, delimiter);
 
-    assert(result == expected);
-    std::cout << "All test_split_string passed" << std::endl;
+    EXPECT_EQ(result, expected);
 }
 
-void test_strip() {
+TEST(TestHelper, Strip) {
     std::string a = "   a   ";
     std::string b = "\ta\n";
     std::string c = "   \t";
 
-    assert(strip(a) == "a");
-    assert(strip(b) == "a");
-    assert(strip(c) == "");
-    std::cout << "All test_strip passed" << std::endl;
-}
-
-int main() {
-    test_split_string();
-    test_strip();
+    EXPECT_EQ(strip(a), "a");
+    EXPECT_EQ(strip(b), "a");
+    EXPECT_EQ(strip(c), "");
 }

@@ -1,7 +1,7 @@
 #pragma once
 #include <sys/types.h>
 
-#include "./utils/magic_enum.hpp"
+#include "../utils/magic_enum.hpp"
 #include <any>
 #include <format>
 #include <map>

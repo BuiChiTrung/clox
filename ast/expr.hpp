@@ -1,5 +1,5 @@
 #pragma once
-#include "../token.hpp"
+#include "../clox/token.hpp"
 #include <memory>
 #include <variant>
 

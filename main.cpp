@@ -1,7 +1,7 @@
 #include "ast/printer_visitor.hpp"
-#include "error_manager.hpp"
-#include "parser.hpp"
-#include "scanner.hpp"
+#include "clox/error_manager.hpp"
+#include "clox/parser.hpp"
+#include "clox/scanner.hpp"
 
 #include <fstream>
 #include <iostream>

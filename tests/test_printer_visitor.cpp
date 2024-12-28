@@ -1,10 +1,10 @@
 #include "../ast/expr.hpp"
 #include "../ast/printer_visitor.hpp"
-#include "../token.hpp"
-#include <iostream>
+#include "../clox/token.hpp"
+#include <gtest/gtest.h>
 #include <memory>
 
-int main() {
+TEST(PrinterVisitorTest, BasicTest) {
     PrinterVisitor printer_visitor = PrinterVisitor();
     auto t = std::make_shared<Token>(TokenType::MINUS, "-", "", 1);
     std::shared_ptr<Expr> l = std::make_shared<Literal>(std::string("123"));
@@ -16,5 +16,8 @@ int main() {
 
     std::shared_ptr<Expr> b = std::make_shared<Binary>(u, t1, g);
 
-    std::cout << std::get<std::string>(b->accept(printer_visitor));
+    std::string expected = "(* (- 123) (group 45.670000))";
+    std::string actual = std::get<std::string>(b->accept(printer_visitor));
+
+    EXPECT_EQ(actual, expected);
 }
