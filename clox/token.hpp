@@ -2,9 +2,10 @@
 #include <sys/types.h>
 
 #include "../utils/magic_enum.hpp"
-#include <any>
 #include <format>
 #include <map>
+
+using LiteralVariant = std::variant<double, bool, std::string, std::monostate>;
 
 enum class TokenType {
     // Single-character tokens.
@@ -71,11 +72,11 @@ class Token {
   public:
     TokenType type = TokenType::NONE;
     std::string lexeme = "";
-    std::any literal = "";
+    LiteralVariant literal = "";
     uint line = 0;
 
     Token() {}
-    Token(TokenType type, std::string lexeme, std::any literal, uint line)
+    Token(TokenType type, std::string lexeme, LiteralVariant literal, uint line)
         : type(type), lexeme(lexeme), literal(literal), line(line) {}
 
     std::string toString() {

@@ -1,11 +1,10 @@
 #pragma once
 #include "expr.hpp"
-#include <any>
-#include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
 
+// This visitor return string
 class PrinterVisitor : public IVisitor {
   public:
     std::string print_expr(std::string name,
@@ -21,28 +20,30 @@ class PrinterVisitor : public IVisitor {
         return builder.str();
     }
 
-    Variant visit_unary(const Unary &u) {
+    LiteralVariant visit_unary(const Unary &u) {
         return this->print_expr(u.op->lexeme, {u.right});
     }
 
-    Variant visit_binary(const Binary &b) {
+    LiteralVariant visit_binary(const Binary &b) {
         return this->print_expr(b.op->lexeme, {b.left, b.right});
     }
 
-    Variant visit_grouping(const Grouping &g) {
+    LiteralVariant visit_grouping(const Grouping &g) {
         return this->print_expr("group", {g.expression});
     }
 
-    Variant visit_literal(const Literal &l) {
-        if (l.value.type() == typeid(double)) {
-            return std::to_string(std::any_cast<double>(l.value));
+    LiteralVariant visit_literal(const Literal &l) {
+        if (std::holds_alternative<bool>(l.value)) {
+            return std::get<bool>(l.value) ? "true" : "false";
         }
-        else if (l.value.type() == typeid(std::string)) {
-            return std::any_cast<std::string>(l.value);
+        else if (std::holds_alternative<double>(l.value)) {
+            return std::to_string(std::get<double>(l.value));
+        }
+        else if (std::holds_alternative<std::string>(l.value)) {
+            return l.value;
         }
         else {
-            std::cout << "Invalid literal value" << "\n";
-            exit(1);
+            return "nil";
         }
     }
 };
