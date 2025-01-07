@@ -7,6 +7,8 @@ class Binary;
 class Grouping;
 class Literal;
 
+// Use visitor design pattern to pack all the logic of override function for all
+// Exp subclass in a seperate Visitor class.
 class IVisitor {
   public:
     virtual LiteralVariant visit_literal(const Literal &l) = 0;
