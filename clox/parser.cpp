@@ -8,20 +8,34 @@ std::shared_ptr<Expr> Parser::parse() {
     try {
         return expression();
     }
-    catch (std::shared_ptr<Parser::Exception> e) {
+    catch (ParserException &err) {
+        ErrorManager::handle_parser_err(err);
         return nullptr;
     }
 }
 
 // expression → equality ;
-std::shared_ptr<Expr> Parser::expression() { return equality(); }
+std::shared_ptr<Expr> Parser::expression() { return logic(); }
+
+// logic → equality ( ( "and" | "or" ) equality )* ;
+std::shared_ptr<Expr> Parser::logic() {
+    auto left = equality();
+
+    while (match({TokenType::AND, TokenType::OR})) {
+        auto op = get_previous_tok();
+        auto right = equality();
+        left = std::make_shared<Binary>(left, op, right);
+    }
+
+    return left;
+}
 
 // equality → comparison ( ( "!=" | "==" ) comparison )* ;
 std::shared_ptr<Expr> Parser::equality() {
     auto left = comparision();
 
     while (match({TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL})) {
-        auto op = previous_tok();
+        auto op = get_previous_tok();
         auto right = comparision();
         left = std::make_shared<Binary>(left, op, right);
     }
@@ -35,7 +49,7 @@ std::shared_ptr<Expr> Parser::comparision() {
 
     while (match({TokenType::GREATER, TokenType::LESS, TokenType::GREATER_EQUAL,
                   TokenType::LESS_EQUAL})) {
-        auto op = previous_tok();
+        auto op = get_previous_tok();
         auto right = term();
         left = std::make_shared<Binary>(left, op, right);
     }
@@ -48,7 +62,7 @@ std::shared_ptr<Expr> Parser::term() {
     auto left = factor();
 
     while (match({TokenType::MINUS, TokenType::PLUS})) {
-        auto op = previous_tok();
+        auto op = get_previous_tok();
         auto right = factor();
         left = std::make_shared<Binary>(left, op, right);
     }
@@ -61,7 +75,7 @@ std::shared_ptr<Expr> Parser::factor() {
     auto left = unary();
 
     while (match({TokenType::SLASH, TokenType::STAR})) {
-        auto op = previous_tok();
+        auto op = get_previous_tok();
         auto right = unary();
         left = std::make_shared<Binary>(left, op, right);
     }
@@ -72,7 +86,7 @@ std::shared_ptr<Expr> Parser::factor() {
 // unary → ( "!" | "-" ) unary | primary ;
 std::shared_ptr<Expr> Parser::unary() {
     if (match({TokenType::BANG, TokenType::MINUS})) {
-        auto op = previous_tok();
+        auto op = get_previous_tok();
         std::shared_ptr<Expr> right = unary();
         return std::make_shared<Unary>(op, right);
     }
@@ -92,17 +106,17 @@ std::shared_ptr<Expr> Parser::primary() {
         return std::make_shared<Literal>("nil");
     }
     if (match({TokenType::NUMBER, TokenType::STRING})) {
-        auto tok = previous_tok();
+        auto tok = get_previous_tok();
         return std::make_shared<Literal>(tok->literal);
     }
 
     if (match({TokenType::LEFT_PAREN})) {
         std::shared_ptr<Expr> expr = expression();
-        match({TokenType::RIGHT_PAREN});
+        consume(TokenType::RIGHT_PAREN, "Expected ) character but not found.");
         return std::make_shared<Grouping>(expr);
     }
 
-    throw error(peek(), "Parser::primary:: Expect expression");
+    throw ParserException(peek(), "Parsering primary error: Expect expression");
 }
 
 bool Parser::consumed_all_tokens() { return current_tok_pos >= tokens.size(); }
@@ -122,7 +136,7 @@ bool Parser::match(std::vector<TokenType> tok_types) {
     return false;
 }
 
-bool Parser::check(TokenType tok_type) {
+bool Parser::is_cur_tok_type_match(TokenType tok_type) {
     if (consumed_all_tokens()) {
         return false;
     }
@@ -130,29 +144,26 @@ bool Parser::check(TokenType tok_type) {
     return peek()->type == tok_type;
 }
 
+// get current token and move to the next tok
 std::shared_ptr<Token> Parser::advance() {
     if (!consumed_all_tokens()) {
         current_tok_pos++;
     }
-    return previous_tok();
+    return get_previous_tok();
 }
 
+// get current token without moving to the next tok
 std::shared_ptr<Token> Parser::peek() { return tokens.at(current_tok_pos); }
 
-std::shared_ptr<Token> Parser::previous_tok() {
+std::shared_ptr<Token> Parser::get_previous_tok() {
     return tokens.at(current_tok_pos - 1);
 }
 
+// check current token type before advance
 std::shared_ptr<Token> Parser::consume(TokenType type, std::string msg) {
-    if (check(type)) {
+    if (is_cur_tok_type_match(type)) {
         return advance();
     }
 
-    throw error(peek(), msg);
-}
-
-std::shared_ptr<Parser::Exception> Parser::error(std::shared_ptr<Token> tok,
-                                                 std::string msg) {
-    ErrorManager::err(tok, msg);
-    return std::make_shared<Parser::Exception>();
+    throw ParserException(peek(), msg);
 }

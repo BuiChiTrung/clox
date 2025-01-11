@@ -1,12 +1,19 @@
 #pragma once
 #include "expr.hpp"
+#include <iostream>
 #include <memory>
 #include <sstream>
 #include <string>
+#include <variant>
 
 // This visitor return string
 class PrinterVisitor : public IVisitor {
   public:
+    void print(std::shared_ptr<Expr> epxr) {
+        std::cout << std::get<std::string>(epxr->accept(*this));
+    }
+
+  private:
     std::string print_expr(std::string name,
                            std::vector<std::shared_ptr<Expr>> exprs) {
         std::ostringstream builder;

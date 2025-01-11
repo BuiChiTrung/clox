@@ -4,8 +4,32 @@
 #include "../utils/magic_enum.hpp"
 #include <format>
 #include <map>
+#include <string>
+#include <variant>
 
+// std::monostate to present nil in Lox
 using LiteralVariant = std::variant<double, bool, std::string, std::monostate>;
+
+inline std::string literal_to_string(const LiteralVariant &value) {
+    return std::visit(
+        [](auto &&arg) -> std::string {
+            using T = std::decay_t<decltype(arg)>;
+
+            if constexpr (std::is_same_v<T, bool>) {
+                return arg ? "true" : "false";
+            }
+            else if constexpr (std::is_same_v<T, double>) {
+                return std::to_string(arg);
+            }
+            else if constexpr (std::is_same_v<T, std::string>) {
+                return arg;
+            }
+            else {
+                return "nil";
+            }
+        },
+        value);
+}
 
 enum class TokenType {
     // Single-character tokens.

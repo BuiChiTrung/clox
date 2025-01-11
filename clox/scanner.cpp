@@ -99,7 +99,7 @@ void Scanner::scan_token() {
             break;
         }
         else {
-            ErrorManager::err(line, "Unexpected character.");
+            ErrorManager::handle_err(line, "Unexpected character.");
             break;
         }
     }
@@ -137,7 +137,7 @@ void Scanner::parse_str() {
     }
 
     if (is_end_of_src()) {
-        ErrorManager::err(line, "Unterminated string");
+        ErrorManager::handle_err(line, "Unterminated string");
         return;
     }
 

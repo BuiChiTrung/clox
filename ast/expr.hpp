@@ -19,6 +19,10 @@ class IVisitor {
 
 class Expr {
   public:
+    // IVisitor param CANNOT be smart pointer as when we call
+    // visitor.visit_<...>() in Expr subclass, we have to create a smart pointer
+    // pointed to this, when this smart pointer run of scope, it'll destruct our
+    // Visitor obj.
     virtual LiteralVariant accept(IVisitor &visitor) = 0;
 };
 
