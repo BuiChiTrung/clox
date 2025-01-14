@@ -1,12 +1,15 @@
 
 #include "parser.hpp"
+#include "../ast/stmt.hpp"
 #include "error_manager.hpp"
+#include "token.hpp"
+#include <memory>
 
 Parser::Parser(std::vector<std::shared_ptr<Token>> tokens) : tokens(tokens) {}
 
-std::shared_ptr<Expr> Parser::parse() {
+std::shared_ptr<Expr> Parser::parse_single_expr() {
     try {
-        return expression();
+        return parse_expr();
     }
     catch (ParserException &err) {
         ErrorManager::handle_parser_err(err);
@@ -14,16 +17,55 @@ std::shared_ptr<Expr> Parser::parse() {
     }
 }
 
-// expression → equality ;
-std::shared_ptr<Expr> Parser::expression() { return logic(); }
+// program → statement*;
+std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
+    std::vector<std::shared_ptr<Stmt>> stmts{};
+    try {
+        while (!consumed_all_tokens()) {
+            stmts.push_back(parse_stmt());
+        }
+        return stmts;
+    }
+    catch (ParserException &err) {
+        ErrorManager::handle_parser_err(err);
+        return stmts;
+    }
+}
+
+// statement → exprStmt | printStmt ;
+std::shared_ptr<Stmt> Parser::parse_stmt() {
+    if (validate_token_and_advance({TokenType::PRINT})) {
+        return parse_print_stmt();
+    }
+    return parse_expr_stmt();
+}
+
+// printStmt  → "print" expression ";" ;
+std::shared_ptr<Stmt> Parser::parse_print_stmt() {
+    auto stmt = std::make_shared<PrintStmt>(parse_expr());
+    validate_and_throw_err(TokenType::SEMICOLON,
+                           "Expected ; at the end of print statement");
+    return stmt;
+}
+
+// exprStmt → expression ";" ;
+std::shared_ptr<Stmt> Parser::parse_expr_stmt() {
+    auto stmt = std::make_shared<ExprStmt>(parse_expr());
+    validate_and_throw_err(TokenType::SEMICOLON,
+                           "Expected ; at the end of expresssion statement");
+    return stmt;
+}
+
+// expression → logic ;
+std::shared_ptr<Expr> Parser::parse_expr() { return parse_logic_expr(); }
 
 // logic → equality ( ( "and" | "or" ) equality )* ;
-std::shared_ptr<Expr> Parser::logic() {
-    auto left = equality();
+std::shared_ptr<Expr> Parser::parse_logic_expr() {
+    auto left = parse_equality_expr();
 
-    while (match({TokenType::AND, TokenType::OR})) {
-        auto op = get_previous_tok();
-        auto right = equality();
+    while (validate_token_and_advance({TokenType::AND, TokenType::OR})) {
+        auto op = get_prev_tok();
+        auto right = parse_equality_expr();
         left = std::make_shared<Binary>(left, op, right);
     }
 
@@ -31,12 +73,13 @@ std::shared_ptr<Expr> Parser::logic() {
 }
 
 // equality → comparison ( ( "!=" | "==" ) comparison )* ;
-std::shared_ptr<Expr> Parser::equality() {
-    auto left = comparision();
+std::shared_ptr<Expr> Parser::parse_equality_expr() {
+    auto left = parse_comparision_expr();
 
-    while (match({TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL})) {
-        auto op = get_previous_tok();
-        auto right = comparision();
+    while (validate_token_and_advance(
+        {TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL})) {
+        auto op = get_prev_tok();
+        auto right = parse_comparision_expr();
         left = std::make_shared<Binary>(left, op, right);
     }
 
@@ -44,13 +87,14 @@ std::shared_ptr<Expr> Parser::equality() {
 }
 
 // comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-std::shared_ptr<Expr> Parser::comparision() {
-    auto left = term();
+std::shared_ptr<Expr> Parser::parse_comparision_expr() {
+    auto left = parse_term();
 
-    while (match({TokenType::GREATER, TokenType::LESS, TokenType::GREATER_EQUAL,
-                  TokenType::LESS_EQUAL})) {
-        auto op = get_previous_tok();
-        auto right = term();
+    while (validate_token_and_advance({TokenType::GREATER, TokenType::LESS,
+                                       TokenType::GREATER_EQUAL,
+                                       TokenType::LESS_EQUAL})) {
+        auto op = get_prev_tok();
+        auto right = parse_term();
         left = std::make_shared<Binary>(left, op, right);
     }
 
@@ -58,12 +102,12 @@ std::shared_ptr<Expr> Parser::comparision() {
 }
 
 // term → factor ( ( "-" | "+" ) factor )* ;
-std::shared_ptr<Expr> Parser::term() {
-    auto left = factor();
+std::shared_ptr<Expr> Parser::parse_term() {
+    auto left = parse_factor();
 
-    while (match({TokenType::MINUS, TokenType::PLUS})) {
-        auto op = get_previous_tok();
-        auto right = factor();
+    while (validate_token_and_advance({TokenType::MINUS, TokenType::PLUS})) {
+        auto op = get_prev_tok();
+        auto right = parse_factor();
         left = std::make_shared<Binary>(left, op, right);
     }
 
@@ -71,12 +115,12 @@ std::shared_ptr<Expr> Parser::term() {
 }
 
 // factor → unary ( ( "/" | "*" ) unary )* ;
-std::shared_ptr<Expr> Parser::factor() {
-    auto left = unary();
+std::shared_ptr<Expr> Parser::parse_factor() {
+    auto left = parse_unary();
 
-    while (match({TokenType::SLASH, TokenType::STAR})) {
-        auto op = get_previous_tok();
-        auto right = unary();
+    while (validate_token_and_advance({TokenType::SLASH, TokenType::STAR})) {
+        auto op = get_prev_tok();
+        auto right = parse_unary();
         left = std::make_shared<Binary>(left, op, right);
     }
 
@@ -84,44 +128,46 @@ std::shared_ptr<Expr> Parser::factor() {
 }
 
 // unary → ( "!" | "-" ) unary | primary ;
-std::shared_ptr<Expr> Parser::unary() {
-    if (match({TokenType::BANG, TokenType::MINUS})) {
-        auto op = get_previous_tok();
-        std::shared_ptr<Expr> right = unary();
+std::shared_ptr<Expr> Parser::parse_unary() {
+    if (validate_token_and_advance({TokenType::BANG, TokenType::MINUS})) {
+        auto op = get_prev_tok();
+        std::shared_ptr<Expr> right = parse_unary();
         return std::make_shared<Unary>(op, right);
     }
 
-    return primary();
+    return parse_primary();
 }
 
 // primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")"
-std::shared_ptr<Expr> Parser::primary() {
-    if (match({TokenType::FALSE})) {
+std::shared_ptr<Expr> Parser::parse_primary() {
+    if (validate_token_and_advance({TokenType::FALSE})) {
         return std::make_shared<Literal>(false);
     }
-    if (match({TokenType::TRUE})) {
+    if (validate_token_and_advance({TokenType::TRUE})) {
         return std::make_shared<Literal>(true);
     }
-    if (match({TokenType::NIL})) {
+    if (validate_token_and_advance({TokenType::NIL})) {
         return std::make_shared<Literal>("nil");
     }
-    if (match({TokenType::NUMBER, TokenType::STRING})) {
-        auto tok = get_previous_tok();
+    if (validate_token_and_advance({TokenType::NUMBER, TokenType::STRING})) {
+        auto tok = get_prev_tok();
         return std::make_shared<Literal>(tok->literal);
     }
 
-    if (match({TokenType::LEFT_PAREN})) {
-        std::shared_ptr<Expr> expr = expression();
-        consume(TokenType::RIGHT_PAREN, "Expected ) character but not found.");
+    if (validate_token_and_advance({TokenType::LEFT_PAREN})) {
+        std::shared_ptr<Expr> expr = parse_expr();
+        validate_and_throw_err(TokenType::RIGHT_PAREN,
+                               "Expected ) character but not found.");
         return std::make_shared<Grouping>(expr);
     }
 
-    throw ParserException(peek(), "Parsering primary error: Expect expression");
+    throw ParserException(get_cur_tok(),
+                          "Parsering primary error: Expect expression");
 }
 
 bool Parser::consumed_all_tokens() { return current_tok_pos >= tokens.size(); }
 
-bool Parser::match(std::vector<TokenType> tok_types) {
+bool Parser::validate_token_and_advance(std::vector<TokenType> tok_types) {
     if (consumed_all_tokens()) {
         return false;
     }
@@ -136,34 +182,28 @@ bool Parser::match(std::vector<TokenType> tok_types) {
     return false;
 }
 
-bool Parser::is_cur_tok_type_match(TokenType tok_type) {
-    if (consumed_all_tokens()) {
-        return false;
-    }
-
-    return peek()->type == tok_type;
-}
-
 // get current token and move to the next tok
 std::shared_ptr<Token> Parser::advance() {
     if (!consumed_all_tokens()) {
         current_tok_pos++;
     }
-    return get_previous_tok();
+    return get_prev_tok();
 }
 
 // get current token without moving to the next tok
-std::shared_ptr<Token> Parser::peek() { return tokens.at(current_tok_pos); }
+std::shared_ptr<Token> Parser::get_cur_tok() {
+    return tokens.at(current_tok_pos);
+}
 
-std::shared_ptr<Token> Parser::get_previous_tok() {
+std::shared_ptr<Token> Parser::get_prev_tok() {
     return tokens.at(current_tok_pos - 1);
 }
 
 // check current token type before advance
-std::shared_ptr<Token> Parser::consume(TokenType type, std::string msg) {
-    if (is_cur_tok_type_match(type)) {
-        return advance();
+std::shared_ptr<Token> Parser::validate_and_throw_err(TokenType type,
+                                                      std::string msg) {
+    if (consumed_all_tokens() || get_cur_tok()->type != type) {
+        throw ParserException(get_cur_tok(), msg);
     }
-
-    throw ParserException(peek(), msg);
+    return advance();
 }

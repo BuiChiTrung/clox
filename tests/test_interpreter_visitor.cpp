@@ -19,10 +19,10 @@ void evaluateExpression(const std::string &source,
     auto tokens = scanner.scan_tokens();
 
     Parser parser{tokens};
-    auto expression = parser.parse();
+    auto expression = parser.parse_single_expr();
 
     InterpreterVisitor interpreter;
-    auto actual = interpreter.interpret(expression);
+    auto actual = interpreter.interpret_single_expr(expression);
 
     ASSERT_EQ(actual, expected);
 }

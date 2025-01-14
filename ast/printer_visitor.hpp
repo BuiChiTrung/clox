@@ -7,7 +7,7 @@
 #include <variant>
 
 // This visitor return string
-class PrinterVisitor : public IVisitor {
+class PrinterVisitor : public IExprVisitor {
   public:
     void print(std::shared_ptr<Expr> epxr) {
         std::cout << std::get<std::string>(epxr->accept(*this));

@@ -2,13 +2,14 @@
 #include "../clox/error_manager.hpp"
 #include "../clox/token.hpp"
 #include "./expr.hpp"
+#include "stmt.hpp"
 #include <iostream>
 #include <memory>
 #include <variant>
 
-class InterpreterVisitor : public IVisitor {
+class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
   public:
-    LiteralVariant interpret(std::shared_ptr<Expr> expression) {
+    LiteralVariant interpret_single_expr(std::shared_ptr<Expr> expression) {
         try {
             LiteralVariant result = evaluate_expr(expression);
             return result;
@@ -19,18 +20,42 @@ class InterpreterVisitor : public IVisitor {
         }
     }
 
-  private:
+    void interpret_program(std::vector<std::shared_ptr<Stmt>> stmts) {
+        try {
+            for (const auto &stmt : stmts) {
+                // exec stmt
+                stmt->accept(*this);
+            }
+            return;
+        }
+        catch (RuntimeException &err) {
+            ErrorManager::handle_runtime_err(err);
+            return;
+        }
+    }
+
     LiteralVariant evaluate_expr(std::shared_ptr<Expr> expr) {
         return expr->accept(*this);
     }
 
-    LiteralVariant visit_literal(const Literal &l) { return l.value; }
+    void visit_expr_stmt(const ExprStmt &e) override {
+        evaluate_expr(e.expr);
+        return;
+    }
 
-    LiteralVariant visit_grouping(const Grouping &g) {
+    void visit_print_stmt(const PrintStmt &p) override {
+        LiteralVariant val = evaluate_expr(p.expr);
+        std::cout << literal_to_string(val) << std::endl;
+        return;
+    }
+
+    LiteralVariant visit_literal(const Literal &l) override { return l.value; }
+
+    LiteralVariant visit_grouping(const Grouping &g) override {
         return evaluate_expr(g.expression);
     }
 
-    LiteralVariant visit_unary(const Unary &u) {
+    LiteralVariant visit_unary(const Unary &u) override {
         LiteralVariant right = evaluate_expr(u.right);
 
         switch (u.op->type) {
@@ -45,7 +70,7 @@ class InterpreterVisitor : public IVisitor {
         }
     }
 
-    LiteralVariant visit_binary(const Binary &b) {
+    LiteralVariant visit_binary(const Binary &b) override {
         LiteralVariant left = evaluate_expr(b.left);
         LiteralVariant right = evaluate_expr(b.right);
 

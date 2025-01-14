@@ -9,7 +9,7 @@ class Literal;
 
 // Use visitor design pattern to pack all the logic of override function for all
 // Exp subclass in a seperate Visitor class.
-class IVisitor {
+class IExprVisitor {
   public:
     virtual LiteralVariant visit_literal(const Literal &l) = 0;
     virtual LiteralVariant visit_grouping(const Grouping &g) = 0;
@@ -23,7 +23,7 @@ class Expr {
     // visitor.visit_<...>() in Expr subclass, we have to create a smart pointer
     // pointed to this, when this smart pointer run of scope, it'll destruct our
     // Visitor obj.
-    virtual LiteralVariant accept(IVisitor &visitor) = 0;
+    virtual LiteralVariant accept(IExprVisitor &visitor) = 0;
 };
 
 class Binary : public Expr {
@@ -36,7 +36,7 @@ class Binary : public Expr {
            std::shared_ptr<Expr> &right)
         : left(left), op(op), right(right) {}
 
-    LiteralVariant accept(IVisitor &visitor) override {
+    LiteralVariant accept(IExprVisitor &visitor) override {
         return visitor.visit_binary(*this);
     }
 };
@@ -47,7 +47,7 @@ class Grouping : public Expr {
 
     Grouping(std::shared_ptr<Expr> &expression) : expression(expression) {}
 
-    LiteralVariant accept(IVisitor &visitor) override {
+    LiteralVariant accept(IExprVisitor &visitor) override {
         return visitor.visit_grouping(*this);
     }
 };
@@ -58,7 +58,7 @@ class Literal : public Expr {
 
     Literal(LiteralVariant value) : value(value) {}
 
-    LiteralVariant accept(IVisitor &visitor) override {
+    LiteralVariant accept(IExprVisitor &visitor) override {
         return visitor.visit_literal(*this);
     }
 };
@@ -71,7 +71,7 @@ class Unary : public Expr {
     Unary(std::shared_ptr<Token> &op, std::shared_ptr<Expr> &right)
         : op(op), right(right) {}
 
-    LiteralVariant accept(IVisitor &visitor) override {
+    LiteralVariant accept(IExprVisitor &visitor) override {
         return visitor.visit_unary(*this);
     }
 };

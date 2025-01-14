@@ -25,16 +25,13 @@ class CLox {
         }
 
         auto parser = Parser(tokens);
-        auto expression = parser.parse();
-
+        auto stmts = parser.parse_program();
         if (ErrorManager::had_err) {
             std::cout << "Parser error occurs" << std::endl;
             return;
         }
 
-        printer_visitor->print(expression);
-        interpreter_visitor->interpret(expression);
-
+        interpreter_visitor->interpret_program(stmts);
         if (ErrorManager::had_runtime_err) {
             std::cout << "Runtime error occurs" << std::endl;
             return;

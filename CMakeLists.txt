@@ -11,7 +11,7 @@ target_include_directories(clox PRIVATE .)
 
 
 # Enable testing
-enable_testing()
+# enable_testing()
 
 # Add Google Test
 add_subdirectory(third_party/googletest)
