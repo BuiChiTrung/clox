@@ -1,6 +1,6 @@
 #pragma once
-#include "../ast/expr.hpp"
-#include "../ast/stmt.hpp"
+#include "ast/expr.hpp"
+#include "ast/stmt.hpp"
 #include "token.hpp"
 #include <memory>
 

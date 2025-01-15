@@ -1,6 +1,6 @@
 
 #include "parser.hpp"
-#include "../ast/stmt.hpp"
+#include "ast/stmt.hpp"
 #include "error_manager.hpp"
 #include "token.hpp"
 #include <memory>

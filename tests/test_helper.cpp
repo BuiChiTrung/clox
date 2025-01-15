@@ -1,4 +1,4 @@
-#include "../utils/helper.hpp"
+#include "clox/utils/helper.hpp"
 #include <gtest/gtest.h>
 #include <string>
 #include <vector>

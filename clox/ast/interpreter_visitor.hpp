@@ -1,7 +1,7 @@
 #pragma once
-#include "../clox/error_manager.hpp"
-#include "../clox/token.hpp"
-#include "./expr.hpp"
+#include "clox/ast/expr.hpp"
+#include "clox/error_manager.hpp"
+#include "clox/token.hpp"
 #include "stmt.hpp"
 #include <iostream>
 #include <memory>

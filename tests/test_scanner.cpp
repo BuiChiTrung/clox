@@ -1,6 +1,5 @@
-// #include "../third_party/googletest/googletest/include/gtest/gtest.h"
-#include "../clox/scanner.hpp"
-#include "../clox/token.hpp"
+#include "clox/scanner.hpp"
+#include "clox/token.hpp"
 #include <gtest/gtest.h>
 
 // Test: scan_tokens should correctly parse an arithmetic expression

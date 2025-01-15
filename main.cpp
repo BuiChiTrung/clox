@@ -1,5 +1,5 @@
-#include "ast/interpreter_visitor.hpp"
-#include "ast/printer_visitor.hpp"
+#include "clox/ast/interpreter_visitor.hpp"
+#include "clox/ast/printer_visitor.hpp"
 #include "clox/error_manager.hpp"
 #include "clox/parser.hpp"
 #include "clox/scanner.hpp"

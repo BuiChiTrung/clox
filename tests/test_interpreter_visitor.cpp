@@ -1,16 +1,12 @@
-#include "../ast/interpreter_visitor.hpp"
-#include "../clox/parser.hpp"
-#include "../clox/scanner.hpp"
+#include "clox/ast/interpreter_visitor.hpp"
+#include "clox/parser.hpp"
+#include "clox/scanner.hpp"
 #include <gtest/gtest.h>
 
 class InterpreterVisitorTest : public testing::Test {
   protected:
-    void SetUp() override {
-        // Setup code if needed
-    }
-    void TearDown() override {
-        // Cleanup code if needed
-    }
+    void SetUp() override {}
+    void TearDown() override {}
 };
 
 void evaluateExpression(const std::string &source,

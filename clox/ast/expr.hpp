@@ -1,5 +1,5 @@
 #pragma once
-#include "../clox/token.hpp"
+#include "clox/token.hpp"
 #include <memory>
 
 class Unary;
