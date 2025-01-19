@@ -1,5 +1,6 @@
 #pragma once
 #include "clox/ast/expr.hpp"
+#include "clox/environment.hpp"
 #include "clox/error_manager.hpp"
 #include "clox/token.hpp"
 #include "stmt.hpp"
@@ -9,6 +10,8 @@
 
 class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
   public:
+    std::shared_ptr<Environment> env = std::make_shared<Environment>();
+
     LiteralVariant interpret_single_expr(std::shared_ptr<Expr> expression) {
         try {
             LiteralVariant result = evaluate_expr(expression);
@@ -47,6 +50,19 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
         LiteralVariant val = evaluate_expr(p.expr);
         std::cout << literal_to_string(val) << std::endl;
         return;
+    }
+
+    void visit_var_stmt(const VarStmt &v) override {
+        LiteralVariant var_value = std::monostate();
+        if (v.initializer != nullptr) {
+            var_value = evaluate_expr(v.initializer);
+        }
+        env->add_new_variable(v.name, var_value);
+        return;
+    }
+
+    LiteralVariant visit_variable(const Variable &v) override {
+        return env->get_variable(v.name);
     }
 
     LiteralVariant visit_literal(const Literal &l) override { return l.value; }

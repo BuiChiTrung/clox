@@ -6,6 +6,7 @@ class Unary;
 class Binary;
 class Grouping;
 class Literal;
+class Variable;
 
 // Use visitor design pattern to pack all the logic of override function for all
 // Exp subclass in a seperate Visitor class.
@@ -15,6 +16,7 @@ class IExprVisitor {
     virtual LiteralVariant visit_grouping(const Grouping &g) = 0;
     virtual LiteralVariant visit_unary(const Unary &u) = 0;
     virtual LiteralVariant visit_binary(const Binary &b) = 0;
+    virtual LiteralVariant visit_variable(const Variable &v) = 0;
 };
 
 class Expr {
@@ -73,5 +75,16 @@ class Unary : public Expr {
 
     LiteralVariant accept(IExprVisitor &visitor) override {
         return visitor.visit_unary(*this);
+    }
+};
+
+class Variable : public Expr {
+  public:
+    std::shared_ptr<Token> name;
+
+    Variable(std::shared_ptr<Token> name) : name(name) {}
+
+    LiteralVariant accept(IExprVisitor &visitor) override {
+        return visitor.visit_variable(*this);
     }
 };

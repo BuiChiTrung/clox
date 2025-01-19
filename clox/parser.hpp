@@ -1,6 +1,7 @@
 #pragma once
 #include "ast/expr.hpp"
 #include "ast/stmt.hpp"
+#include "environment.hpp"
 #include "token.hpp"
 #include <memory>
 
@@ -16,6 +17,7 @@ class Parser {
     uint32_t current_tok_pos = 0;
 
     std::shared_ptr<Stmt> parse_stmt();
+    std::shared_ptr<Stmt> parse_var_stmt();
     std::shared_ptr<Stmt> parse_print_stmt();
     std::shared_ptr<Stmt> parse_expr_stmt();
     std::shared_ptr<Expr> parse_expr();
@@ -34,4 +36,6 @@ class Parser {
     std::shared_ptr<Token> get_cur_tok();
     std::shared_ptr<Token> validate_and_throw_err(TokenType type,
                                                   std::string msg);
+
+    void panic_mode_synchornize();
 };

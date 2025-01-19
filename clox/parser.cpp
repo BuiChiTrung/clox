@@ -1,9 +1,12 @@
 
 #include "parser.hpp"
 #include "ast/stmt.hpp"
+#include "clox/ast/expr.hpp"
 #include "error_manager.hpp"
 #include "token.hpp"
+#include <malloc/_malloc_type.h>
 #include <memory>
+#include <variant>
 
 Parser::Parser(std::vector<std::shared_ptr<Token>> tokens) : tokens(tokens) {}
 
@@ -20,24 +23,45 @@ std::shared_ptr<Expr> Parser::parse_single_expr() {
 // program → statement*;
 std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
     std::vector<std::shared_ptr<Stmt>> stmts{};
+    while (!consumed_all_tokens()) {
+        stmts.push_back(parse_stmt());
+    }
+    return stmts;
+}
+
+// statement → exprStmt | printStmt | varStmt;
+std::shared_ptr<Stmt> Parser::parse_stmt() {
     try {
-        while (!consumed_all_tokens()) {
-            stmts.push_back(parse_stmt());
+        if (validate_token_and_advance({TokenType::VAR})) {
+            return parse_var_stmt();
         }
-        return stmts;
+        if (validate_token_and_advance({TokenType::PRINT})) {
+            return parse_print_stmt();
+        }
+        return parse_expr_stmt();
     }
     catch (ParserException &err) {
-        ErrorManager::handle_parser_err(err);
-        return stmts;
+        panic_mode_synchornize();
+        return nullptr;
     }
 }
 
-// statement → exprStmt | printStmt ;
-std::shared_ptr<Stmt> Parser::parse_stmt() {
-    if (validate_token_and_advance({TokenType::PRINT})) {
-        return parse_print_stmt();
+// varStmt → "var" IDENTIFIER ( "=" expression )? ";" ;
+std::shared_ptr<Stmt> Parser::parse_var_stmt() {
+    validate_and_throw_err(TokenType::IDENTIFIER, "Expected a variable name");
+    std::shared_ptr<Token> tok_var = get_prev_tok();
+
+    std::shared_ptr<Expr> var_initializer = nullptr;
+    LiteralVariant var_value = std::monostate();
+    if (validate_token_and_advance({TokenType::EQUAL})) {
+        var_initializer = parse_expr();
     }
-    return parse_expr_stmt();
+
+    validate_and_throw_err(
+        TokenType::SEMICOLON,
+        "Expected ; at the end of variable declaration statement");
+
+    return std::make_shared<VarStmt>(tok_var, var_initializer);
 }
 
 // printStmt  → "print" expression ";" ;
@@ -138,8 +162,12 @@ std::shared_ptr<Expr> Parser::parse_unary() {
     return parse_primary();
 }
 
-// primary → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")"
+// primary → IDENTIFIER | NUMBER | STRING | "true" | "false" | "nil" | "("
+// expression ")"
 std::shared_ptr<Expr> Parser::parse_primary() {
+    if (validate_token_and_advance({TokenType::IDENTIFIER})) {
+        return std::make_shared<Variable>(get_prev_tok());
+    }
     if (validate_token_and_advance({TokenType::FALSE})) {
         return std::make_shared<Literal>(false);
     }
@@ -206,4 +234,27 @@ std::shared_ptr<Token> Parser::validate_and_throw_err(TokenType type,
         throw ParserException(get_cur_tok(), msg);
     }
     return advance();
+}
+
+void Parser::panic_mode_synchornize() {
+    advance();
+
+    while (!consumed_all_tokens()) {
+        if (get_prev_tok()->type == TokenType::SEMICOLON)
+            return;
+
+        switch (get_cur_tok()->type) {
+        case TokenType::CLASS:
+        case TokenType::FUNC:
+        case TokenType::VAR:
+        case TokenType::FOR:
+        case TokenType::IF:
+        case TokenType::WHILE:
+        case TokenType::PRINT:
+        case TokenType::RETURN:
+            return;
+        default:
+            advance();
+        }
+    }
 }

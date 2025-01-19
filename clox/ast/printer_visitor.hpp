@@ -27,6 +27,10 @@ class PrinterVisitor : public IExprVisitor {
         return builder.str();
     }
 
+    LiteralVariant visit_variable(const Variable &v) {
+        return this->print_expr(v.name->lexeme, {});
+    }
+
     LiteralVariant visit_unary(const Unary &u) {
         return this->print_expr(u.op->lexeme, {u.right});
     }

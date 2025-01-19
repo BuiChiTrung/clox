@@ -1,7 +1,7 @@
 #pragma once
 #include <sys/types.h>
 
-#include "../utils/magic_enum.hpp"
+#include "clox/utils/magic_enum.hpp"
 #include <format>
 #include <map>
 #include <string>
@@ -65,7 +65,7 @@ enum class TokenType {
     CLASS,
     ELSE,
     FALSE,
-    FUN,
+    FUNC,
     FOR,
     IF,
     NIL,
@@ -84,7 +84,7 @@ enum class TokenType {
 const std::map<std::string, TokenType> reserved_kws = {
     {"and", TokenType::AND},       {"class", TokenType::CLASS},
     {"else", TokenType::ELSE},     {"false", TokenType::FALSE},
-    {"for", TokenType::FOR},       {"fun", TokenType::FUN},
+    {"for", TokenType::FOR},       {"fun", TokenType::FUNC},
     {"if", TokenType::IF},         {"nil", TokenType::NIL},
     {"or", TokenType::OR},         {"print", TokenType::PRINT},
     {"return", TokenType::RETURN}, {"super", TokenType::SUPER},
