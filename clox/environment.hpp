@@ -9,5 +9,7 @@ class Environment {
 
   public:
     void add_new_variable(std::shared_ptr<Token> name, LiteralVariant value);
-    LiteralVariant get_variable(std::shared_ptr<Token> var);
+    LiteralVariant get_variable(std::shared_ptr<Token> var_tok);
+    void assign_new_value_to_variable(std::shared_ptr<Token> var_tok,
+                                      LiteralVariant value);
 };

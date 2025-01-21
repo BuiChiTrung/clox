@@ -20,9 +20,9 @@ class CLox {
         auto scanner = std::make_unique<Scanner>(source);
         std::vector<std::shared_ptr<Token>> tokens = scanner->scan_tokens();
 
-        for (auto token : tokens) {
-            std::cout << token->toString() << std::endl;
-        }
+        // for (auto token : tokens) {
+        //     std::cout << token->toString() << std::endl;
+        // }
 
         auto parser = Parser(tokens);
         auto stmts = parser.parse_program();

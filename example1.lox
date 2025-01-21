@@ -4,5 +4,6 @@ print !(false or true);
 var a = "Moon ";
 var b = "Light";
 var c;
-print a + b;
+print c;
+c = a + b;
 print c;

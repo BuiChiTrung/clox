@@ -4,6 +4,7 @@
 #include "clox/ast/expr.hpp"
 #include "error_manager.hpp"
 #include "token.hpp"
+#include <iostream>
 #include <malloc/_malloc_type.h>
 #include <memory>
 #include <variant>
@@ -20,7 +21,7 @@ std::shared_ptr<Expr> Parser::parse_single_expr() {
     }
 }
 
-// program → statement*;
+// program → statement*
 std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
     std::vector<std::shared_ptr<Stmt>> stmts{};
     while (!consumed_all_tokens()) {
@@ -29,7 +30,7 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
     return stmts;
 }
 
-// statement → exprStmt | printStmt | varStmt;
+// statement → exprStmt | printStmt | varStmt | assignStmt
 std::shared_ptr<Stmt> Parser::parse_stmt() {
     try {
         if (validate_token_and_advance({TokenType::VAR})) {
@@ -38,15 +39,18 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
         if (validate_token_and_advance({TokenType::PRINT})) {
             return parse_print_stmt();
         }
-        return parse_expr_stmt();
+        // TODO(trung.bc): not use assign stmt as fallback stmt
+        return parse_assign_stmt();
+        // return parse_expr_stmt();
     }
     catch (ParserException &err) {
+        std::cout << err.message;
         panic_mode_synchornize();
         return nullptr;
     }
 }
 
-// varStmt → "var" IDENTIFIER ( "=" expression )? ";" ;
+// varStmt → "var" IDENTIFIER ( "=" expression )? ";"
 std::shared_ptr<Stmt> Parser::parse_var_stmt() {
     validate_and_throw_err(TokenType::IDENTIFIER, "Expected a variable name");
     std::shared_ptr<Token> tok_var = get_prev_tok();
@@ -64,12 +68,40 @@ std::shared_ptr<Stmt> Parser::parse_var_stmt() {
     return std::make_shared<VarStmt>(tok_var, var_initializer);
 }
 
-// printStmt  → "print" expression ";" ;
+// printStmt  → "print" expression ";"
 std::shared_ptr<Stmt> Parser::parse_print_stmt() {
     auto stmt = std::make_shared<PrintStmt>(parse_expr());
     validate_and_throw_err(TokenType::SEMICOLON,
                            "Expected ; at the end of print statement");
     return stmt;
+}
+
+// assignStmt -> "l_value" = "expr" ";"
+std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
+    std::shared_ptr<Expr> expr = parse_expr();
+
+    if (validate_token_and_advance({TokenType::EQUAL})) {
+        // TODO(trung.bc): support complex assignment - obj.x = <value>.
+        // For now, only support variable assignment.
+        std::shared_ptr<Variable> var =
+            std::dynamic_pointer_cast<Variable>(expr);
+        if (!var) {
+            throw ParserException(
+                get_cur_tok(),
+                "Expected to assign new value to a variable only");
+        }
+
+        // can be both r-value, l-value
+        std::shared_ptr<Expr> value = parse_expr();
+        validate_and_throw_err(TokenType::SEMICOLON,
+                               "Expected ; at the end of print statement");
+        return std::make_shared<AssignStmt>(var, value);
+    }
+
+    // TODO(trung.bc): move logic to handle expr stmt out of this func
+    validate_and_throw_err(TokenType::SEMICOLON,
+                           "Expected ; at the end of expresssion statement");
+    return std::make_shared<ExprStmt>(expr);
 }
 
 // exprStmt → expression ";" ;
@@ -83,7 +115,7 @@ std::shared_ptr<Stmt> Parser::parse_expr_stmt() {
 // expression → logic ;
 std::shared_ptr<Expr> Parser::parse_expr() { return parse_logic_expr(); }
 
-// logic → equality ( ( "and" | "or" ) equality )* ;
+// logic → equality ( ( "and" | "or" ) equality )*
 std::shared_ptr<Expr> Parser::parse_logic_expr() {
     auto left = parse_equality_expr();
 
@@ -96,7 +128,7 @@ std::shared_ptr<Expr> Parser::parse_logic_expr() {
     return left;
 }
 
-// equality → comparison ( ( "!=" | "==" ) comparison )* ;
+// equality → comparison ( ( "!=" | "==" ) comparison )*
 std::shared_ptr<Expr> Parser::parse_equality_expr() {
     auto left = parse_comparision_expr();
 
@@ -110,7 +142,7 @@ std::shared_ptr<Expr> Parser::parse_equality_expr() {
     return left;
 }
 
-// comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+// comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )*
 std::shared_ptr<Expr> Parser::parse_comparision_expr() {
     auto left = parse_term();
 
@@ -125,7 +157,7 @@ std::shared_ptr<Expr> Parser::parse_comparision_expr() {
     return left;
 }
 
-// term → factor ( ( "-" | "+" ) factor )* ;
+// term → factor ( ( "-" | "+" ) factor )*
 std::shared_ptr<Expr> Parser::parse_term() {
     auto left = parse_factor();
 
@@ -138,7 +170,7 @@ std::shared_ptr<Expr> Parser::parse_term() {
     return left;
 }
 
-// factor → unary ( ( "/" | "*" ) unary )* ;
+// factor → unary ( ( "/" | "*" ) unary )*
 std::shared_ptr<Expr> Parser::parse_factor() {
     auto left = parse_unary();
 
@@ -151,7 +183,7 @@ std::shared_ptr<Expr> Parser::parse_factor() {
     return left;
 }
 
-// unary → ( "!" | "-" ) unary | primary ;
+// unary → ( "!" | "-" ) unary | primary
 std::shared_ptr<Expr> Parser::parse_unary() {
     if (validate_token_and_advance({TokenType::BANG, TokenType::MINUS})) {
         auto op = get_prev_tok();

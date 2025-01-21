@@ -46,6 +46,12 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
         return;
     }
 
+    void visit_assign_stmt(const AssignStmt &a) override {
+        LiteralVariant new_value = evaluate_expr(a.value);
+        env->assign_new_value_to_variable(a.var->name, new_value);
+        return;
+    }
+
     void visit_print_stmt(const PrintStmt &p) override {
         LiteralVariant val = evaluate_expr(p.expr);
         std::cout << literal_to_string(val) << std::endl;
@@ -57,7 +63,7 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
         if (v.initializer != nullptr) {
             var_value = evaluate_expr(v.initializer);
         }
-        env->add_new_variable(v.name, var_value);
+        env->add_new_variable(v.var_name, var_value);
         return;
     }
 
