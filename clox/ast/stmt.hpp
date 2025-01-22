@@ -6,6 +6,7 @@ class ExprStmt;
 class PrintStmt;
 class VarStmt;
 class AssignStmt;
+class BlockStmt;
 
 class IStmtVisitor {
   public:
@@ -13,6 +14,7 @@ class IStmtVisitor {
     virtual void visit_print_stmt(const PrintStmt &p) = 0;
     virtual void visit_var_stmt(const VarStmt &p) = 0;
     virtual void visit_assign_stmt(const AssignStmt &a) = 0;
+    virtual void visit_block_stmt(const BlockStmt &b) = 0;
 };
 
 class Stmt {
@@ -51,11 +53,20 @@ class VarStmt : public Stmt {
 
 class AssignStmt : public Stmt {
   public:
-    std::shared_ptr<Variable> var;
+    std::shared_ptr<VariableExpr> var;
     std::shared_ptr<Expr> value;
 
-    AssignStmt(std::shared_ptr<Variable> var, std::shared_ptr<Expr> value)
+    AssignStmt(std::shared_ptr<VariableExpr> var, std::shared_ptr<Expr> value)
         : var(var), value(value) {}
 
     void accept(IStmtVisitor &v) override { return v.visit_assign_stmt(*this); }
+};
+
+class BlockStmt : public Stmt {
+  public:
+    std::vector<std::shared_ptr<Stmt>> stmts;
+
+    BlockStmt(std::vector<std::shared_ptr<Stmt>> stmts) : stmts(stmts) {}
+
+    void accept(IStmtVisitor &v) override { return v.visit_block_stmt(*this); }
 };

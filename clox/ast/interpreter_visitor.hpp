@@ -67,17 +67,28 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
         return;
     }
 
-    LiteralVariant visit_variable(const Variable &v) override {
+    void visit_block_stmt(const BlockStmt &b) override {
+        auto parent_scope_env = this->env;
+        this->env = std::make_shared<Environment>(parent_scope_env);
+        for (auto stmt : b.stmts) {
+            stmt->accept(*this);
+        }
+        this->env = parent_scope_env;
+    }
+
+    LiteralVariant visit_variable(const VariableExpr &v) override {
         return env->get_variable(v.name);
     }
 
-    LiteralVariant visit_literal(const Literal &l) override { return l.value; }
+    LiteralVariant visit_literal(const LiteralExpr &l) override {
+        return l.value;
+    }
 
-    LiteralVariant visit_grouping(const Grouping &g) override {
+    LiteralVariant visit_grouping(const GroupExpr &g) override {
         return evaluate_expr(g.expression);
     }
 
-    LiteralVariant visit_unary(const Unary &u) override {
+    LiteralVariant visit_unary(const UnaryExpr &u) override {
         LiteralVariant right = evaluate_expr(u.right);
 
         switch (u.op->type) {
@@ -92,7 +103,7 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
         }
     }
 
-    LiteralVariant visit_binary(const Binary &b) override {
+    LiteralVariant visit_binary(const BinaryExpr &b) override {
         LiteralVariant left = evaluate_expr(b.left);
         LiteralVariant right = evaluate_expr(b.right);
 

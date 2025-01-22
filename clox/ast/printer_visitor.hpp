@@ -27,23 +27,23 @@ class PrinterVisitor : public IExprVisitor {
         return builder.str();
     }
 
-    LiteralVariant visit_variable(const Variable &v) {
+    LiteralVariant visit_variable(const VariableExpr &v) {
         return this->print_expr(v.name->lexeme, {});
     }
 
-    LiteralVariant visit_unary(const Unary &u) {
+    LiteralVariant visit_unary(const UnaryExpr &u) {
         return this->print_expr(u.op->lexeme, {u.right});
     }
 
-    LiteralVariant visit_binary(const Binary &b) {
+    LiteralVariant visit_binary(const BinaryExpr &b) {
         return this->print_expr(b.op->lexeme, {b.left, b.right});
     }
 
-    LiteralVariant visit_grouping(const Grouping &g) {
+    LiteralVariant visit_grouping(const GroupExpr &g) {
         return this->print_expr("group", {g.expression});
     }
 
-    LiteralVariant visit_literal(const Literal &l) {
+    LiteralVariant visit_literal(const LiteralExpr &l) {
         if (std::holds_alternative<bool>(l.value)) {
             return std::get<bool>(l.value) ? "true" : "false";
         }

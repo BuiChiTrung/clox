@@ -30,9 +30,12 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
     return stmts;
 }
 
-// statement → exprStmt | printStmt | varStmt | assignStmt
+// statement → block | exprStmt | printStmt | varStmt | assignStmt
 std::shared_ptr<Stmt> Parser::parse_stmt() {
     try {
+        if (validate_token_and_advance({TokenType::LEFT_BRACE})) {
+            return parse_block();
+        }
         if (validate_token_and_advance({TokenType::VAR})) {
             return parse_var_stmt();
         }
@@ -48,6 +51,22 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
         panic_mode_synchornize();
         return nullptr;
     }
+}
+
+// block → "{" statement* "}"
+std::shared_ptr<Stmt> Parser::parse_block() {
+    std::vector<std::shared_ptr<Stmt>> stmts{};
+
+    while (!consumed_all_tokens() and
+           get_cur_tok()->type != TokenType::RIGHT_BRACE) {
+        stmts.push_back(parse_stmt());
+    }
+
+    validate_and_throw_err(
+        TokenType::RIGHT_BRACE,
+        "Expected close bracket '}' at the end of the block");
+
+    return std::make_shared<BlockStmt>(stmts);
 }
 
 // varStmt → "var" IDENTIFIER ( "=" expression )? ";"
@@ -83,8 +102,8 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
     if (validate_token_and_advance({TokenType::EQUAL})) {
         // TODO(trung.bc): support complex assignment - obj.x = <value>.
         // For now, only support variable assignment.
-        std::shared_ptr<Variable> var =
-            std::dynamic_pointer_cast<Variable>(expr);
+        std::shared_ptr<VariableExpr> var =
+            std::dynamic_pointer_cast<VariableExpr>(expr);
         if (!var) {
             throw ParserException(
                 get_cur_tok(),
@@ -122,7 +141,7 @@ std::shared_ptr<Expr> Parser::parse_logic_expr() {
     while (validate_token_and_advance({TokenType::AND, TokenType::OR})) {
         auto op = get_prev_tok();
         auto right = parse_equality_expr();
-        left = std::make_shared<Binary>(left, op, right);
+        left = std::make_shared<BinaryExpr>(left, op, right);
     }
 
     return left;
@@ -136,7 +155,7 @@ std::shared_ptr<Expr> Parser::parse_equality_expr() {
         {TokenType::BANG_EQUAL, TokenType::EQUAL_EQUAL})) {
         auto op = get_prev_tok();
         auto right = parse_comparision_expr();
-        left = std::make_shared<Binary>(left, op, right);
+        left = std::make_shared<BinaryExpr>(left, op, right);
     }
 
     return left;
@@ -151,7 +170,7 @@ std::shared_ptr<Expr> Parser::parse_comparision_expr() {
                                        TokenType::LESS_EQUAL})) {
         auto op = get_prev_tok();
         auto right = parse_term();
-        left = std::make_shared<Binary>(left, op, right);
+        left = std::make_shared<BinaryExpr>(left, op, right);
     }
 
     return left;
@@ -164,7 +183,7 @@ std::shared_ptr<Expr> Parser::parse_term() {
     while (validate_token_and_advance({TokenType::MINUS, TokenType::PLUS})) {
         auto op = get_prev_tok();
         auto right = parse_factor();
-        left = std::make_shared<Binary>(left, op, right);
+        left = std::make_shared<BinaryExpr>(left, op, right);
     }
 
     return left;
@@ -177,7 +196,7 @@ std::shared_ptr<Expr> Parser::parse_factor() {
     while (validate_token_and_advance({TokenType::SLASH, TokenType::STAR})) {
         auto op = get_prev_tok();
         auto right = parse_unary();
-        left = std::make_shared<Binary>(left, op, right);
+        left = std::make_shared<BinaryExpr>(left, op, right);
     }
 
     return left;
@@ -188,7 +207,7 @@ std::shared_ptr<Expr> Parser::parse_unary() {
     if (validate_token_and_advance({TokenType::BANG, TokenType::MINUS})) {
         auto op = get_prev_tok();
         std::shared_ptr<Expr> right = parse_unary();
-        return std::make_shared<Unary>(op, right);
+        return std::make_shared<UnaryExpr>(op, right);
     }
 
     return parse_primary();
@@ -198,27 +217,27 @@ std::shared_ptr<Expr> Parser::parse_unary() {
 // expression ")"
 std::shared_ptr<Expr> Parser::parse_primary() {
     if (validate_token_and_advance({TokenType::IDENTIFIER})) {
-        return std::make_shared<Variable>(get_prev_tok());
+        return std::make_shared<VariableExpr>(get_prev_tok());
     }
     if (validate_token_and_advance({TokenType::FALSE})) {
-        return std::make_shared<Literal>(false);
+        return std::make_shared<LiteralExpr>(false);
     }
     if (validate_token_and_advance({TokenType::TRUE})) {
-        return std::make_shared<Literal>(true);
+        return std::make_shared<LiteralExpr>(true);
     }
     if (validate_token_and_advance({TokenType::NIL})) {
-        return std::make_shared<Literal>("nil");
+        return std::make_shared<LiteralExpr>("nil");
     }
     if (validate_token_and_advance({TokenType::NUMBER, TokenType::STRING})) {
         auto tok = get_prev_tok();
-        return std::make_shared<Literal>(tok->literal);
+        return std::make_shared<LiteralExpr>(tok->literal);
     }
 
     if (validate_token_and_advance({TokenType::LEFT_PAREN})) {
         std::shared_ptr<Expr> expr = parse_expr();
         validate_and_throw_err(TokenType::RIGHT_PAREN,
                                "Expected ) character but not found.");
-        return std::make_shared<Grouping>(expr);
+        return std::make_shared<GroupExpr>(expr);
     }
 
     throw ParserException(get_cur_tok(),
