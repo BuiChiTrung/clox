@@ -1,6 +1,7 @@
 **Language**: simple set of rules of syntaxs to write a program
 **Programming language implementation**: is a system for executing [computer programs](https://en.wikipedia.org/wiki/Computer_programs "Computer programs"). There are two general approaches: interpretation, compilication.
 ## C2 - Terminologies
+
 ### Parts of a language
 **Scanning/Lexing**
 Takes the code stream and converts it to tokens: `(`, `,`, numers, string, etc. Ex:
