@@ -4,6 +4,7 @@
 #include "clox/ast/expr.hpp"
 #include "error_manager.hpp"
 #include "token.hpp"
+#include <cstddef>
 #include <iostream>
 #include <malloc/_malloc_type.h>
 #include <memory>
@@ -30,9 +31,12 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
     return stmts;
 }
 
-// statement → block | exprStmt | printStmt | varStmt | assignStmt
+// statement → block | ifStmt | exprStmt | printStmt | varStmt | assignStmt
 std::shared_ptr<Stmt> Parser::parse_stmt() {
     try {
+        if (validate_token_and_advance({TokenType::IF})) {
+            return parse_if_stmt();
+        }
         if (validate_token_and_advance({TokenType::LEFT_BRACE})) {
             return parse_block();
         }
@@ -62,16 +66,34 @@ std::shared_ptr<Stmt> Parser::parse_block() {
         stmts.push_back(parse_stmt());
     }
 
-    validate_and_throw_err(
+    assert_tok_and_advance(
         TokenType::RIGHT_BRACE,
         "Expected close bracket '}' at the end of the block");
 
     return std::make_shared<BlockStmt>(stmts);
 }
 
+// ifStmt -> "if" expression block ("else" block)?
+std::shared_ptr<Stmt> Parser::parse_if_stmt() {
+    auto condition = parse_expr();
+
+    assert_tok_and_advance(TokenType::LEFT_BRACE,
+                           "Expected { after if statement");
+    auto if_block = parse_block();
+
+    std::shared_ptr<Stmt> else_block = nullptr;
+    if (validate_token_and_advance({TokenType::ELSE})) {
+        assert_tok_and_advance(TokenType::LEFT_BRACE,
+                               "Expected { after else statement");
+        else_block = parse_block();
+    }
+
+    return std::make_shared<IfStmt>(condition, if_block, else_block);
+}
+
 // varStmt → "var" IDENTIFIER ( "=" expression )? ";"
 std::shared_ptr<Stmt> Parser::parse_var_stmt() {
-    validate_and_throw_err(TokenType::IDENTIFIER, "Expected a variable name");
+    assert_tok_and_advance(TokenType::IDENTIFIER, "Expected a variable name");
     std::shared_ptr<Token> tok_var = get_prev_tok();
 
     std::shared_ptr<Expr> var_initializer = nullptr;
@@ -80,7 +102,7 @@ std::shared_ptr<Stmt> Parser::parse_var_stmt() {
         var_initializer = parse_expr();
     }
 
-    validate_and_throw_err(
+    assert_tok_and_advance(
         TokenType::SEMICOLON,
         "Expected ; at the end of variable declaration statement");
 
@@ -90,7 +112,7 @@ std::shared_ptr<Stmt> Parser::parse_var_stmt() {
 // printStmt  → "print" expression ";"
 std::shared_ptr<Stmt> Parser::parse_print_stmt() {
     auto stmt = std::make_shared<PrintStmt>(parse_expr());
-    validate_and_throw_err(TokenType::SEMICOLON,
+    assert_tok_and_advance(TokenType::SEMICOLON,
                            "Expected ; at the end of print statement");
     return stmt;
 }
@@ -112,13 +134,13 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
 
         // can be both r-value, l-value
         std::shared_ptr<Expr> value = parse_expr();
-        validate_and_throw_err(TokenType::SEMICOLON,
+        assert_tok_and_advance(TokenType::SEMICOLON,
                                "Expected ; at the end of print statement");
         return std::make_shared<AssignStmt>(var, value);
     }
 
     // TODO(trung.bc): move logic to handle expr stmt out of this func
-    validate_and_throw_err(TokenType::SEMICOLON,
+    assert_tok_and_advance(TokenType::SEMICOLON,
                            "Expected ; at the end of expresssion statement");
     return std::make_shared<ExprStmt>(expr);
 }
@@ -126,7 +148,7 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
 // exprStmt → expression ";" ;
 std::shared_ptr<Stmt> Parser::parse_expr_stmt() {
     auto stmt = std::make_shared<ExprStmt>(parse_expr());
-    validate_and_throw_err(TokenType::SEMICOLON,
+    assert_tok_and_advance(TokenType::SEMICOLON,
                            "Expected ; at the end of expresssion statement");
     return stmt;
 }
@@ -235,7 +257,7 @@ std::shared_ptr<Expr> Parser::parse_primary() {
 
     if (validate_token_and_advance({TokenType::LEFT_PAREN})) {
         std::shared_ptr<Expr> expr = parse_expr();
-        validate_and_throw_err(TokenType::RIGHT_PAREN,
+        assert_tok_and_advance(TokenType::RIGHT_PAREN,
                                "Expected ) character but not found.");
         return std::make_shared<GroupExpr>(expr);
     }
@@ -278,8 +300,7 @@ std::shared_ptr<Token> Parser::get_prev_tok() {
     return tokens.at(current_tok_pos - 1);
 }
 
-// check current token type before advance
-std::shared_ptr<Token> Parser::validate_and_throw_err(TokenType type,
+std::shared_ptr<Token> Parser::assert_tok_and_advance(TokenType type,
                                                       std::string msg) {
     if (consumed_all_tokens() || get_cur_tok()->type != type) {
         throw ParserException(get_cur_tok(), msg);

@@ -413,6 +413,46 @@ void visit_block_stmt(const BlockStmt &b) override {
         this->env = parent_scope_env;
     }
 ```
+## C9 - Control flow
+2 kind of control flow: 
++ Branching 
++ Looping
+### Conditional execution
+Note: there is a case like this
+```cpp
+if (first) if (second) whenTrue(); elsewhenFalse();
+```
+This can be parsed into 1 of 2 cases below: 
+![|500](Pasted%20image%2020250204233132.png)
+Most language choose to stick `else` to nearest `if` (case 2).
+
+**Parsing rule**: To avoid the corner case above. I follow golang rule, not like the book, make it required to have {} after the condition expression. `{` also tell the parser when the condition expr is ended instead of having to use `()` wrap around expr like in C, Java.
+```
+statement → block | ifStmt | exprStmt | printStmt | varStmt | assignStmt
+ifStmt -> "if" expression block ("else" block)?
+```
+**Present in syntax tree**:
+```cpp
+class IfStmt : public Stmt {
+  public:
+    std::shared_ptr<Expr> condition;
+    std::shared_ptr<Stmt> if_block;
+    std::shared_ptr<Stmt> else_block;
+}
+```
+**Evaluate node:**
+```cpp
+void InterpreterVisitor::visit_if_stmt(const IfStmt &i) {
+    auto expr_val = evaluate_expr(i.condition);
+    if (cast_literal_to_bool(expr_val)) {
+        i.if_block->accept(*this);
+    }
+    else if (i.else_block != nullptr) {
+        i.else_block->accept(*this);
+    }
+    return;
+}
+```
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`

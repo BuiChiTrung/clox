@@ -60,6 +60,17 @@ void InterpreterVisitor::visit_var_stmt(const VarStmt &v) {
     return;
 }
 
+void InterpreterVisitor::visit_if_stmt(const IfStmt &i) {
+    auto expr_val = evaluate_expr(i.condition);
+    if (cast_literal_to_bool(expr_val)) {
+        i.if_block->accept(*this);
+    }
+    else if (i.else_block != nullptr) {
+        i.else_block->accept(*this);
+    }
+    return;
+}
+
 void InterpreterVisitor::visit_block_stmt(const BlockStmt &b) {
     auto parent_scope_env = this->env;
     this->env = std::make_shared<Environment>(parent_scope_env);
@@ -67,6 +78,7 @@ void InterpreterVisitor::visit_block_stmt(const BlockStmt &b) {
         stmt->accept(*this);
     }
     this->env = parent_scope_env;
+    return;
 }
 
 LiteralVariant InterpreterVisitor::visit_variable(const VariableExpr &v) {

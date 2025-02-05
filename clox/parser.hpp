@@ -18,6 +18,7 @@ class Parser {
 
     std::shared_ptr<Stmt> parse_stmt();
     std::shared_ptr<Stmt> parse_block();
+    std::shared_ptr<Stmt> parse_if_stmt();
     std::shared_ptr<Stmt> parse_var_stmt();
     std::shared_ptr<Stmt> parse_print_stmt();
     std::shared_ptr<Stmt> parse_assign_stmt();
@@ -36,7 +37,7 @@ class Parser {
     std::shared_ptr<Token> get_prev_tok();
     std::shared_ptr<Token> advance();
     std::shared_ptr<Token> get_cur_tok();
-    std::shared_ptr<Token> validate_and_throw_err(TokenType type,
+    std::shared_ptr<Token> assert_tok_and_advance(TokenType type,
                                                   std::string msg);
 
     void panic_mode_synchornize();
