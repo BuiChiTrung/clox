@@ -154,10 +154,17 @@ LiteralVariant InterpreterVisitor::visit_binary(const BinaryExpr &b) {
         return !is_equal(left, right);
     case TokenType::EQUAL_EQUAL:
         return is_equal(left, right);
+    // Special case: we may know the result after evaluating the left expr
     case TokenType::AND:
-        return cast_literal_to_bool(left) && cast_literal_to_bool(right);
+        if (!cast_literal_to_bool(left)) {
+            return false;
+        }
+        return cast_literal_to_bool(right);
     case TokenType::OR:
-        return cast_literal_to_bool(left) || cast_literal_to_bool(right);
+        if (cast_literal_to_bool(left)) {
+            return true;
+        }
+        return cast_literal_to_bool(right);
     default:
         ErrorManager::handle_err(b.op->line, "Invalid binary expression");
         return std::monostate();

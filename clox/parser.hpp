@@ -24,7 +24,8 @@ class Parser {
     std::shared_ptr<Stmt> parse_assign_stmt();
     std::shared_ptr<Stmt> parse_expr_stmt();
     std::shared_ptr<Expr> parse_expr();
-    std::shared_ptr<Expr> parse_logic_expr();
+    std::shared_ptr<Expr> parse_logic_or_expr();
+    std::shared_ptr<Expr> parse_logic_and_expr();
     std::shared_ptr<Expr> parse_equality_expr();
     std::shared_ptr<Expr> parse_comparision_expr();
     std::shared_ptr<Expr> parse_term();

@@ -453,6 +453,10 @@ void InterpreterVisitor::visit_if_stmt(const IfStmt &i) {
     return;
 }
 ```
+### Logical operation
+expression → logic_or ;
+logic_or → logic_and ( "or" logic_and )*
+logic_and → equality ( "and" equality )*
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`

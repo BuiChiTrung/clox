@@ -4,7 +4,6 @@
 #include "clox/ast/expr.hpp"
 #include "error_manager.hpp"
 #include "token.hpp"
-#include <cstddef>
 #include <iostream>
 #include <malloc/_malloc_type.h>
 #include <memory>
@@ -153,14 +152,27 @@ std::shared_ptr<Stmt> Parser::parse_expr_stmt() {
     return stmt;
 }
 
-// expression → logic ;
-std::shared_ptr<Expr> Parser::parse_expr() { return parse_logic_expr(); }
+// expression → logic_or ;
+std::shared_ptr<Expr> Parser::parse_expr() { return parse_logic_or_expr(); }
 
-// logic → equality ( ( "and" | "or" ) equality )*
-std::shared_ptr<Expr> Parser::parse_logic_expr() {
+// logic_or → logic_and ( "or" logic_and )*
+std::shared_ptr<Expr> Parser::parse_logic_or_expr() {
+    auto left = parse_logic_and_expr();
+
+    while (validate_token_and_advance({TokenType::OR})) {
+        auto op = get_prev_tok();
+        auto right = parse_logic_and_expr();
+        left = std::make_shared<BinaryExpr>(left, op, right);
+    }
+
+    return left;
+}
+
+// logic_and → equality ( "and" equality )*
+std::shared_ptr<Expr> Parser::parse_logic_and_expr() {
     auto left = parse_equality_expr();
 
-    while (validate_token_and_advance({TokenType::AND, TokenType::OR})) {
+    while (validate_token_and_advance({TokenType::AND})) {
         auto op = get_prev_tok();
         auto right = parse_equality_expr();
         left = std::make_shared<BinaryExpr>(left, op, right);
@@ -248,7 +260,7 @@ std::shared_ptr<Expr> Parser::parse_primary() {
         return std::make_shared<LiteralExpr>(true);
     }
     if (validate_token_and_advance({TokenType::NIL})) {
-        return std::make_shared<LiteralExpr>("nil");
+        return std::make_shared<LiteralExpr>(std::monostate());
     }
     if (validate_token_and_advance({TokenType::NUMBER, TokenType::STRING})) {
         auto tok = get_prev_tok();
