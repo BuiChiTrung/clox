@@ -8,6 +8,7 @@ class VarStmt;
 class AssignStmt;
 class BlockStmt;
 class IfStmt;
+class WhileStmt;
 
 class IStmtVisitor {
   public:
@@ -17,6 +18,7 @@ class IStmtVisitor {
     virtual void visit_assign_stmt(const AssignStmt &a) = 0;
     virtual void visit_block_stmt(const BlockStmt &b) = 0;
     virtual void visit_if_stmt(const IfStmt &b) = 0;
+    virtual void visit_while_stmt(const WhileStmt &w) = 0;
 };
 
 class Stmt {
@@ -84,4 +86,15 @@ class IfStmt : public Stmt {
         : condition(condition), if_block(if_block), else_block(else_block) {}
 
     void accept(IStmtVisitor &v) override { return v.visit_if_stmt(*this); }
+};
+
+class WhileStmt : public Stmt {
+  public:
+    std::shared_ptr<Expr> condition;
+    std::shared_ptr<Stmt> body;
+
+    WhileStmt(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body)
+        : condition(condition), body(body) {}
+
+    void accept(IStmtVisitor &v) override { return v.visit_while_stmt(*this); }
 };

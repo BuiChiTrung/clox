@@ -1,8 +1,9 @@
 var a = 1;
-var b = 3;
-if b == 2 {
-    a = 3;
-} else {
-    a = 4;
+while a <= 10 {
+    if a < 5 {
+        print "hihi";
+    } else {
+        print "haha";
+    }
+    a = a + 1;
 }
-print a;

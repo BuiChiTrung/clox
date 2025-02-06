@@ -71,6 +71,13 @@ void InterpreterVisitor::visit_if_stmt(const IfStmt &i) {
     return;
 }
 
+void InterpreterVisitor::visit_while_stmt(const WhileStmt &w) {
+    while (cast_literal_to_bool(evaluate_expr(w.condition))) {
+        w.body->accept(*this);
+    }
+    return;
+}
+
 void InterpreterVisitor::visit_block_stmt(const BlockStmt &b) {
     auto parent_scope_env = this->env;
     this->env = std::make_shared<Environment>(parent_scope_env);

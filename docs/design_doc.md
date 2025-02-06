@@ -453,10 +453,18 @@ void InterpreterVisitor::visit_if_stmt(const IfStmt &i) {
     return;
 }
 ```
-### Logical operation
+### Logical expr
+Logic expr is special: we may only need to evaluate the left expr to know the result. Ex: `false and doSth();` => dont have to eval `doSth()`.
+**Parsing rule:**
+```cpp
 expression → logic_or ;
 logic_or → logic_and ( "or" logic_and )*
 logic_and → equality ( "and" equality )*
+```
+### While loop
+```cpp
+// whileStmt → "while" expression block
+```
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`

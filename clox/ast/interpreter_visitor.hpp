@@ -27,6 +27,8 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
 
     void visit_if_stmt(const IfStmt &b) override;
 
+    void visit_while_stmt(const WhileStmt &w) override;
+
     LiteralVariant visit_variable(const VariableExpr &v) override;
 
     LiteralVariant visit_literal(const LiteralExpr &l) override;

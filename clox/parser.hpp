@@ -1,7 +1,6 @@
 #pragma once
 #include "ast/expr.hpp"
 #include "ast/stmt.hpp"
-#include "environment.hpp"
 #include "token.hpp"
 #include <memory>
 
@@ -18,6 +17,7 @@ class Parser {
 
     std::shared_ptr<Stmt> parse_stmt();
     std::shared_ptr<Stmt> parse_block();
+    std::shared_ptr<Stmt> parse_while_stmt();
     std::shared_ptr<Stmt> parse_if_stmt();
     std::shared_ptr<Stmt> parse_var_stmt();
     std::shared_ptr<Stmt> parse_print_stmt();

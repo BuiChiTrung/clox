@@ -30,11 +30,15 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
     return stmts;
 }
 
-// statement → block | ifStmt | exprStmt | printStmt | varStmt | assignStmt
+// statement → block | whileStmt | ifStmt | exprStmt | printStmt | varStmt |
+// assignStmt
 std::shared_ptr<Stmt> Parser::parse_stmt() {
     try {
         if (validate_token_and_advance({TokenType::IF})) {
             return parse_if_stmt();
+        }
+        if (validate_token_and_advance({TokenType::WHILE})) {
+            return parse_while_stmt();
         }
         if (validate_token_and_advance({TokenType::LEFT_BRACE})) {
             return parse_block();
@@ -56,20 +60,15 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
     }
 }
 
-// block → "{" statement* "}"
-std::shared_ptr<Stmt> Parser::parse_block() {
-    std::vector<std::shared_ptr<Stmt>> stmts{};
+// whileStmt → "while" expression block
+std::shared_ptr<Stmt> Parser::parse_while_stmt() {
+    auto condition = parse_expr();
 
-    while (!consumed_all_tokens() and
-           get_cur_tok()->type != TokenType::RIGHT_BRACE) {
-        stmts.push_back(parse_stmt());
-    }
+    assert_tok_and_advance(TokenType::LEFT_BRACE,
+                           "Expected { after while statement");
+    auto body = parse_block();
 
-    assert_tok_and_advance(
-        TokenType::RIGHT_BRACE,
-        "Expected close bracket '}' at the end of the block");
-
-    return std::make_shared<BlockStmt>(stmts);
+    return std::make_shared<WhileStmt>(condition, body);
 }
 
 // ifStmt -> "if" expression block ("else" block)?
@@ -88,6 +87,22 @@ std::shared_ptr<Stmt> Parser::parse_if_stmt() {
     }
 
     return std::make_shared<IfStmt>(condition, if_block, else_block);
+}
+
+// block → "{" statement* "}"
+std::shared_ptr<Stmt> Parser::parse_block() {
+    std::vector<std::shared_ptr<Stmt>> stmts{};
+
+    while (!consumed_all_tokens() and
+           get_cur_tok()->type != TokenType::RIGHT_BRACE) {
+        stmts.push_back(parse_stmt());
+    }
+
+    assert_tok_and_advance(
+        TokenType::RIGHT_BRACE,
+        "Expected close bracket '}' at the end of the block");
+
+    return std::make_shared<BlockStmt>(stmts);
 }
 
 // varStmt → "var" IDENTIFIER ( "=" expression )? ";"
