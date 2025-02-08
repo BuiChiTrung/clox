@@ -1,9 +1,18 @@
-var a = 1;
-while a <= 10 {
-    if a < 5 {
+var a = 0;
+var temp;
+
+for var b = 1; a < 10000; b = temp + b; {
+  print a;
+  temp = a;
+  a = b;
+}
+
+var abc = 1;
+while abc <= 10 {
+    if abc < 5 {
         print "hihi";
     } else {
         print "haha";
     }
-    a = a + 1;
+    abc = abc + 1;
 }

@@ -16,10 +16,14 @@ class RuntimeException : public std::exception {
 };
 
 class ParserException : std::exception {
+  private:
+    mutable std::string formattedMessage;
+
   public:
     std::string message;
     std::shared_ptr<Token> tok;
     ParserException(std::shared_ptr<Token> tok, const std::string &message);
+    const char *what() const noexcept override;
 };
 
 class ErrorManager {

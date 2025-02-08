@@ -8,6 +8,7 @@
 #include <malloc/_malloc_type.h>
 #include <memory>
 #include <variant>
+#include <vector>
 
 Parser::Parser(std::vector<std::shared_ptr<Token>> tokens) : tokens(tokens) {}
 
@@ -30,12 +31,15 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
     return stmts;
 }
 
-// statement → block | whileStmt | ifStmt | exprStmt | printStmt | varStmt |
-// assignStmt
+// statement → block | forStmt | whileStmt | ifStmt | exprStmt | printStmt |
+// varStmt | assignStmt
 std::shared_ptr<Stmt> Parser::parse_stmt() {
     try {
         if (validate_token_and_advance({TokenType::IF})) {
             return parse_if_stmt();
+        }
+        if (validate_token_and_advance({TokenType::FOR})) {
+            return parse_for_stmt();
         }
         if (validate_token_and_advance({TokenType::WHILE})) {
             return parse_while_stmt();
@@ -54,10 +58,52 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
         // return parse_expr_stmt();
     }
     catch (ParserException &err) {
-        std::cout << err.message;
+        std::cout << err.what() << std::endl;
         panic_mode_synchornize();
         return nullptr;
     }
+}
+// forStmt → "for" (varStmt | assignStmt | ";") (expression)? ";" (assignStmt)?
+// block
+std::shared_ptr<Stmt> Parser::parse_for_stmt() {
+    std::shared_ptr<Stmt> initializer = nullptr;
+    if (!validate_token_and_advance({TokenType::SEMICOLON})) {
+        if (validate_token_and_advance({TokenType::VAR})) {
+            initializer = parse_var_stmt();
+        }
+        else {
+            initializer = parse_assign_stmt();
+        }
+    }
+    // assert_tok_and_advance(TokenType::SEMICOLON,
+    //    "Expected ; after for loop initializer statement.");
+
+    std::shared_ptr<Expr> condition = std::make_shared<LiteralExpr>(true);
+    if (!validate_token(TokenType::SEMICOLON)) {
+        condition = parse_expr();
+    }
+    assert_tok_and_advance(TokenType::SEMICOLON,
+                           "Expected ; after for loop condition.");
+
+    std::shared_ptr<Stmt> increment = nullptr;
+    if (!validate_token(TokenType::LEFT_BRACE)) {
+        increment = parse_assign_stmt();
+    }
+    assert_tok_and_advance(TokenType::LEFT_BRACE,
+                           "Expected { after for loop increment statement.");
+
+    auto body = std::dynamic_pointer_cast<BlockStmt>(parse_block());
+    if (increment != nullptr) {
+        body->stmts.push_back(increment);
+    }
+
+    auto while_stmt = std::make_shared<WhileStmt>(condition, body);
+    if (initializer != nullptr) {
+        std::vector<std::shared_ptr<Stmt>> stmts = {initializer, while_stmt};
+        auto for_stmt = std::make_shared<BlockStmt>(stmts);
+        return for_stmt;
+    }
+    return while_stmt;
 }
 
 // whileStmt → "while" expression block
@@ -93,8 +139,7 @@ std::shared_ptr<Stmt> Parser::parse_if_stmt() {
 std::shared_ptr<Stmt> Parser::parse_block() {
     std::vector<std::shared_ptr<Stmt>> stmts{};
 
-    while (!consumed_all_tokens() and
-           get_cur_tok()->type != TokenType::RIGHT_BRACE) {
+    while (!consumed_all_tokens() and !validate_token(TokenType::RIGHT_BRACE)) {
         stmts.push_back(parse_stmt());
     }
 
@@ -149,7 +194,7 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
         // can be both r-value, l-value
         std::shared_ptr<Expr> value = parse_expr();
         assert_tok_and_advance(TokenType::SEMICOLON,
-                               "Expected ; at the end of print statement");
+                               "Expected ; at the end of assign statement");
         return std::make_shared<AssignStmt>(var, value);
     }
 
@@ -301,7 +346,7 @@ bool Parser::validate_token_and_advance(std::vector<TokenType> tok_types) {
     }
 
     for (TokenType tok_type : tok_types) {
-        if (tokens[current_tok_pos]->type == tok_type) {
+        if (validate_token(tok_type)) {
             advance();
             return true;
         }
@@ -329,10 +374,14 @@ std::shared_ptr<Token> Parser::get_prev_tok() {
 
 std::shared_ptr<Token> Parser::assert_tok_and_advance(TokenType type,
                                                       std::string msg) {
-    if (consumed_all_tokens() || get_cur_tok()->type != type) {
+    if (!validate_token(type)) {
         throw ParserException(get_cur_tok(), msg);
     }
     return advance();
+}
+
+bool Parser::validate_token(TokenType tok_type) {
+    return !consumed_all_tokens() and get_cur_tok()->type == tok_type;
 }
 
 void Parser::panic_mode_synchornize() {

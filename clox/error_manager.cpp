@@ -31,6 +31,12 @@ void ErrorManager::handle_parser_err(const ParserException &e) {
 ParserException::ParserException(std::shared_ptr<Token> tok,
                                  const std::string &message)
     : message(message), tok(tok) {}
+const char *ParserException::what() const noexcept {
+    // Construct the error message dynamically
+    formattedMessage = std::format("{} at line {}, near '{}'", message,
+                                   tok->line, tok->lexeme);
+    return formattedMessage.c_str();
+}
 
 RuntimeException::RuntimeException(std::shared_ptr<Token> tok,
                                    const std::string &message)
