@@ -462,9 +462,30 @@ logic_or → logic_and ( "or" logic_and )*
 logic_and → equality ( "and" equality )*
 ```
 ### While loop
+**Parsing rule**
 ```cpp
 // whileStmt → "while" expression block
 ```
+### For loop
+Every for loop can be present as while loop. Ex: 
+```cpp
+for (var i = 0; i < 10; i = i + 1) print i;
+
+// Equivalent
+var i = 0;
+while (i < 10) {
+	print i;
+	i = i + 1;
+}
+```
+Lox doesn’t _need_ `for` loops, they just make some common code patterns more pleasant to write. These kinds of features are called **syntactic sugar**.
+**Parsing rule**
+```cpp
+// forStmt → "for" (varStmt | assignStmt | ";") (expression)? ";" (assignStmt)? block
+```
+**Node and evaluate**
+Instead of create new type of node in the syntax tree for `for(initializer; condition; increment)` loop we reuse the `while` loop: 
+for_stmt = BlockStmt(initializer, WhileStmt(condition, {while_body, increment}))
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`

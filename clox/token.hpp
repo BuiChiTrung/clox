@@ -78,7 +78,7 @@ enum class TokenType {
     VAR,
     WHILE,
 
-    NONE,
+    EOS, // end of source code
 };
 
 const std::map<std::string, TokenType> reserved_kws = {
@@ -94,7 +94,7 @@ const std::map<std::string, TokenType> reserved_kws = {
 
 class Token {
   public:
-    TokenType type = TokenType::NONE;
+    TokenType type = TokenType::EOS;
     std::string lexeme = "";
     LiteralVariant literal = "";
     uint line = 0;

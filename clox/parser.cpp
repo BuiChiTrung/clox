@@ -4,7 +4,6 @@
 #include "clox/ast/expr.hpp"
 #include "error_manager.hpp"
 #include "token.hpp"
-#include <iostream>
 #include <malloc/_malloc_type.h>
 #include <memory>
 #include <variant>
@@ -58,7 +57,8 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
         // return parse_expr_stmt();
     }
     catch (ParserException &err) {
-        std::cout << err.what() << std::endl;
+        ErrorManager::handle_parser_err(err);
+        // std::cout << err.what() << std::endl;
         panic_mode_synchornize();
         return nullptr;
     }
@@ -66,17 +66,16 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
 // forStmt → "for" (varStmt | assignStmt | ";") (expression)? ";" (assignStmt)?
 // block
 std::shared_ptr<Stmt> Parser::parse_for_stmt() {
-    std::shared_ptr<Stmt> initializer = nullptr;
-    if (!validate_token_and_advance({TokenType::SEMICOLON})) {
-        if (validate_token_and_advance({TokenType::VAR})) {
-            initializer = parse_var_stmt();
-        }
-        else {
-            initializer = parse_assign_stmt();
-        }
+    std::shared_ptr<Stmt> initializer;
+    if (validate_token_and_advance({TokenType::SEMICOLON})) {
+        initializer = nullptr;
     }
-    // assert_tok_and_advance(TokenType::SEMICOLON,
-    //    "Expected ; after for loop initializer statement.");
+    else if (validate_token_and_advance({TokenType::VAR})) {
+        initializer = parse_var_stmt();
+    }
+    else {
+        initializer = parse_assign_stmt();
+    }
 
     std::shared_ptr<Expr> condition = std::make_shared<LiteralExpr>(true);
     if (!validate_token(TokenType::SEMICOLON)) {
@@ -137,15 +136,18 @@ std::shared_ptr<Stmt> Parser::parse_if_stmt() {
 
 // block → "{" statement* "}"
 std::shared_ptr<Stmt> Parser::parse_block() {
+    auto left_brace = get_prev_tok();
     std::vector<std::shared_ptr<Stmt>> stmts{};
 
     while (!consumed_all_tokens() and !validate_token(TokenType::RIGHT_BRACE)) {
         stmts.push_back(parse_stmt());
     }
 
-    assert_tok_and_advance(
-        TokenType::RIGHT_BRACE,
-        "Expected close bracket '}' at the end of the block");
+    if (!validate_token_and_advance({TokenType::RIGHT_BRACE})) {
+        throw ParserException(left_brace,
+                              "Expected close bracket '}' at the end "
+                              "of the block to match '{'");
+    }
 
     return std::make_shared<BlockStmt>(stmts);
 }
@@ -365,10 +367,17 @@ std::shared_ptr<Token> Parser::advance() {
 
 // get current token without moving to the next tok
 std::shared_ptr<Token> Parser::get_cur_tok() {
+    if (consumed_all_tokens()) {
+        return std::make_shared<Token>();
+    }
     return tokens.at(current_tok_pos);
 }
 
 std::shared_ptr<Token> Parser::get_prev_tok() {
+    if (current_tok_pos - 1 < 0) {
+        throw ParserException(get_cur_tok(),
+                              "Error: get previous token at invalid position");
+    }
     return tokens.at(current_tok_pos - 1);
 }
 
@@ -385,13 +394,12 @@ bool Parser::validate_token(TokenType tok_type) {
 }
 
 void Parser::panic_mode_synchornize() {
-    advance();
 
     while (!consumed_all_tokens()) {
-        if (get_prev_tok()->type == TokenType::SEMICOLON)
-            return;
-
         switch (get_cur_tok()->type) {
+        case TokenType::SEMICOLON:
+            advance();
+            return;
         case TokenType::CLASS:
         case TokenType::FUNC:
         case TokenType::VAR:
@@ -400,6 +408,7 @@ void Parser::panic_mode_synchornize() {
         case TokenType::WHILE:
         case TokenType::PRINT:
         case TokenType::RETURN:
+        case TokenType::LEFT_BRACE:
             return;
         default:
             advance();
