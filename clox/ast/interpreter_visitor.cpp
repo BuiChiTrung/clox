@@ -1,5 +1,8 @@
 #include "interpreter_visitor.hpp"
+#include "clox/ast/expr.hpp"
 #include "clox/error_manager.hpp"
+#include "clox/token.hpp"
+#include <format>
 #include <iostream>
 #include <variant>
 
@@ -98,6 +101,31 @@ LiteralVariant InterpreterVisitor::visit_literal(const LiteralExpr &l) {
 
 LiteralVariant InterpreterVisitor::visit_grouping(const GroupExpr &g) {
     return evaluate_expr(g.expression);
+}
+
+LiteralVariant InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
+    LiteralVariant callee = evaluate_expr(f.callee);
+
+    if (!std::holds_alternative<Callable>(callee)) {
+        throw RuntimeException(f.close_parenthesis,
+                               "Can only call functions and classes.");
+    }
+
+    Callable func = std::get<Callable>(callee);
+    if (func.arg_num != f.args.size()) {
+        throw RuntimeException(
+            f.close_parenthesis,
+            std::format(
+                "Expected {} args to be passed to the function, but got {}",
+                func.arg_num, f.args.size()));
+    }
+
+    std::vector<LiteralVariant> arg_vals{};
+    for (auto arg : f.args) {
+        arg_vals.push_back(evaluate_expr(arg));
+    }
+
+    return func.invoke();
 }
 
 LiteralVariant InterpreterVisitor::visit_unary(const UnaryExpr &u) {

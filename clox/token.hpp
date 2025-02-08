@@ -3,12 +3,34 @@
 
 #include "clox/utils/magic_enum.hpp"
 #include <format>
+#include <iostream>
 #include <map>
 #include <string>
 #include <variant>
 
+const uint MAX_ARGS_NUM = 255;
+
+class Callable;
+
 // std::monostate to present nil in Lox
-using LiteralVariant = std::variant<double, bool, std::string, std::monostate>;
+using LiteralVariant =
+    std::variant<double, bool, std::string, Callable, std::monostate>;
+
+// TODO(trung.bc): split to another file
+class Callable {
+  public:
+    // TODO(trung.bc): update
+    int arg_num = 3;
+    virtual LiteralVariant invoke() {
+        std::cout << "Func invoked";
+        return "Func invoked";
+    }
+
+    bool operator==(const Callable &other) const {
+        return this->arg_num == other.arg_num;
+    }
+};
+;
 
 inline std::string literal_to_string(const LiteralVariant &value) {
     return std::visit(
@@ -23,6 +45,9 @@ inline std::string literal_to_string(const LiteralVariant &value) {
             }
             else if constexpr (std::is_same_v<T, std::string>) {
                 return arg;
+            }
+            else if constexpr (std::is_same_v<T, Callable>) {
+                return "Not supported: Callable";
             }
             else {
                 return "nil";

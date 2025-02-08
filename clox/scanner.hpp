@@ -1,6 +1,7 @@
 #pragma once
 #include "token.hpp"
 #include <memory>
+#include <variant>
 #include <vector>
 
 // Scan the whole file or a single line to return a vector of tokens
@@ -19,9 +20,7 @@ class Scanner {
   private:
     void scan_token();
     bool is_end_of_src();
-    void add_token(
-        TokenType type,
-        std::variant<double, bool, std::string, std::monostate> literal = "");
+    void add_token(TokenType type, LiteralVariant literal = std::monostate());
     bool next_char_is(char expected);
     void parse_str();
     void parse_num();

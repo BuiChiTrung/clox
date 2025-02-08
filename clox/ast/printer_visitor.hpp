@@ -1,4 +1,5 @@
 #pragma once
+#include "clox/token.hpp"
 #include "expr.hpp"
 #include <iostream>
 #include <memory>
@@ -42,6 +43,8 @@ class PrinterVisitor : public IExprVisitor {
     LiteralVariant visit_grouping(const GroupExpr &g) {
         return this->print_expr("group", {g.expression});
     }
+
+    LiteralVariant visit_func_call(const FuncCallExpr &f) { return "callable"; }
 
     LiteralVariant visit_literal(const LiteralExpr &l) {
         if (std::holds_alternative<bool>(l.value)) {

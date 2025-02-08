@@ -16,8 +16,7 @@ void Environment::add_new_variable(std::shared_ptr<Token> var_tok,
     std::string var_name = var_tok->lexeme;
     if (variable_table.count(var_name)) {
         throw RuntimeException(
-            nullptr,
-            std::format("Error: Variable {} is already declared.", var_name));
+            nullptr, std::format("Variable {} is already declared.", var_name));
     }
 
     variable_table[var_name] = value;
@@ -33,7 +32,7 @@ LiteralVariant Environment::get_variable(std::shared_ptr<Token> var_tok) {
         return parent_scope_env->get_variable(var_tok);
     }
 
-    throw RuntimeException(var_tok, "Error: reference to non-exist variable.");
+    throw RuntimeException(var_tok, "Reference to non-exist variable.");
 }
 
 void Environment::assign_new_value_to_variable(std::shared_ptr<Token> var_tok,
@@ -49,5 +48,5 @@ void Environment::assign_new_value_to_variable(std::shared_ptr<Token> var_tok,
         return;
     }
 
-    throw RuntimeException(var_tok, "Error: assignment to non-exist variable.");
+    throw RuntimeException(var_tok, "Assignment to non-exist variable.");
 }

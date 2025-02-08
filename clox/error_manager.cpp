@@ -21,11 +21,12 @@ void ErrorManager::handle_err(std::shared_ptr<Token> tok, std::string msg) {
 
 void ErrorManager::handle_runtime_err(const RuntimeException &err) {
     had_runtime_err = true;
-    std::cout << err.what();
+    handle_err(err.tok, err.message);
+    // std::cout << err.what() << std::endl;
 }
 
-void ErrorManager::handle_parser_err(const ParserException &e) {
-    handle_err(e.tok, e.message);
+void ErrorManager::handle_parser_err(const ParserException &err) {
+    handle_err(err.tok, err.message);
 }
 
 ParserException::ParserException(std::shared_ptr<Token> tok,

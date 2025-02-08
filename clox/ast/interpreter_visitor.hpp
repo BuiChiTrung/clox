@@ -35,6 +35,8 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
 
     LiteralVariant visit_grouping(const GroupExpr &g) override;
 
+    LiteralVariant visit_func_call(const FuncCallExpr &f) override;
+
     LiteralVariant visit_unary(const UnaryExpr &u) override;
 
     LiteralVariant visit_binary(const BinaryExpr &b) override;

@@ -4,6 +4,7 @@
 #include "clox/ast/expr.hpp"
 #include "error_manager.hpp"
 #include "token.hpp"
+#include <format>
 #include <malloc/_malloc_type.h>
 #include <memory>
 #include <variant>
@@ -298,7 +299,7 @@ std::shared_ptr<Expr> Parser::parse_factor() {
     return left;
 }
 
-// unary → ( "!" | "-" ) unary | primary
+// unary → ( "!" | "-" ) unary | call
 std::shared_ptr<Expr> Parser::parse_unary() {
     if (validate_token_and_advance({TokenType::BANG, TokenType::MINUS})) {
         auto op = get_prev_tok();
@@ -306,7 +307,48 @@ std::shared_ptr<Expr> Parser::parse_unary() {
         return std::make_shared<UnaryExpr>(op, right);
     }
 
-    return parse_primary();
+    return parse_call();
+}
+
+// call → primary ("(" arguments ")")*
+std::shared_ptr<Expr> Parser::parse_call() {
+    std::shared_ptr<Expr> func_call_expr = parse_primary();
+
+    while (validate_token_and_advance({TokenType::LEFT_PAREN})) {
+        std::vector<std::shared_ptr<Expr>> arguments = parse_arguments();
+
+        assert_tok_and_advance(TokenType::RIGHT_PAREN,
+                               "Expected ')' after function invocation");
+        std::shared_ptr<Token> right_paren = get_prev_tok();
+
+        func_call_expr = std::make_shared<FuncCallExpr>(func_call_expr,
+                                                        right_paren, arguments);
+    }
+
+    return func_call_expr;
+}
+
+// arguments -> "" | (expression (","expression)*)
+std::vector<std::shared_ptr<Expr>> Parser::parse_arguments() {
+    std::vector<std::shared_ptr<Expr>> args{};
+
+    if (validate_token(TokenType::RIGHT_PAREN)) {
+        return args;
+    }
+
+    do {
+        args.push_back(parse_expr());
+    } while (validate_token_and_advance({TokenType::COMMA}));
+
+    if (args.size() > MAX_ARGS_NUM) {
+        ErrorManager::handle_err(
+            get_cur_tok(),
+            std::format(
+                "Error: Number of arguments for function call exceed {}",
+                MAX_ARGS_NUM));
+    }
+
+    return args;
 }
 
 // primary → IDENTIFIER | NUMBER | STRING | "true" | "false" | "nil" | "("
