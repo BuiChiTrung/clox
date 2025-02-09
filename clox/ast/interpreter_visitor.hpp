@@ -49,4 +49,6 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
 
     void checkNumberOperands(std::shared_ptr<Token> tok, LiteralVariant left,
                              LiteralVariant right);
+    void checkIntOperands(std::shared_ptr<Token> tok, LiteralVariant left,
+                          LiteralVariant right);
 };

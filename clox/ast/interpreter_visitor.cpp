@@ -169,6 +169,9 @@ LiteralVariant InterpreterVisitor::visit_binary(const BinaryExpr &b) {
     case TokenType::STAR:
         checkNumberOperands(b.op, left, right);
         return *left_double_ptr * *right_double_ptr;
+    case TokenType::MOD:
+        checkIntOperands(b.op, left, right);
+        return double(int(*left_double_ptr) % int(*right_double_ptr));
     case TokenType::SLASH:
         checkNumberOperands(b.op, left, right);
         return *left_double_ptr / *right_double_ptr;
@@ -239,6 +242,23 @@ void InterpreterVisitor::checkNumberOperand(std::shared_ptr<Token> tok,
     if (!std::holds_alternative<double>(right)) {
         throw RuntimeException(tok, "Right operand must be a number");
     }
+    return;
+}
+
+void InterpreterVisitor::checkIntOperands(std::shared_ptr<Token> tok,
+                                          LiteralVariant left,
+                                          LiteralVariant right) {
+    checkNumberOperands(tok, left, right);
+
+    double left_double = std::get<double>(left);
+    if (static_cast<int>(left_double) != left_double) {
+        throw RuntimeException(tok, "Left operand must be an int");
+    }
+    double right_double = std::get<double>(right);
+    if (static_cast<int>(right_double) != right_double) {
+        throw RuntimeException(tok, "Right operand must be an int");
+    }
+
     return;
 }
 

@@ -55,6 +55,9 @@ void Scanner::scan_token() {
     case '*':
         add_token(TokenType::STAR);
         break;
+    case '%':
+        add_token(TokenType::MOD);
+        break;
     case '!':
         add_token(next_char_is('=') ? TokenType::BANG_EQUAL : TokenType::BANG);
         break;

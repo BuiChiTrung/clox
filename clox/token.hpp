@@ -41,7 +41,12 @@ inline std::string literal_to_string(const LiteralVariant &value) {
                 return arg ? "true" : "false";
             }
             else if constexpr (std::is_same_v<T, double>) {
-                return std::to_string(arg);
+                if (arg == static_cast<int>(arg)) {
+                    return std::to_string(static_cast<int>(arg));
+                }
+                else {
+                    return std::format("{:.2f}", arg);
+                }
             }
             else if constexpr (std::is_same_v<T, std::string>) {
                 return arg;
@@ -69,6 +74,7 @@ enum class TokenType {
     SEMICOLON,
     SLASH,
     STAR,
+    MOD,
 
     // Operations
     BANG,

@@ -286,11 +286,12 @@ std::shared_ptr<Expr> Parser::parse_term() {
     return left;
 }
 
-// factor → unary ( ( "/" | "*" ) unary )*
+// factor → unary ( ( "/" | "*" | "%" ) unary )*
 std::shared_ptr<Expr> Parser::parse_factor() {
     auto left = parse_unary();
 
-    while (validate_token_and_advance({TokenType::SLASH, TokenType::STAR})) {
+    while (validate_token_and_advance(
+        {TokenType::SLASH, TokenType::STAR, TokenType::MOD})) {
         auto op = get_prev_tok();
         auto right = parse_unary();
         left = std::make_shared<BinaryExpr>(left, op, right);
