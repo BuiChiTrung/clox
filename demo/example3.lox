@@ -1,3 +1,4 @@
+// Fibonacci program
 var a = 0;
 var temp;
 
