@@ -1,10 +1,18 @@
 #include "interpreter_visitor.hpp"
 #include "clox/ast/expr.hpp"
 #include "clox/error_manager.hpp"
+#include "clox/native_function/clock.hpp"
 #include "clox/token.hpp"
 #include <format>
 #include <iostream>
+#include <memory>
 #include <variant>
+
+InterpreterVisitor::InterpreterVisitor()
+    : global_env(std::make_shared<Environment>()) {
+    env = global_env;
+    global_env->add_new_variable("clock", std::make_shared<ClockNativeFunc>());
+}
 
 LiteralVariant
 InterpreterVisitor::interpret_single_expr(std::shared_ptr<Expr> expression) {
@@ -59,7 +67,7 @@ void InterpreterVisitor::visit_var_stmt(const VarStmt &v) {
     if (v.initializer != nullptr) {
         var_value = evaluate_expr(v.initializer);
     }
-    env->add_new_variable(v.var_name, var_value);
+    env->add_new_variable(v.var_name->lexeme, var_value);
     return;
 }
 
@@ -106,18 +114,18 @@ LiteralVariant InterpreterVisitor::visit_grouping(const GroupExpr &g) {
 LiteralVariant InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
     LiteralVariant callee = evaluate_expr(f.callee);
 
-    if (!std::holds_alternative<Callable>(callee)) {
+    if (!std::holds_alternative<std::shared_ptr<Callable>>(callee)) {
         throw RuntimeException(f.close_parenthesis,
                                "Can only call functions and classes.");
     }
 
-    Callable func = std::get<Callable>(callee);
-    if (func.arg_num != f.args.size()) {
+    auto func = std::get<std::shared_ptr<Callable>>(callee);
+    if (func->arg_num != f.args.size()) {
         throw RuntimeException(
             f.close_parenthesis,
             std::format(
                 "Expected {} args to be passed to the function, but got {}",
-                func.arg_num, f.args.size()));
+                func->arg_num, f.args.size()));
     }
 
     std::vector<LiteralVariant> arg_vals{};
@@ -125,7 +133,7 @@ LiteralVariant InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
         arg_vals.push_back(evaluate_expr(arg));
     }
 
-    return func.invoke();
+    return func->invoke();
 }
 
 LiteralVariant InterpreterVisitor::visit_unary(const UnaryExpr &u) {

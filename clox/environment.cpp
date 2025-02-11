@@ -11,15 +11,13 @@ Environment::Environment() {
 Environment::Environment(std::shared_ptr<Environment> parent_scope_env)
     : parent_scope_env(parent_scope_env) {}
 
-void Environment::add_new_variable(std::shared_ptr<Token> var_tok,
-                                   LiteralVariant value) {
-    std::string var_name = var_tok->lexeme;
-    if (variable_table.count(var_name)) {
+void Environment::add_new_variable(std::string name, LiteralVariant value) {
+    if (variable_table.count(name)) {
         throw RuntimeException(
-            nullptr, std::format("Variable {} is already declared.", var_name));
+            nullptr, std::format("Variable {} is already declared.", name));
     }
 
-    variable_table[var_name] = value;
+    variable_table[name] = value;
 }
 
 LiteralVariant Environment::get_variable(std::shared_ptr<Token> var_tok) {

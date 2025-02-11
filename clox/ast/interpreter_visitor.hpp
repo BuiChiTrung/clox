@@ -6,8 +6,12 @@
 #include <memory>
 
 class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
+  private:
+    const std::shared_ptr<Environment> global_env;
+    std::shared_ptr<Environment> env;
+
   public:
-    std::shared_ptr<Environment> env = std::make_shared<Environment>();
+    InterpreterVisitor();
 
     LiteralVariant interpret_single_expr(std::shared_ptr<Expr> expression);
 
