@@ -13,14 +13,14 @@ const uint MAX_ARGS_NUM = 255;
 class Callable;
 
 // std::monostate to present nil in Lox
-using LiteralVariant = std::variant<double, bool, std::string,
-                                    std::shared_ptr<Callable>, std::monostate>;
+using ExprVal = std::variant<double, bool, std::string,
+                             std::shared_ptr<Callable>, std::monostate>;
 
 // TODO(trung.bc): split to another file
 class Callable {
   public:
     int arg_num;
-    virtual LiteralVariant invoke() = 0;
+    virtual ExprVal invoke() = 0;
 
     bool operator==(const Callable &other) const {
         return this->arg_num == other.arg_num &&
@@ -31,7 +31,7 @@ class Callable {
 };
 ;
 
-inline std::string literal_to_string(const LiteralVariant &value) {
+inline std::string literal_to_string(const ExprVal &value) {
     return std::visit(
         [](auto &&arg) -> std::string {
             using T = std::decay_t<decltype(arg)>;
@@ -126,11 +126,11 @@ class Token {
   public:
     TokenType type = TokenType::EOS;
     std::string lexeme = "";
-    LiteralVariant literal = "";
+    ExprVal literal = "";
     uint line = 0;
 
     Token() {}
-    Token(TokenType type, std::string lexeme, LiteralVariant literal, uint line)
+    Token(TokenType type, std::string lexeme, ExprVal literal, uint line)
         : type(type), lexeme(lexeme), literal(literal), line(line) {}
 
     std::string toString() {

@@ -14,10 +14,10 @@ InterpreterVisitor::InterpreterVisitor()
     global_env->add_new_variable("clock", std::make_shared<ClockNativeFunc>());
 }
 
-LiteralVariant
+ExprVal
 InterpreterVisitor::interpret_single_expr(std::shared_ptr<Expr> expression) {
     try {
-        LiteralVariant result = evaluate_expr(expression);
+        ExprVal result = evaluate_expr(expression);
         return result;
     }
     catch (RuntimeException &err) {
@@ -41,7 +41,7 @@ void InterpreterVisitor::interpret_program(
     }
 }
 
-LiteralVariant InterpreterVisitor::evaluate_expr(std::shared_ptr<Expr> expr) {
+ExprVal InterpreterVisitor::evaluate_expr(std::shared_ptr<Expr> expr) {
     return expr->accept(*this);
 }
 
@@ -51,19 +51,19 @@ void InterpreterVisitor::visit_expr_stmt(const ExprStmt &e) {
 }
 
 void InterpreterVisitor::visit_assign_stmt(const AssignStmt &a) {
-    LiteralVariant new_value = evaluate_expr(a.value);
+    ExprVal new_value = evaluate_expr(a.value);
     env->assign_new_value_to_variable(a.var->name, new_value);
     return;
 }
 
 void InterpreterVisitor::visit_print_stmt(const PrintStmt &p) {
-    LiteralVariant val = evaluate_expr(p.expr);
+    ExprVal val = evaluate_expr(p.expr);
     std::cout << literal_to_string(val) << std::endl;
     return;
 }
 
 void InterpreterVisitor::visit_var_stmt(const VarStmt &v) {
-    LiteralVariant var_value = std::monostate();
+    ExprVal var_value = std::monostate();
     if (v.initializer != nullptr) {
         var_value = evaluate_expr(v.initializer);
     }
@@ -101,20 +101,20 @@ void InterpreterVisitor::visit_block_stmt(const BlockStmt &b) {
     return;
 }
 
-LiteralVariant InterpreterVisitor::visit_variable(const VariableExpr &v) {
+ExprVal InterpreterVisitor::visit_variable(const VariableExpr &v) {
     return env->get_variable(v.name);
 }
 
-LiteralVariant InterpreterVisitor::visit_literal(const LiteralExpr &l) {
+ExprVal InterpreterVisitor::visit_literal(const LiteralExpr &l) {
     return l.value;
 }
 
-LiteralVariant InterpreterVisitor::visit_grouping(const GroupExpr &g) {
+ExprVal InterpreterVisitor::visit_grouping(const GroupExpr &g) {
     return evaluate_expr(g.expression);
 }
 
-LiteralVariant InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
-    LiteralVariant callee = evaluate_expr(f.callee);
+ExprVal InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
+    ExprVal callee = evaluate_expr(f.callee);
 
     if (!std::holds_alternative<std::shared_ptr<Callable>>(callee)) {
         throw RuntimeException(f.close_parenthesis,
@@ -130,7 +130,7 @@ LiteralVariant InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
                 func->arg_num, f.args.size()));
     }
 
-    std::vector<LiteralVariant> arg_vals{};
+    std::vector<ExprVal> arg_vals{};
     for (auto arg : f.args) {
         arg_vals.push_back(evaluate_expr(arg));
     }
@@ -138,8 +138,8 @@ LiteralVariant InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
     return func->invoke();
 }
 
-LiteralVariant InterpreterVisitor::visit_unary(const UnaryExpr &u) {
-    LiteralVariant right = evaluate_expr(u.right);
+ExprVal InterpreterVisitor::visit_unary(const UnaryExpr &u) {
+    ExprVal right = evaluate_expr(u.right);
 
     switch (u.op->type) {
     case TokenType::BANG:
@@ -153,9 +153,9 @@ LiteralVariant InterpreterVisitor::visit_unary(const UnaryExpr &u) {
     }
 }
 
-LiteralVariant InterpreterVisitor::visit_binary(const BinaryExpr &b) {
-    LiteralVariant left = evaluate_expr(b.left);
-    LiteralVariant right = evaluate_expr(b.right);
+ExprVal InterpreterVisitor::visit_binary(const BinaryExpr &b) {
+    ExprVal left = evaluate_expr(b.left);
+    ExprVal right = evaluate_expr(b.right);
 
     auto left_double_ptr = std::get_if<double>(&left);
     auto right_double_ptr = std::get_if<double>(&right);
@@ -219,7 +219,7 @@ LiteralVariant InterpreterVisitor::visit_binary(const BinaryExpr &b) {
     }
 }
 
-bool InterpreterVisitor::cast_literal_to_bool(LiteralVariant val) {
+bool InterpreterVisitor::cast_literal_to_bool(ExprVal val) {
     if (const auto boolPtr(std::get_if<bool>(&val)); boolPtr) {
         return *boolPtr;
     }
@@ -237,7 +237,7 @@ bool InterpreterVisitor::cast_literal_to_bool(LiteralVariant val) {
     exit(1);
 }
 
-bool InterpreterVisitor::is_equal(LiteralVariant left, LiteralVariant right) {
+bool InterpreterVisitor::is_equal(ExprVal left, ExprVal right) {
     if (std::holds_alternative<bool>(left) ||
         std::holds_alternative<bool>(right)) {
         return cast_literal_to_bool(left) == cast_literal_to_bool(right);
@@ -248,7 +248,7 @@ bool InterpreterVisitor::is_equal(LiteralVariant left, LiteralVariant right) {
 }
 
 void InterpreterVisitor::checkNumberOperand(std::shared_ptr<Token> tok,
-                                            LiteralVariant right) {
+                                            ExprVal right) {
     if (!std::holds_alternative<double>(right)) {
         throw RuntimeException(tok, "Right operand must be a number");
     }
@@ -256,8 +256,7 @@ void InterpreterVisitor::checkNumberOperand(std::shared_ptr<Token> tok,
 }
 
 void InterpreterVisitor::checkIntOperands(std::shared_ptr<Token> tok,
-                                          LiteralVariant left,
-                                          LiteralVariant right) {
+                                          ExprVal left, ExprVal right) {
     checkNumberOperands(tok, left, right);
 
     double left_double = std::get<double>(left);
@@ -273,8 +272,7 @@ void InterpreterVisitor::checkIntOperands(std::shared_ptr<Token> tok,
 }
 
 void InterpreterVisitor::checkNumberOperands(std::shared_ptr<Token> tok,
-                                             LiteralVariant left,
-                                             LiteralVariant right) {
+                                             ExprVal left, ExprVal right) {
     if (!std::holds_alternative<double>(right)) {
         throw RuntimeException(tok, "Right operand must be a number");
     }

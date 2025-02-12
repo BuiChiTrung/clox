@@ -13,11 +13,11 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
   public:
     InterpreterVisitor();
 
-    LiteralVariant interpret_single_expr(std::shared_ptr<Expr> expression);
+    ExprVal interpret_single_expr(std::shared_ptr<Expr> expression);
 
     void interpret_program(std::vector<std::shared_ptr<Stmt>> stmts);
 
-    LiteralVariant evaluate_expr(std::shared_ptr<Expr> expr);
+    ExprVal evaluate_expr(std::shared_ptr<Expr> expr);
 
     void visit_expr_stmt(const ExprStmt &e) override;
 
@@ -35,26 +35,26 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
 
     void visit_function_stmt(const FunctionStmt &w) override;
 
-    LiteralVariant visit_variable(const VariableExpr &v) override;
+    ExprVal visit_variable(const VariableExpr &v) override;
 
-    LiteralVariant visit_literal(const LiteralExpr &l) override;
+    ExprVal visit_literal(const LiteralExpr &l) override;
 
-    LiteralVariant visit_grouping(const GroupExpr &g) override;
+    ExprVal visit_grouping(const GroupExpr &g) override;
 
-    LiteralVariant visit_func_call(const FuncCallExpr &f) override;
+    ExprVal visit_func_call(const FuncCallExpr &f) override;
 
-    LiteralVariant visit_unary(const UnaryExpr &u) override;
+    ExprVal visit_unary(const UnaryExpr &u) override;
 
-    LiteralVariant visit_binary(const BinaryExpr &b) override;
+    ExprVal visit_binary(const BinaryExpr &b) override;
 
-    bool cast_literal_to_bool(LiteralVariant val);
+    bool cast_literal_to_bool(ExprVal val);
 
-    bool is_equal(LiteralVariant left, LiteralVariant right);
+    bool is_equal(ExprVal left, ExprVal right);
 
-    void checkNumberOperand(std::shared_ptr<Token> tok, LiteralVariant right);
+    void checkNumberOperand(std::shared_ptr<Token> tok, ExprVal right);
 
-    void checkNumberOperands(std::shared_ptr<Token> tok, LiteralVariant left,
-                             LiteralVariant right);
-    void checkIntOperands(std::shared_ptr<Token> tok, LiteralVariant left,
-                          LiteralVariant right);
+    void checkNumberOperands(std::shared_ptr<Token> tok, ExprVal left,
+                             ExprVal right);
+    void checkIntOperands(std::shared_ptr<Token> tok, ExprVal left,
+                          ExprVal right);
 };

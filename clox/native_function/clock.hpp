@@ -4,7 +4,7 @@
 class ClockNativeFunc : public Callable {
   public:
     int arg_num = 0;
-    LiteralVariant invoke() override {
+    ExprVal invoke() override {
         auto now = std::chrono::system_clock::now();
         std::chrono::duration<double> unix_time = now.time_since_epoch();
 

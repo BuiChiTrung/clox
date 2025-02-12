@@ -129,7 +129,7 @@ std::shared_ptr<Stmt> Parser::parse_for_stmt() {
         initializer = parse_assign_stmt();
     }
 
-    std::shared_ptr<Expr> condition = std::make_shared<LiteralExpr>(true);
+    std::shared_ptr<Expr> condition(new LiteralExpr(true));
     if (!validate_token(TokenType::SEMICOLON)) {
         condition = parse_expr();
     }
@@ -148,10 +148,10 @@ std::shared_ptr<Stmt> Parser::parse_for_stmt() {
         body->stmts.push_back(increment);
     }
 
-    auto while_stmt = std::make_shared<WhileStmt>(condition, body);
+    std::shared_ptr<WhileStmt> while_stmt(new WhileStmt(condition, body));
     if (initializer != nullptr) {
         std::vector<std::shared_ptr<Stmt>> stmts = {initializer, while_stmt};
-        auto for_stmt = std::make_shared<BlockStmt>(stmts);
+        std::shared_ptr<BlockStmt> for_stmt(new BlockStmt(stmts));
         return for_stmt;
     }
     return while_stmt;
@@ -210,7 +210,7 @@ std::shared_ptr<Stmt> Parser::parse_var_stmt() {
     std::shared_ptr<Token> tok_var = get_prev_tok();
 
     std::shared_ptr<Expr> var_initializer = nullptr;
-    LiteralVariant var_value = std::monostate();
+    ExprVal var_value = std::monostate();
     if (validate_token_and_advance({TokenType::EQUAL})) {
         var_initializer = parse_expr();
     }
@@ -224,7 +224,7 @@ std::shared_ptr<Stmt> Parser::parse_var_stmt() {
 
 // printStmt  → "print" expression ";"
 std::shared_ptr<Stmt> Parser::parse_print_stmt() {
-    auto stmt = std::make_shared<PrintStmt>(parse_expr());
+    std::shared_ptr<PrintStmt> stmt(new PrintStmt(parse_expr()));
     assert_tok_and_advance(TokenType::SEMICOLON,
                            "Expected ; at the end of print statement");
     return stmt;
@@ -260,7 +260,7 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
 
 // exprStmt → expression ";" ;
 std::shared_ptr<Stmt> Parser::parse_expr_stmt() {
-    auto stmt = std::make_shared<ExprStmt>(parse_expr());
+    std::shared_ptr<ExprStmt> stmt(new ExprStmt(parse_expr()));
     assert_tok_and_advance(TokenType::SEMICOLON,
                            "Expected ; at the end of expresssion statement");
     return stmt;

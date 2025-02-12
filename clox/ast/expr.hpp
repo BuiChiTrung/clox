@@ -13,12 +13,12 @@ class FuncCallExpr;
 // Exp subclass in a seperate Visitor class.
 class IExprVisitor {
   public:
-    virtual LiteralVariant visit_literal(const LiteralExpr &l) = 0;
-    virtual LiteralVariant visit_grouping(const GroupExpr &g) = 0;
-    virtual LiteralVariant visit_unary(const UnaryExpr &u) = 0;
-    virtual LiteralVariant visit_binary(const BinaryExpr &b) = 0;
-    virtual LiteralVariant visit_variable(const VariableExpr &v) = 0;
-    virtual LiteralVariant visit_func_call(const FuncCallExpr &f) = 0;
+    virtual ExprVal visit_literal(const LiteralExpr &l) = 0;
+    virtual ExprVal visit_grouping(const GroupExpr &g) = 0;
+    virtual ExprVal visit_unary(const UnaryExpr &u) = 0;
+    virtual ExprVal visit_binary(const BinaryExpr &b) = 0;
+    virtual ExprVal visit_variable(const VariableExpr &v) = 0;
+    virtual ExprVal visit_func_call(const FuncCallExpr &f) = 0;
 };
 
 class Expr {
@@ -27,7 +27,7 @@ class Expr {
     // visitor.visit_<...>() in Expr subclass, we have to create a smart pointer
     // pointed to this, when this smart pointer run of scope, it'll destruct our
     // Visitor obj.
-    virtual LiteralVariant accept(IExprVisitor &visitor) = 0;
+    virtual ExprVal accept(IExprVisitor &visitor) = 0;
 };
 
 class BinaryExpr : public Expr {
@@ -40,7 +40,7 @@ class BinaryExpr : public Expr {
                std::shared_ptr<Expr> &right)
         : left(left), op(op), right(right) {}
 
-    LiteralVariant accept(IExprVisitor &visitor) override {
+    ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_binary(*this);
     }
 };
@@ -51,18 +51,18 @@ class GroupExpr : public Expr {
 
     GroupExpr(std::shared_ptr<Expr> &expression) : expression(expression) {}
 
-    LiteralVariant accept(IExprVisitor &visitor) override {
+    ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_grouping(*this);
     }
 };
 
 class LiteralExpr : public Expr {
   public:
-    LiteralVariant value;
+    ExprVal value;
 
-    LiteralExpr(LiteralVariant value) : value(value) {}
+    LiteralExpr(ExprVal value) : value(value) {}
 
-    LiteralVariant accept(IExprVisitor &visitor) override {
+    ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_literal(*this);
     }
 };
@@ -75,7 +75,7 @@ class UnaryExpr : public Expr {
     UnaryExpr(std::shared_ptr<Token> &op, std::shared_ptr<Expr> &right)
         : op(op), right(right) {}
 
-    LiteralVariant accept(IExprVisitor &visitor) override {
+    ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_unary(*this);
     }
 };
@@ -86,7 +86,7 @@ class VariableExpr : public Expr {
 
     VariableExpr(std::shared_ptr<Token> name) : name(name) {}
 
-    LiteralVariant accept(IExprVisitor &visitor) override {
+    ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_variable(*this);
     }
 };
@@ -102,7 +102,7 @@ class FuncCallExpr : public Expr {
                  std::vector<std::shared_ptr<Expr>> args)
         : callee(callee), close_parenthesis(close_parenthesis), args(args) {}
 
-    LiteralVariant accept(IExprVisitor &visitor) override {
+    ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_func_call(*this);
     }
 };

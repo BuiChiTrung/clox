@@ -20,7 +20,7 @@ class Scanner {
   private:
     void scan_token();
     bool is_end_of_src();
-    void add_token(TokenType type, LiteralVariant literal = std::monostate());
+    void add_token(TokenType type, ExprVal literal = std::monostate());
     bool next_char_is(char expected);
     void parse_str();
     void parse_num();

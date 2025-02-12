@@ -108,7 +108,7 @@ void Scanner::scan_token() {
     }
 }
 
-void Scanner::add_token(TokenType type, LiteralVariant literal) {
+void Scanner::add_token(TokenType type, ExprVal literal) {
     std::string lexeme =
         src.substr(lexeme_start_pos, current_pos - lexeme_start_pos);
     tokens.push_back(std::make_shared<Token>(type, lexeme, literal, line));

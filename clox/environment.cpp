@@ -11,7 +11,7 @@ Environment::Environment() {
 Environment::Environment(std::shared_ptr<Environment> parent_scope_env)
     : parent_scope_env(parent_scope_env) {}
 
-void Environment::add_new_variable(std::string name, LiteralVariant value) {
+void Environment::add_new_variable(std::string name, ExprVal value) {
     if (variable_table.count(name)) {
         throw RuntimeException(
             nullptr, std::format("Variable {} is already declared.", name));
@@ -20,7 +20,7 @@ void Environment::add_new_variable(std::string name, LiteralVariant value) {
     variable_table[name] = value;
 }
 
-LiteralVariant Environment::get_variable(std::shared_ptr<Token> var_tok) {
+ExprVal Environment::get_variable(std::shared_ptr<Token> var_tok) {
     std::string var_name = var_tok->lexeme;
     if (variable_table.count(var_name)) {
         return variable_table[var_name];
@@ -34,7 +34,7 @@ LiteralVariant Environment::get_variable(std::shared_ptr<Token> var_tok) {
 }
 
 void Environment::assign_new_value_to_variable(std::shared_ptr<Token> var_tok,
-                                               LiteralVariant value) {
+                                               ExprVal value) {
     std::string var_name = var_tok->lexeme;
     if (variable_table.count(var_name)) {
         variable_table[var_name] = value;

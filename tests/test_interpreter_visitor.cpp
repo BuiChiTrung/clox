@@ -9,8 +9,7 @@ class InterpreterVisitorTest : public testing::Test {
     void TearDown() override {}
 };
 
-void evaluateExpression(const std::string &source,
-                        const LiteralVariant &expected) {
+void evaluateExpression(const std::string &source, const ExprVal &expected) {
     Scanner scanner{source};
     auto tokens = scanner.scan_tokens();
 

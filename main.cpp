@@ -17,12 +17,8 @@ class CLox {
     static std::unique_ptr<PrinterVisitor> printer_visitor;
     // Process one line or a whole file
     static void run(std::string source) {
-        auto scanner = std::make_unique<Scanner>(source);
+        std::unique_ptr<Scanner> scanner(new Scanner(source));
         std::vector<std::shared_ptr<Token>> tokens = scanner->scan_tokens();
-
-        // for (auto token : tokens) {
-        //     std::cout << token->toString() << std::endl;
-        // }
 
         auto parser = Parser(tokens);
         auto stmts = parser.parse_program();
