@@ -6,11 +6,9 @@
 #include <memory>
 
 class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
-  private:
+  public:
     const std::shared_ptr<Environment> global_env;
     std::shared_ptr<Environment> env;
-
-  public:
     InterpreterVisitor();
 
     ExprVal interpret_single_expr(std::shared_ptr<Expr> expression);
@@ -27,7 +25,9 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
 
     void visit_var_stmt(const VarStmt &v) override;
 
-    void visit_block_stmt(const BlockStmt &b) override;
+    void
+    visit_block_stmt(const BlockStmt &b,
+                     std::shared_ptr<Environment> block_env = nullptr) override;
 
     void visit_if_stmt(const IfStmt &b) override;
 

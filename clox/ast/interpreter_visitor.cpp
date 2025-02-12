@@ -1,7 +1,9 @@
 #include "interpreter_visitor.hpp"
 #include "clox/ast/expr.hpp"
+#include "clox/ast/stmt.hpp"
+#include "clox/callable.hpp"
+#include "clox/environment.hpp"
 #include "clox/error_manager.hpp"
-#include "clox/native_function/clock.hpp"
 #include "clox/token.hpp"
 #include <format>
 #include <iostream>
@@ -89,15 +91,23 @@ void InterpreterVisitor::visit_while_stmt(const WhileStmt &w) {
     return;
 }
 
-void InterpreterVisitor::visit_function_stmt(const FunctionStmt &w) { return; }
+void InterpreterVisitor::visit_function_stmt(const FunctionStmt &w) {
+    std::shared_ptr<LoxFunction> func(new LoxFunction(w));
+    env->add_new_variable(w.name->lexeme, func);
+    return;
+}
 
-void InterpreterVisitor::visit_block_stmt(const BlockStmt &b) {
-    auto parent_scope_env = this->env;
-    this->env = std::make_shared<Environment>(parent_scope_env);
+void InterpreterVisitor::visit_block_stmt(
+    const BlockStmt &b, std::shared_ptr<Environment> block_env) {
+    auto cur_env = this->env;
+    if (block_env == nullptr) {
+        block_env = std::make_shared<Environment>(cur_env);
+    }
+    this->env = block_env;
     for (auto stmt : b.stmts) {
         stmt->accept(*this);
     }
-    this->env = parent_scope_env;
+    this->env = cur_env;
     return;
 }
 
@@ -116,18 +126,18 @@ ExprVal InterpreterVisitor::visit_grouping(const GroupExpr &g) {
 ExprVal InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
     ExprVal callee = evaluate_expr(f.callee);
 
-    if (!std::holds_alternative<std::shared_ptr<Callable>>(callee)) {
+    if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee)) {
         throw RuntimeException(f.close_parenthesis,
                                "Can only call functions and classes.");
     }
 
-    auto func = std::get<std::shared_ptr<Callable>>(callee);
-    if (func->arg_num != f.args.size()) {
+    auto func = std::get<std::shared_ptr<LoxCallable>>(callee);
+    if (func->get_param_num() != f.args.size()) {
         throw RuntimeException(
             f.close_parenthesis,
             std::format(
                 "Expected {} args to be passed to the function, but got {}",
-                func->arg_num, f.args.size()));
+                func->get_param_num(), f.args.size()));
     }
 
     std::vector<ExprVal> arg_vals{};
@@ -135,7 +145,7 @@ ExprVal InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
         arg_vals.push_back(evaluate_expr(arg));
     }
 
-    return func->invoke();
+    return func->invoke(this, arg_vals);
 }
 
 ExprVal InterpreterVisitor::visit_unary(const UnaryExpr &u) {

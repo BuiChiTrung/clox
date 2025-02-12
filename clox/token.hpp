@@ -10,26 +10,11 @@
 
 const uint MAX_ARGS_NUM = 255;
 
-class Callable;
+class LoxCallable;
 
 // std::monostate to present nil in Lox
 using ExprVal = std::variant<double, bool, std::string,
-                             std::shared_ptr<Callable>, std::monostate>;
-
-// TODO(trung.bc): split to another file
-class Callable {
-  public:
-    int arg_num;
-    virtual ExprVal invoke() = 0;
-
-    bool operator==(const Callable &other) const {
-        return this->arg_num == other.arg_num &&
-               this->to_string() == other.to_string();
-    }
-
-    virtual std::string to_string() const = 0;
-};
-;
+                             std::shared_ptr<LoxCallable>, std::monostate>;
 
 inline std::string literal_to_string(const ExprVal &value) {
     return std::visit(
@@ -50,7 +35,7 @@ inline std::string literal_to_string(const ExprVal &value) {
             else if constexpr (std::is_same_v<T, std::string>) {
                 return arg;
             }
-            else if constexpr (std::is_same_v<T, Callable>) {
+            else if constexpr (std::is_same_v<T, LoxCallable>) {
                 return arg.to_string();
             }
             else {

@@ -1,4 +1,5 @@
 #pragma once
+#include "clox/environment.hpp"
 #include "clox/token.hpp"
 #include "expr.hpp"
 #include <memory>
@@ -18,7 +19,9 @@ class IStmtVisitor {
     virtual void visit_print_stmt(const PrintStmt &p) = 0;
     virtual void visit_var_stmt(const VarStmt &p) = 0;
     virtual void visit_assign_stmt(const AssignStmt &a) = 0;
-    virtual void visit_block_stmt(const BlockStmt &b) = 0;
+    virtual void
+    visit_block_stmt(const BlockStmt &b,
+                     std::shared_ptr<Environment> block_env = nullptr) = 0;
     virtual void visit_if_stmt(const IfStmt &b) = 0;
     virtual void visit_while_stmt(const WhileStmt &w) = 0;
     virtual void visit_function_stmt(const FunctionStmt &w) = 0;
