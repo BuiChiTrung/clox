@@ -5,7 +5,7 @@
 // Test: scan_tokens should correctly parse an arithmetic expression
 TEST(ScannerTest, ArithmeticExpression) {
     Scanner scanner("3 + 4 * 2");
-    auto tokens = scanner.scan_tokens();
+    std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
     EXPECT_EQ(tokens.size(), 5);
     EXPECT_EQ(tokens[0]->type, TokenType::NUMBER);
     EXPECT_EQ(tokens[1]->type, TokenType::PLUS);
@@ -17,7 +17,7 @@ TEST(ScannerTest, ArithmeticExpression) {
 // Test: scan_tokens should correctly parse a logic expression
 TEST(ScannerTest, LogicExpression) {
     Scanner scanner("(3 + 4) > 2 and (4 * 2) < 10 or !(true and false)");
-    auto tokens = scanner.scan_tokens();
+    std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
     EXPECT_EQ(tokens.size(), 22);
     EXPECT_EQ(tokens[0]->type, TokenType::LEFT_PAREN);
     EXPECT_EQ(tokens[1]->type, TokenType::NUMBER);
@@ -46,7 +46,7 @@ TEST(ScannerTest, LogicExpression) {
 // Test: scan_tokens should ignore comments
 TEST(ScannerTest, SingleLineComment) {
     Scanner scanner("// this is a comment\n3 + 4");
-    auto tokens = scanner.scan_tokens();
+    std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
     EXPECT_EQ(tokens.size(), 3);
     EXPECT_EQ(tokens[0]->type, TokenType::NUMBER);
     EXPECT_EQ(tokens[1]->type, TokenType::PLUS);
@@ -56,7 +56,7 @@ TEST(ScannerTest, SingleLineComment) {
 // Test: parse_str should correctly parse a string
 TEST(ScannerTest, ParseString) {
     Scanner scanner("\"hello world\"");
-    auto tokens = scanner.scan_tokens();
+    std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
     EXPECT_EQ(tokens.size(), 1);
     EXPECT_EQ(tokens[0]->type, TokenType::STRING);
 }
@@ -64,14 +64,14 @@ TEST(ScannerTest, ParseString) {
 // Test: scan_tokens should return an empty vector for an empty source string
 TEST(ScannerTest, EmptySource) {
     Scanner scanner("");
-    auto tokens = scanner.scan_tokens();
+    std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
     EXPECT_TRUE(tokens.empty());
 }
 
 // Test: scan_tokens should correctly identify a single token
 TEST(ScannerTest, SingleToken) {
     Scanner scanner("identifier");
-    auto tokens = scanner.scan_tokens();
+    std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
     ASSERT_EQ(tokens.size(), 1);
     EXPECT_EQ(tokens[0]->type, TokenType::IDENTIFIER);
     EXPECT_EQ(tokens[0]->lexeme, "identifier");
@@ -80,7 +80,7 @@ TEST(ScannerTest, SingleToken) {
 // Test: scan_tokens should correctly handle multiple tokens
 TEST(ScannerTest, MultipleTokens) {
     Scanner scanner("var x = 42;");
-    auto tokens = scanner.scan_tokens();
+    std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
     ASSERT_EQ(tokens.size(), 5);
     EXPECT_EQ(tokens[0]->type, TokenType::VAR);
     EXPECT_EQ(tokens[1]->type, TokenType::IDENTIFIER);
@@ -92,7 +92,7 @@ TEST(ScannerTest, MultipleTokens) {
 // Test: scan_tokens should handle whitespace correctly
 TEST(ScannerTest, Whitespace) {
     Scanner scanner(" \t\nvar\n\t x = 42; \t");
-    auto tokens = scanner.scan_tokens();
+    std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
     ASSERT_EQ(tokens.size(), 5);
     EXPECT_EQ(tokens[0]->type, TokenType::VAR);
     EXPECT_EQ(tokens[1]->type, TokenType::IDENTIFIER);
@@ -103,6 +103,6 @@ TEST(ScannerTest, Whitespace) {
 
 TEST(ScannerTest, OnlyWhitespace) {
     Scanner scanner(" \t\n ");
-    auto tokens = scanner.scan_tokens();
+    std::vector<std::shared_ptr<Token>> tokens = scanner.scan_tokens();
     EXPECT_TRUE(tokens.empty());
 }

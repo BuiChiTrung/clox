@@ -31,10 +31,13 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
     return stmts;
 }
 
-// statement → block | forStmt | whileStmt | ifStmt | exprStmt | printStmt |
-// varStmt | assignStmt
+// statement → block | function | forStmt | whileStmt | ifStmt | exprStmt |
+// printStmt | varStmt | assignStmt
 std::shared_ptr<Stmt> Parser::parse_stmt() {
     try {
+        if (validate_token_and_advance({TokenType::FUNC})) {
+            return parse_function_stmt();
+        }
         if (validate_token_and_advance({TokenType::IF})) {
             return parse_if_stmt();
         }
@@ -64,6 +67,54 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
         return nullptr;
     }
 }
+
+// function → IDENTIFIER "(" parameters ")" block ;
+std::shared_ptr<Stmt> Parser::parse_function_stmt() {
+    std::shared_ptr<Token> func_name =
+        assert_tok_and_advance(TokenType::IDENTIFIER, "Expected function name");
+
+    std::shared_ptr<Token> left_parenthesis = assert_tok_and_advance(
+        TokenType::LEFT_PAREN, "Expected '(' after function name");
+
+    std::vector<std::shared_ptr<VariableExpr>> func_params =
+        parse_func_params();
+
+    if (!validate_token_and_advance({TokenType::RIGHT_PAREN})) {
+        throw ParserException(left_parenthesis,
+                              "Expected ')' at the end "
+                              "of function params list to match '('");
+    }
+
+    assert_tok_and_advance(TokenType::LEFT_BRACE,
+                           "Expected { before function body");
+    std::shared_ptr<Stmt> func_body = parse_block();
+
+    return std::make_shared<FunctionStmt>(func_name, func_params, func_body);
+}
+
+// parameters -> "" | (IDENTIFIER (","IDENTIFIER)*)
+std::vector<std::shared_ptr<VariableExpr>> Parser::parse_func_params() {
+    if (validate_token(TokenType::RIGHT_PAREN)) {
+        return {};
+    }
+
+    std::vector<std::shared_ptr<VariableExpr>> params{};
+    do {
+        std::shared_ptr<Token> var_name = assert_tok_and_advance(
+            TokenType::IDENTIFIER, "Expected function parameter");
+        params.push_back(std::make_shared<VariableExpr>(var_name));
+    } while (validate_token_and_advance({TokenType::COMMA}));
+
+    if (params.size() > MAX_ARGS_NUM) {
+        ErrorManager::handle_err(
+            get_cur_tok(),
+            std::format("Error: Number of params for function exceed limit {}",
+                        MAX_ARGS_NUM));
+    }
+
+    return params;
+}
+
 // forStmt → "for" (varStmt | assignStmt | ";") (expression)? ";" (assignStmt)?
 // block
 std::shared_ptr<Stmt> Parser::parse_for_stmt() {
@@ -316,7 +367,8 @@ std::shared_ptr<Expr> Parser::parse_call() {
     std::shared_ptr<Expr> func_call_expr = parse_primary();
 
     while (validate_token_and_advance({TokenType::LEFT_PAREN})) {
-        std::vector<std::shared_ptr<Expr>> arguments = parse_arguments();
+        std::vector<std::shared_ptr<Expr>> arguments =
+            parse_func_call_arguments();
 
         assert_tok_and_advance(TokenType::RIGHT_PAREN,
                                "Expected ')' after function invocation");
@@ -330,13 +382,12 @@ std::shared_ptr<Expr> Parser::parse_call() {
 }
 
 // arguments -> "" | (expression (","expression)*)
-std::vector<std::shared_ptr<Expr>> Parser::parse_arguments() {
-    std::vector<std::shared_ptr<Expr>> args{};
-
+std::vector<std::shared_ptr<Expr>> Parser::parse_func_call_arguments() {
     if (validate_token(TokenType::RIGHT_PAREN)) {
-        return args;
+        return {};
     }
 
+    std::vector<std::shared_ptr<Expr>> args{};
     do {
         args.push_back(parse_expr());
     } while (validate_token_and_advance({TokenType::COMMA}));
@@ -345,7 +396,7 @@ std::vector<std::shared_ptr<Expr>> Parser::parse_arguments() {
         ErrorManager::handle_err(
             get_cur_tok(),
             std::format(
-                "Error: Number of arguments for function call exceed {}",
+                "Error: Number of arguments for function call exceed limit {}",
                 MAX_ARGS_NUM));
     }
 

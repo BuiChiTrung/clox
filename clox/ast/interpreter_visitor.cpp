@@ -89,6 +89,8 @@ void InterpreterVisitor::visit_while_stmt(const WhileStmt &w) {
     return;
 }
 
+void InterpreterVisitor::visit_function_stmt(const FunctionStmt &w) { return; }
+
 void InterpreterVisitor::visit_block_stmt(const BlockStmt &b) {
     auto parent_scope_env = this->env;
     this->env = std::make_shared<Environment>(parent_scope_env);

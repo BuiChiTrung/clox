@@ -17,6 +17,7 @@ class Parser {
 
     std::shared_ptr<Stmt> parse_stmt();
     std::shared_ptr<Stmt> parse_block();
+    std::shared_ptr<Stmt> parse_function_stmt();
     std::shared_ptr<Stmt> parse_for_stmt();
     std::shared_ptr<Stmt> parse_while_stmt();
     std::shared_ptr<Stmt> parse_if_stmt();
@@ -33,7 +34,8 @@ class Parser {
     std::shared_ptr<Expr> parse_factor();
     std::shared_ptr<Expr> parse_unary();
     std::shared_ptr<Expr> parse_call();
-    std::vector<std::shared_ptr<Expr>> parse_arguments();
+    std::vector<std::shared_ptr<VariableExpr>> parse_func_params();
+    std::vector<std::shared_ptr<Expr>> parse_func_call_arguments();
     std::shared_ptr<Expr> parse_primary();
 
     bool consumed_all_tokens();

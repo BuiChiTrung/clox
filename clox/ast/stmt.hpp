@@ -1,4 +1,5 @@
 #pragma once
+#include "clox/token.hpp"
 #include "expr.hpp"
 #include <memory>
 
@@ -9,6 +10,7 @@ class AssignStmt;
 class BlockStmt;
 class IfStmt;
 class WhileStmt;
+class FunctionStmt;
 
 class IStmtVisitor {
   public:
@@ -19,6 +21,7 @@ class IStmtVisitor {
     virtual void visit_block_stmt(const BlockStmt &b) = 0;
     virtual void visit_if_stmt(const IfStmt &b) = 0;
     virtual void visit_while_stmt(const WhileStmt &w) = 0;
+    virtual void visit_function_stmt(const FunctionStmt &w) = 0;
 };
 
 class Stmt {
@@ -97,4 +100,20 @@ class WhileStmt : public Stmt {
         : condition(condition), body(body) {}
 
     void accept(IStmtVisitor &v) override { return v.visit_while_stmt(*this); }
+};
+
+class FunctionStmt : public Stmt {
+  public:
+    std::shared_ptr<Token> name;
+    std::vector<std::shared_ptr<VariableExpr>> params;
+    std::shared_ptr<Stmt> body;
+
+    FunctionStmt(std::shared_ptr<Token> name,
+                 std::vector<std::shared_ptr<VariableExpr>> params,
+                 std::shared_ptr<Stmt> body)
+        : name(name), params(params), body(body) {}
+
+    void accept(IStmtVisitor &v) override {
+        return v.visit_function_stmt(*this);
+    }
 };
