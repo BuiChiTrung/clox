@@ -7,7 +7,6 @@
 #include <chrono>
 #include <memory>
 #include <sys/types.h>
-#include <variant>
 
 // TODO(trung.bc): split to another file
 class LoxCallable {
@@ -59,12 +58,11 @@ class LoxFunction : public LoxCallable {
         auto block = std::dynamic_pointer_cast<BlockStmt>(func_stmt.body);
         try {
             interpreter->visit_block_stmt(*block, func_env);
-        }
-        catch (Return r) {
+        } catch (Return r) {
             return r.return_val;
         }
 
-        return std::monostate();
+        return NIL;
     }
 
     std::string to_string() const override {

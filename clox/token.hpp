@@ -13,6 +13,7 @@ const uint MAX_ARGS_NUM = 255;
 class LoxCallable;
 
 // std::monostate to present nil in Lox
+constexpr std::monostate NIL{};
 using ExprVal = std::variant<double, bool, std::string,
                              std::shared_ptr<LoxCallable>, std::monostate>;
 

@@ -15,8 +15,7 @@ Parser::Parser(std::vector<std::shared_ptr<Token>> tokens) : tokens(tokens) {}
 std::shared_ptr<Expr> Parser::parse_single_expr() {
     try {
         return parse_expr();
-    }
-    catch (ParserException &err) {
+    } catch (ParserException &err) {
         ErrorManager::handle_parser_err(err);
         return nullptr;
     }
@@ -62,8 +61,7 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
         // TODO(trung.bc): not use assign stmt as fallback stmt
         return parse_assign_stmt();
         // return parse_expr_stmt();
-    }
-    catch (ParserException &err) {
+    } catch (ParserException &err) {
         ErrorManager::handle_parser_err(err);
         // std::cout << err.what() << std::endl;
         panic_mode_synchornize();
@@ -138,11 +136,9 @@ std::shared_ptr<Stmt> Parser::parse_for_stmt() {
     std::shared_ptr<Stmt> initializer;
     if (validate_token_and_advance({TokenType::SEMICOLON})) {
         initializer = nullptr;
-    }
-    else if (validate_token_and_advance({TokenType::VAR})) {
+    } else if (validate_token_and_advance({TokenType::VAR})) {
         initializer = parse_var_stmt();
-    }
-    else {
+    } else {
         initializer = parse_assign_stmt();
     }
 
@@ -227,7 +223,7 @@ std::shared_ptr<Stmt> Parser::parse_var_stmt() {
     std::shared_ptr<Token> tok_var = get_prev_tok();
 
     std::shared_ptr<Expr> var_initializer = nullptr;
-    ExprVal var_value = std::monostate();
+    ExprVal var_value = NIL;
     if (validate_token_and_advance({TokenType::EQUAL})) {
         var_initializer = parse_expr();
     }
@@ -433,7 +429,7 @@ std::shared_ptr<Expr> Parser::parse_primary() {
         return std::make_shared<LiteralExpr>(true);
     }
     if (validate_token_and_advance({TokenType::NIL})) {
-        return std::make_shared<LiteralExpr>(std::monostate());
+        return std::make_shared<LiteralExpr>(NIL);
     }
     if (validate_token_and_advance({TokenType::NUMBER, TokenType::STRING})) {
         auto tok = get_prev_tok();

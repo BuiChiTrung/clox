@@ -23,10 +23,9 @@ InterpreterVisitor::interpret_single_expr(std::shared_ptr<Expr> expression) {
     try {
         ExprVal result = evaluate_expr(expression);
         return result;
-    }
-    catch (RuntimeException &err) {
+    } catch (RuntimeException &err) {
         ErrorManager::handle_runtime_err(err);
-        return std::monostate();
+        return NIL;
     }
 }
 
@@ -38,8 +37,7 @@ void InterpreterVisitor::interpret_program(
             stmt->accept(*this);
         }
         return;
-    }
-    catch (RuntimeException &err) {
+    } catch (RuntimeException &err) {
         ErrorManager::handle_runtime_err(err);
         return;
     }
@@ -67,7 +65,7 @@ void InterpreterVisitor::visit_print_stmt(const PrintStmt &p) {
 }
 
 void InterpreterVisitor::visit_var_stmt(const VarStmt &v) {
-    ExprVal var_value = std::monostate();
+    ExprVal var_value = NIL;
     if (v.initializer != nullptr) {
         var_value = evaluate_expr(v.initializer);
     }
@@ -79,8 +77,7 @@ void InterpreterVisitor::visit_if_stmt(const IfStmt &i) {
     auto expr_val = evaluate_expr(i.condition);
     if (cast_literal_to_bool(expr_val)) {
         i.if_block->accept(*this);
-    }
-    else if (i.else_block != nullptr) {
+    } else if (i.else_block != nullptr) {
         i.else_block->accept(*this);
     }
     return;
@@ -111,8 +108,7 @@ void InterpreterVisitor::visit_block_stmt(
         for (auto stmt : b.stmts) {
             stmt->accept(*this);
         }
-    }
-    catch (Return &r) {
+    } catch (Return &r) {
         this->env = cur_env;
         throw r;
     }
@@ -122,7 +118,7 @@ void InterpreterVisitor::visit_block_stmt(
 }
 
 void InterpreterVisitor::visit_return_stmt(const ReturnStmt &r) {
-    ExprVal return_val = std::monostate();
+    ExprVal return_val = NIL;
     if (r.expr != nullptr) {
         return_val = evaluate_expr(r.expr);
     }
@@ -179,7 +175,7 @@ ExprVal InterpreterVisitor::visit_unary(const UnaryExpr &u) {
         return -std::get<double>(right);
     default:
         ErrorManager::handle_err(u.op->line, "Invalid unary expression");
-        return std::monostate();
+        return NIL;
     }
 }
 
@@ -245,7 +241,7 @@ ExprVal InterpreterVisitor::visit_binary(const BinaryExpr &b) {
         return cast_literal_to_bool(right);
     default:
         ErrorManager::handle_err(b.op->line, "Invalid binary expression");
-        return std::monostate();
+        return NIL;
     }
 }
 
