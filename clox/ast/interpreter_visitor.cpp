@@ -94,7 +94,7 @@ void InterpreterVisitor::visit_while_stmt(const WhileStmt &w) {
 }
 
 void InterpreterVisitor::visit_function_stmt(const FunctionStmt &w) {
-    std::shared_ptr<LoxFunction> func(new LoxFunction(w));
+    std::shared_ptr<LoxFunction> func(new LoxFunction(w, env));
     env->add_new_variable(w.name->lexeme, func);
     return;
 }
@@ -112,7 +112,7 @@ void InterpreterVisitor::visit_block_stmt(
             stmt->accept(*this);
         }
     }
-    catch (Return r) {
+    catch (Return &r) {
         this->env = cur_env;
         throw r;
     }

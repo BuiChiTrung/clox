@@ -1,3 +1,4 @@
+// NORMAL FUNCTION
 fun fib(n) {
   if n <= 1 {
     return n;
@@ -8,3 +9,19 @@ fun fib(n) {
 for var i = 0; i < 20; i = i + 1; {
   print fib(i);
 }
+
+// CLOSURE
+fun make_counter() {
+  var i = 0;
+  
+  fun counter() {
+    i = i + 1;
+    print i;
+  }
+
+  return counter;
+}
+
+var count = make_counter();
+count(); // 1
+count(); // 2

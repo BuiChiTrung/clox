@@ -35,18 +35,22 @@ class ClockNativeFunc : public LoxCallable {
 
 class LoxFunction : public LoxCallable {
     const FunctionStmt &func_stmt;
+    // Can be global env or the env of the outer func defined this func
+    // (closure)
+    std::shared_ptr<Environment> closure;
 
   public:
-    LoxFunction(const FunctionStmt &func_stmt) : func_stmt(func_stmt) {}
+    LoxFunction(const FunctionStmt &func_stmt,
+                std::shared_ptr<Environment> closure)
+        : func_stmt(func_stmt), closure(closure) {}
 
     uint get_param_num() const override { return func_stmt.params.size(); }
 
     ExprVal invoke(InterpreterVisitor *interpreter,
                    std::vector<ExprVal> &args) override {
         auto cur_env = interpreter->env;
-        // func env doesn't have parent env
-        std::shared_ptr<Environment> func_env(
-            new Environment(interpreter->global_env));
+
+        std::shared_ptr<Environment> func_env(new Environment(closure));
         for (int i = 0; i < func_stmt.params.size(); ++i) {
             func_env->add_new_variable(func_stmt.params[i]->name->lexeme,
                                        args[i]);
@@ -54,8 +58,6 @@ class LoxFunction : public LoxCallable {
 
         auto block = std::dynamic_pointer_cast<BlockStmt>(func_stmt.body);
         try {
-            // TODO(trung.bc): potential bug ? When exception is throw env is
-            // not updated back to the outer scope env.
             interpreter->visit_block_stmt(*block, func_env);
         }
         catch (Return r) {
