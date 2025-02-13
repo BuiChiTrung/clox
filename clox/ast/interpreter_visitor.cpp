@@ -1,10 +1,12 @@
 #include "interpreter_visitor.hpp"
 #include "clox/ast/expr.hpp"
+#include "clox/ast/return.hpp"
 #include "clox/ast/stmt.hpp"
 #include "clox/callable.hpp"
 #include "clox/environment.hpp"
 #include "clox/error_manager.hpp"
 #include "clox/token.hpp"
+
 #include <format>
 #include <iostream>
 #include <memory>
@@ -103,12 +105,29 @@ void InterpreterVisitor::visit_block_stmt(
     if (block_env == nullptr) {
         block_env = std::make_shared<Environment>(cur_env);
     }
+
     this->env = block_env;
-    for (auto stmt : b.stmts) {
-        stmt->accept(*this);
+    try {
+        for (auto stmt : b.stmts) {
+            stmt->accept(*this);
+        }
+    }
+    catch (Return r) {
+        this->env = cur_env;
+        throw r;
     }
     this->env = cur_env;
+
     return;
+}
+
+void InterpreterVisitor::visit_return_stmt(const ReturnStmt &r) {
+    ExprVal return_val = std::monostate();
+    if (r.expr != nullptr) {
+        return_val = evaluate_expr(r.expr);
+    }
+
+    throw Return(return_val);
 }
 
 ExprVal InterpreterVisitor::visit_variable(const VariableExpr &v) {
@@ -128,10 +147,11 @@ ExprVal InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
 
     if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee)) {
         throw RuntimeException(f.close_parenthesis,
-                               "Can only call functions and classes.");
+                               "Can only call functions and class's method.");
     }
 
     auto func = std::get<std::shared_ptr<LoxCallable>>(callee);
+    // Check func number of params = number of args passed to it.
     if (func->get_param_num() != f.args.size()) {
         throw RuntimeException(
             f.close_parenthesis,

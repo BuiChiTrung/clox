@@ -32,29 +32,32 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
 }
 
 // statement → block | function | forStmt | whileStmt | ifStmt | exprStmt |
-// printStmt | varStmt | assignStmt
+// printStmt | varStmt | assignStmt | returnStmt
 std::shared_ptr<Stmt> Parser::parse_stmt() {
     try {
-        if (validate_token_and_advance({TokenType::FUNC})) {
-            return parse_function_stmt();
-        }
-        if (validate_token_and_advance({TokenType::IF})) {
-            return parse_if_stmt();
-        }
-        if (validate_token_and_advance({TokenType::FOR})) {
-            return parse_for_stmt();
-        }
-        if (validate_token_and_advance({TokenType::WHILE})) {
-            return parse_while_stmt();
-        }
-        if (validate_token_and_advance({TokenType::LEFT_BRACE})) {
-            return parse_block();
+        if (validate_token_and_advance({TokenType::PRINT})) {
+            return parse_print_stmt();
         }
         if (validate_token_and_advance({TokenType::VAR})) {
             return parse_var_stmt();
         }
-        if (validate_token_and_advance({TokenType::PRINT})) {
-            return parse_print_stmt();
+        if (validate_token_and_advance({TokenType::LEFT_BRACE})) {
+            return parse_block();
+        }
+        if (validate_token_and_advance({TokenType::WHILE})) {
+            return parse_while_stmt();
+        }
+        if (validate_token_and_advance({TokenType::FOR})) {
+            return parse_for_stmt();
+        }
+        if (validate_token_and_advance({TokenType::IF})) {
+            return parse_if_stmt();
+        }
+        if (validate_token_and_advance({TokenType::FUNC})) {
+            return parse_function_stmt();
+        }
+        if (validate_token_and_advance({TokenType::RETURN})) {
+            return parse_return_stmt();
         }
         // TODO(trung.bc): not use assign stmt as fallback stmt
         return parse_assign_stmt();
@@ -66,6 +69,20 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
         panic_mode_synchornize();
         return nullptr;
     }
+}
+
+// returnStmt → return expression? ";"
+std::shared_ptr<Stmt> Parser::parse_return_stmt() {
+    std::shared_ptr<Token> return_kw = get_prev_tok();
+    std::shared_ptr<Expr> expr = nullptr;
+
+    if (!validate_token(TokenType::SEMICOLON)) {
+        expr = parse_expr();
+    }
+
+    assert_tok_and_advance(TokenType::SEMICOLON,
+                           "Expected ';' at the end of return statement");
+    return std::make_shared<ReturnStmt>(return_kw, expr);
 }
 
 // function → IDENTIFIER "(" parameters ")" block ;

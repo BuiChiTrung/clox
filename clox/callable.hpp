@@ -1,7 +1,9 @@
 #include "clox/ast/interpreter_visitor.hpp"
+#include "clox/ast/return.hpp"
 #include "clox/ast/stmt.hpp"
 #include "clox/environment.hpp"
 #include "clox/token.hpp"
+
 #include <chrono>
 #include <memory>
 #include <sys/types.h>
@@ -51,7 +53,14 @@ class LoxFunction : public LoxCallable {
         }
 
         auto block = std::dynamic_pointer_cast<BlockStmt>(func_stmt.body);
-        interpreter->visit_block_stmt(*block, func_env);
+        try {
+            // TODO(trung.bc): potential bug ? When exception is throw env is
+            // not updated back to the outer scope env.
+            interpreter->visit_block_stmt(*block, func_env);
+        }
+        catch (Return r) {
+            return r.return_val;
+        }
 
         return std::monostate();
     }

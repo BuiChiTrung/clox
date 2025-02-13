@@ -16,6 +16,7 @@ class Parser {
     uint32_t current_tok_pos = 0;
 
     std::shared_ptr<Stmt> parse_stmt();
+    std::shared_ptr<Stmt> parse_return_stmt();
     std::shared_ptr<Stmt> parse_block();
     std::shared_ptr<Stmt> parse_function_stmt();
     std::shared_ptr<Stmt> parse_for_stmt();

@@ -12,6 +12,7 @@ class BlockStmt;
 class IfStmt;
 class WhileStmt;
 class FunctionStmt;
+class ReturnStmt;
 
 class IStmtVisitor {
   public:
@@ -24,7 +25,8 @@ class IStmtVisitor {
                      std::shared_ptr<Environment> block_env = nullptr) = 0;
     virtual void visit_if_stmt(const IfStmt &b) = 0;
     virtual void visit_while_stmt(const WhileStmt &w) = 0;
-    virtual void visit_function_stmt(const FunctionStmt &w) = 0;
+    virtual void visit_function_stmt(const FunctionStmt &f) = 0;
+    virtual void visit_return_stmt(const ReturnStmt &r) = 0;
 };
 
 class Stmt {
@@ -119,4 +121,15 @@ class FunctionStmt : public Stmt {
     void accept(IStmtVisitor &v) override {
         return v.visit_function_stmt(*this);
     }
+};
+
+class ReturnStmt : public Stmt {
+  public:
+    std::shared_ptr<Token> return_kw; // used for err reporting
+    std::shared_ptr<Expr> expr;
+
+    ReturnStmt(std::shared_ptr<Token> return_kw, std::shared_ptr<Expr> expr)
+        : return_kw(return_kw), expr(expr) {}
+
+    void accept(IStmtVisitor &v) override { return v.visit_return_stmt(*this); }
 };

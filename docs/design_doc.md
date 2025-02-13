@@ -486,6 +486,37 @@ Lox doesn’t _need_ `for` loops, they just make some common code patterns mo
 **Node and evaluate**
 Instead of create new type of node in the syntax tree for `for(initializer; condition; increment)` loop we reuse the `while` loop: 
 for_stmt = BlockStmt(initializer, WhileStmt(condition, {while_body, increment}))
+## C10 - Functions
+### Function call
+Supported syntax: nested call `doSth(1, 2)()`. The callee: `doSth`, `doSth(1, 2)` are expression that evaluated as a function.
+**Parsing rule**: function call has higher precedence than unary
+```
+// unary → ( "!" | "-" ) unary | call
+// call → primary ("(" arguments ")")*
+// arguments -> "" | (expression (","expression)*)
+```
+**Node and evaluate**
+```cpp
+class FuncCallExpr : public Expr {
+    std::shared_ptr<Expr> callee;
+    std::shared_ptr<Token> close_parenthesis; // use to report the pos of func when an err occur
+    std::vector<std::shared_ptr<Expr>> args;
+```
+Also we define an interface for Callable obj:
+```cpp
+class LoxCallable {
+  public:
+    virtual uint get_param_num() const { return 0; }
+    virtual ExprVal invoke(InterpreterVisitor *interpreter,
+                           std::vector<ExprVal> &args) = 0;
+    virtual std::string to_string() const = 0;
+};
+```
+Note: 
++ When parsing func call: check number of args exceed limit (255).
++ When evaluating func call: check number of func params = number of passed args.
+### Native function
+### Function declaration
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`

@@ -33,7 +33,9 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
 
     void visit_while_stmt(const WhileStmt &w) override;
 
-    void visit_function_stmt(const FunctionStmt &w) override;
+    void visit_function_stmt(const FunctionStmt &f) override;
+
+    void visit_return_stmt(const ReturnStmt &r) override;
 
     ExprVal visit_variable(const VariableExpr &v) override;
 
