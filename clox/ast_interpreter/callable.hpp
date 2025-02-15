@@ -1,6 +1,5 @@
 #include "clox/ast_interpreter/ast_interpreter.hpp"
 #include "clox/ast_interpreter/environment.hpp"
-#include "clox/ast_interpreter/return.hpp"
 #include "clox/parser/stmt.hpp"
 #include "clox/scanner/token.hpp"
 
@@ -57,7 +56,7 @@ class LoxFunction : public LoxCallable {
         auto block = std::dynamic_pointer_cast<BlockStmt>(func_stmt.body);
         try {
             interpreter->visit_block_stmt(*block, func_env);
-        } catch (Return r) {
+        } catch (ReturnVal r) {
             return r.return_val;
         }
 

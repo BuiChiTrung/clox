@@ -1,5 +1,5 @@
 #include "clox/scanner/scanner.hpp"
-#include "clox/error_manager.hpp"
+#include "clox/error_manager/error_manager.hpp"
 #include <cctype>
 #include <memory>
 #include <string>

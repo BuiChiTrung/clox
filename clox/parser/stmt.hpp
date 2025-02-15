@@ -133,3 +133,9 @@ class ReturnStmt : public Stmt {
 
     void accept(IStmtVisitor &v) override { return v.visit_return_stmt(*this); }
 };
+
+class ReturnVal : std::exception {
+  public:
+    ExprVal return_val;
+    ReturnVal(ExprVal return_val) : return_val(return_val) {}
+};

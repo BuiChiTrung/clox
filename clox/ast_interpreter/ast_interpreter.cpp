@@ -1,8 +1,7 @@
 #include "ast_interpreter.hpp"
 #include "clox/ast_interpreter/callable.hpp"
 #include "clox/ast_interpreter/environment.hpp"
-#include "clox/ast_interpreter/return.hpp"
-#include "clox/error_manager.hpp"
+#include "clox/error_manager/error_manager.hpp"
 #include "clox/parser/expr.hpp"
 #include "clox/parser/stmt.hpp"
 #include "clox/scanner/token.hpp"
@@ -99,7 +98,7 @@ void InterpreterVisitor::visit_block_stmt(
         for (auto stmt : b.stmts) {
             stmt->accept(*this);
         }
-    } catch (Return &r) {
+    } catch (ReturnVal &r) {
         this->env = cur_env;
         throw r;
     }
@@ -112,7 +111,7 @@ void InterpreterVisitor::visit_return_stmt(const ReturnStmt &r) {
         return_val = evaluate_expr(r.expr);
     }
 
-    throw Return(return_val);
+    throw ReturnVal(return_val);
 }
 
 ExprVal InterpreterVisitor::visit_variable(const VariableExpr &v) {

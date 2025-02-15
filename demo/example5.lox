@@ -1,3 +1,6 @@
+// LANGUAGE NATIVE FUNCTION
+print clock();
+
 // NORMAL FUNCTION
 fun fib(n) {
   if n <= 1 {
@@ -25,5 +28,3 @@ fun make_counter() {
 var count = make_counter();
 count(); // 1
 count(); // 2
-
-print clock();

@@ -1,4 +1,4 @@
-#include "error_manager.hpp"
+#include "clox/error_manager/error_manager.hpp"
 #include <format>
 #include <iostream>
 
