@@ -13,8 +13,8 @@ Environment::Environment(std::shared_ptr<Environment> parent_scope_env)
 
 void Environment::add_new_variable(std::string name, ExprVal value) {
     if (variable_table.count(name)) {
-        throw RuntimeException(
-            nullptr, std::format("Variable {} is already declared.", name));
+        throw RuntimeException(nullptr,
+                               "Variable " + name + " is already declared.");
     }
 
     variable_table[name] = value;

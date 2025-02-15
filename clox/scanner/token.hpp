@@ -3,8 +3,9 @@
 #include <sys/types.h>
 
 #include "clox/utils/magic_enum.hpp"
-#include <format>
+#include <iomanip>
 #include <map>
+#include <sstream>
 #include <string>
 #include <variant>
 
@@ -28,7 +29,9 @@ inline std::string literal_to_string(const ExprVal &value) {
                 if (arg == static_cast<int>(arg)) {
                     return std::to_string(static_cast<int>(arg));
                 } else {
-                    return std::format("{:.2f}", arg);
+                    std::ostringstream oss;
+                    oss << std::fixed << std::setprecision(2) << arg;
+                    return oss.str();
                 }
             } else if constexpr (std::is_same_v<T, std::string>) {
                 return arg;
@@ -115,8 +118,10 @@ class Token {
         : type(type), lexeme(lexeme), literal(literal), line(line) {}
 
     std::string toString() {
-        return std::format("Token: {:15} | Line: {:3} | Lexeme: {}",
-                           magic_enum::enum_name(this->type), this->line,
-                           this->lexeme);
+        std::ostringstream oss;
+        oss << "Token: " << std::setw(15) << std::left
+            << magic_enum::enum_name(this->type) << " | Line: " << std::setw(3)
+            << this->line << " | Lexeme: " << this->lexeme;
+        return oss.str();
     }
 };

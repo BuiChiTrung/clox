@@ -39,7 +39,7 @@ RuntimeException::RuntimeException(std::shared_ptr<Token> tok,
 
 const char *RuntimeException::what() const noexcept {
     // Construct the error message dynamically
-    formattedMessage = std::format("{} at line {}, near '{}'", message,
-                                   tok->line, tok->lexeme);
+    formattedMessage = message + " at line " + std::to_string(tok->line) +
+                       ", near '" + tok->lexeme + "'";
     return formattedMessage.c_str();
 }

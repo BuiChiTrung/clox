@@ -6,10 +6,7 @@
 #include "clox/parser/stmt.hpp"
 #include "clox/scanner/token.hpp"
 
-#include <format>
 #include <iostream>
-#include <memory>
-#include <string>
 #include <variant>
 
 InterpreterVisitor::InterpreterVisitor()
@@ -140,9 +137,9 @@ ExprVal InterpreterVisitor::visit_func_call(const FuncCallExpr &f) {
     if (func->get_param_num() != f.args.size()) {
         throw RuntimeException(
             f.close_parenthesis,
-            std::format(
-                "Expected {} args to be passed to the function, but got {}",
-                func->get_param_num(), f.args.size()));
+            "Expected " + std::to_string(func->get_param_num()) +
+                " args to be passed to the function, but got " +
+                std::to_string(f.args.size()));
     }
 
     std::vector<ExprVal> arg_vals{};

@@ -123,8 +123,8 @@ std::vector<std::shared_ptr<VariableExpr>> Parser::parse_func_params() {
     if (params.size() > MAX_ARGS_NUM) {
         ErrorManager::handle_err(
             get_cur_tok(),
-            std::format("Error: Number of params for function exceed limit {}",
-                        MAX_ARGS_NUM));
+            "Error: Number of params for function exceed limit " +
+                std::to_string(MAX_ARGS_NUM));
     }
 
     return params;
@@ -409,9 +409,8 @@ std::vector<std::shared_ptr<Expr>> Parser::parse_func_call_arguments() {
     if (args.size() > MAX_ARGS_NUM) {
         ErrorManager::handle_err(
             get_cur_tok(),
-            std::format(
-                "Error: Number of arguments for function call exceed limit {}",
-                MAX_ARGS_NUM));
+            "Error: Number of arguments for function call exceed limit " +
+                std::to_string(MAX_ARGS_NUM));
     }
 
     return args;
