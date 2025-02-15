@@ -1,5 +1,5 @@
 # clox
-This is a C++ interpreter the Lox - a dynamic type programming language, inspired by the book Crafting Interpreters.
+This is a C++ implementation for Lox - a dynamic type programming language, inspired by the book Crafting Interpreters.
 
 ### Build the code
 Requirement: C++20 or newer.
@@ -8,7 +8,7 @@ Requirement: C++20 or newer.
 ```
 
 ### Features with example snippets
-Expression and statements: `./build/main demo/example1.lox`
+Expression and statement: `./build/main demo/expression_and_statement.lox`
 ```
 print "Hello world";
 print 5 + (3 * 2) - 4 / 2;
@@ -21,7 +21,7 @@ c = a + b;
 print c;
 ```
 
-Variable scope: `./build/main demo/example2.lox`
+Variable scope: `./build/main demo/variable_scope.lox`
 ```
 var a = "global a";
 var b = "global b";
@@ -31,20 +31,20 @@ var c = "global c";
   var b = "outer b";
   {
     var a = "inner a";
-    print a;
-    print b;
-    print c;
+    print a; // inner a
+    print b; // outer b
+    print c; // global c
   }
-  print a;
-  print b;
-  print c;
+  print a; // outer a
+  print b; // outer b
+  print c; // global c
 }
-print a;
-print b;
-print c;
+print a; // global a
+print b; // global b
+print c; // global c
 ```
 
-Loop: `./build/main demo/example3.lox`
+Loop: `./build/main demo/loop.lox`
 ```
 // Fibonacci program
 var a = 0;
@@ -64,11 +64,30 @@ print a
 while a <= 10 {
     a = a + 1;
 ```
-`./build/main demo/example4.lox`
+`./build/main demo/parse_error_report.lox`
 ```
 [line 3] Error at 'while': Expected ; at the end of print statement
 [line 3] Error at '{': Expected close bracket '}' at the end of the block to match '{'
 Parser error occurs
+```
+
+Function: `./build/main demo/function.lox`
+```
+// NORMAL FUNCTION
+print "Fibonacci";
+fun fib(n) {
+  if n <= 1 {
+    return n;
+  }
+  return fib(n - 2) + fib(n - 1);
+}
+
+for var i = 0; i < 10; i = i + 1; {
+  print fib(i);
+}
+
+// LANGUAGE NATIVE FUNCTION
+print "Native function get current time: " + clock() + "s";
 ```
 
 ### Run unit-tests
