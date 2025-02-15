@@ -4,7 +4,6 @@
 #include "clox/parser/expr.hpp"
 #include "clox/parser/stmt.hpp"
 #include "clox/scanner/token.hpp"
-#include <malloc/_malloc_type.h>
 #include <memory>
 #include <vector>
 

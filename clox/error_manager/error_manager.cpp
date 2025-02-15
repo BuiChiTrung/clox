@@ -1,5 +1,4 @@
 #include "clox/error_manager/error_manager.hpp"
-#include <format>
 #include <iostream>
 
 inline bool ErrorManager::had_err = false;

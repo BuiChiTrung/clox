@@ -1,7 +1,6 @@
 #include "clox/ast_interpreter/environment.hpp"
 #include "clox/error_manager/error_manager.hpp"
 #include "clox/scanner/token.hpp"
-#include <format>
 #include <memory>
 
 Environment::Environment() {
