@@ -1,5 +1,4 @@
 #include "clox/ast_interpreter/ast_interpreter.hpp"
-#include "clox/ast_interpreter/printer_visitor.hpp"
 #include "clox/error_manager.hpp"
 #include "clox/parser/parser.hpp"
 #include "clox/scanner/scanner.hpp"
@@ -14,7 +13,6 @@
 class CLox {
   private:
     static std::unique_ptr<InterpreterVisitor> interpreter_visitor;
-    static std::unique_ptr<PrinterVisitor> printer_visitor;
     // Process one line or a whole file
     static void run(std::string source) {
         std::unique_ptr<Scanner> scanner(new Scanner(source));
@@ -69,8 +67,6 @@ class CLox {
     }
 };
 
-std::unique_ptr<PrinterVisitor> CLox::printer_visitor =
-    std::make_unique<PrinterVisitor>();
 std::unique_ptr<InterpreterVisitor> CLox::interpreter_visitor =
     std::make_unique<InterpreterVisitor>();
 
