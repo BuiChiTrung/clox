@@ -1,6 +1,5 @@
-#include "scanner.hpp"
-#include "error_manager.hpp"
-#include "token.hpp"
+#include "clox/scanner/scanner.hpp"
+#include "clox/error_manager.hpp"
 #include <cctype>
 #include <memory>
 #include <string>
@@ -77,8 +76,7 @@ void Scanner::scan_token() {
             while (!is_end_of_src() && src.at(current_pos) != '\n') {
                 current_pos++;
             }
-        }
-        else {
+        } else {
             add_token(TokenType::SLASH);
         }
         break;
@@ -96,12 +94,10 @@ void Scanner::scan_token() {
         if (std::isdigit(c)) {
             parse_num();
             break;
-        }
-        else if (std::isalpha(c) || c == '_') {
+        } else if (std::isalpha(c) || c == '_') {
             parse_identifier();
             break;
-        }
-        else {
+        } else {
             ErrorManager::handle_err(line, "Unexpected character.");
             break;
         }
@@ -179,8 +175,7 @@ void Scanner::parse_identifier() {
         src.substr(str_start_pos, current_pos - str_start_pos);
     if (reserved_kws.find(identifier_str) == reserved_kws.end()) {
         add_token(TokenType::IDENTIFIER, identifier_str);
-    }
-    else {
+    } else {
         add_token(reserved_kws.at(identifier_str));
     }
 }

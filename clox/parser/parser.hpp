@@ -1,7 +1,7 @@
 #pragma once
-#include "ast/expr.hpp"
-#include "ast/stmt.hpp"
-#include "token.hpp"
+#include "clox/parser/expr.hpp"
+#include "clox/parser/stmt.hpp"
+#include "clox/scanner/token.hpp"
 #include <memory>
 
 class Parser {

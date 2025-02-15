@@ -1,6 +1,6 @@
-#include "environment.hpp"
+#include "clox/ast_interpreter/environment.hpp"
 #include "clox/error_manager.hpp"
-#include "clox/token.hpp"
+#include "clox/scanner/token.hpp"
 #include <format>
 #include <memory>
 

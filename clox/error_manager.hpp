@@ -1,6 +1,6 @@
 
 #pragma once
-#include "token.hpp"
+#include "clox/scanner/token.hpp"
 #include <exception>
 
 class RuntimeException : public std::exception {

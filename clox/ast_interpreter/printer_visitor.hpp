@@ -1,6 +1,6 @@
 #pragma once
-#include "clox/token.hpp"
-#include "expr.hpp"
+#include "clox/parser/expr.hpp"
+#include "clox/scanner/token.hpp"
 #include <iostream>
 #include <memory>
 #include <sstream>
@@ -49,14 +49,11 @@ class PrinterVisitor : public IExprVisitor {
     ExprVal visit_literal(const LiteralExpr &l) {
         if (std::holds_alternative<bool>(l.value)) {
             return std::get<bool>(l.value) ? "true" : "false";
-        }
-        else if (std::holds_alternative<double>(l.value)) {
+        } else if (std::holds_alternative<double>(l.value)) {
             return std::to_string(std::get<double>(l.value));
-        }
-        else if (std::holds_alternative<std::string>(l.value)) {
+        } else if (std::holds_alternative<std::string>(l.value)) {
             return l.value;
-        }
-        else {
+        } else {
             return "nil";
         }
     }

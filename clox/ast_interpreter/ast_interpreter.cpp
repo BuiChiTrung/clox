@@ -1,11 +1,11 @@
-#include "interpreter_visitor.hpp"
-#include "clox/ast/expr.hpp"
-#include "clox/ast/return.hpp"
-#include "clox/ast/stmt.hpp"
-#include "clox/callable.hpp"
-#include "clox/environment.hpp"
+#include "ast_interpreter.hpp"
+#include "clox/ast_interpreter/callable.hpp"
+#include "clox/ast_interpreter/environment.hpp"
+#include "clox/ast_interpreter/return.hpp"
 #include "clox/error_manager.hpp"
-#include "clox/token.hpp"
+#include "clox/parser/expr.hpp"
+#include "clox/parser/stmt.hpp"
+#include "clox/scanner/token.hpp"
 
 #include <format>
 #include <iostream>

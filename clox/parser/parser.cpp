@@ -1,10 +1,9 @@
 
-#include "parser.hpp"
-#include "ast/stmt.hpp"
-#include "clox/ast/expr.hpp"
-#include "error_manager.hpp"
-#include "token.hpp"
-#include <format>
+#include "clox/parser/parser.hpp"
+#include "clox/error_manager.hpp"
+#include "clox/parser/expr.hpp"
+#include "clox/parser/stmt.hpp"
+#include "clox/scanner/token.hpp"
 #include <malloc/_malloc_type.h>
 #include <memory>
 #include <vector>

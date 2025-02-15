@@ -1,6 +1,6 @@
-#include "clox/ast/expr.hpp"
-#include "clox/ast/printer_visitor.hpp"
-#include "clox/token.hpp"
+#include "clox/ast_interpreter/printer_visitor.hpp"
+#include "clox/parser/expr.hpp"
+#include "clox/scanner/token.hpp"
 #include <gtest/gtest.h>
 #include <memory>
 

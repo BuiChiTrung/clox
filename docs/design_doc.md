@@ -288,7 +288,7 @@ statement → exprStmt | printStmt | varStmt;
 + Sub class of Statement to represent var declare stmt.
 When parse exception occur for a statement, we now use err recovery technique: panic mode mentioned in chapter 6 to continue parsing the next statement.
 ### Environment
-Def: The place we store our variable. Simply a class: environment.hpp. This class is stored as a field of InterpreterVisitor.
+Def: The place we store our variable. Simply a class: ast/environment.hpp. This class is stored as a field of InterpreterVisitor.
 **Field**: a map with key - var name, value - var value.
 **Method**: 
 + `add_new_variable`: in the book, a var can be declared twice. However, I follow other languages rule and throw an err if that case happens.

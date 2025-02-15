@@ -1,7 +1,6 @@
 #pragma once
-#include "token.hpp"
+#include "clox/scanner/token.hpp"
 #include <memory>
-#include <variant>
 #include <vector>
 
 // Scan the whole file or a single line to return a vector of tokens

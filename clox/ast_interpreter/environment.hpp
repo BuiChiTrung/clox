@@ -1,5 +1,5 @@
 #pragma once
-#include "clox/token.hpp"
+#include "clox/scanner/token.hpp"
 #include <map>
 #include <memory>
 

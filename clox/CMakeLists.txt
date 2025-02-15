@@ -2,7 +2,7 @@
 set(SOURCE_DIR ".")
 
 # Collect all .cpp files in the directory
-file(GLOB SOURCES "${SOURCE_DIR}/*.cpp" "${SOURCE_DIR}/ast/*.cpp" "${SOURCE_DIR}/utils/*.cpp")
+file(GLOB SOURCES "${SOURCE_DIR}/*.cpp" "${SOURCE_DIR}/*/*.cpp")
 
 # Create a library from all the .cpp files
 add_library(clox ${SOURCES})

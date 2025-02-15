@@ -1,8 +1,8 @@
 #pragma once
-#include "clox/ast/expr.hpp"
-#include "clox/environment.hpp"
-#include "clox/token.hpp"
-#include "stmt.hpp"
+#include "clox/ast_interpreter/environment.hpp"
+#include "clox/parser/expr.hpp"
+#include "clox/parser/stmt.hpp"
+#include "clox/scanner/token.hpp"
 #include <memory>
 
 class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {

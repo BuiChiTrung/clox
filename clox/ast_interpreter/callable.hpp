@@ -1,8 +1,8 @@
-#include "clox/ast/interpreter_visitor.hpp"
-#include "clox/ast/return.hpp"
-#include "clox/ast/stmt.hpp"
-#include "clox/environment.hpp"
-#include "clox/token.hpp"
+#include "clox/ast_interpreter/ast_interpreter.hpp"
+#include "clox/ast_interpreter/environment.hpp"
+#include "clox/ast_interpreter/return.hpp"
+#include "clox/parser/stmt.hpp"
+#include "clox/scanner/token.hpp"
 
 #include <chrono>
 #include <memory>

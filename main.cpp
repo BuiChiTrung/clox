@@ -1,9 +1,9 @@
-#include "clox/ast/interpreter_visitor.hpp"
-#include "clox/ast/printer_visitor.hpp"
+#include "clox/ast_interpreter/ast_interpreter.hpp"
+#include "clox/ast_interpreter/printer_visitor.hpp"
 #include "clox/error_manager.hpp"
-#include "clox/parser.hpp"
-#include "clox/scanner.hpp"
-#include "clox/token.hpp"
+#include "clox/parser/parser.hpp"
+#include "clox/scanner/scanner.hpp"
+#include "clox/scanner/token.hpp"
 
 #include <fstream>
 #include <iostream>
@@ -47,8 +47,7 @@ class CLox {
 
             run(content);
             file.close();
-        }
-        else {
+        } else {
             std::cerr << "Unable to open file" << std::endl;
         }
     }
@@ -79,8 +78,7 @@ int main(int argc, char *argv[]) {
     if (argc > 2) {
         std::cout << "Usage: lox [script]" << std::endl;
         exit(1);
-    }
-    else if (argc == 2) {
+    } else if (argc == 2) {
         CLox::run_file(argv[1]);
         if (ErrorManager::had_err) {
             exit(65);
@@ -88,8 +86,7 @@ int main(int argc, char *argv[]) {
         if (ErrorManager::had_runtime_err) {
             exit(70);
         }
-    }
-    else {
+    } else {
         CLox::run_prompt();
     }
 }

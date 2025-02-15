@@ -1,6 +1,6 @@
-#include "clox/ast/interpreter_visitor.hpp"
-#include "clox/parser.hpp"
-#include "clox/scanner.hpp"
+#include "clox/ast_interpreter/ast_interpreter.hpp"
+#include "clox/parser/parser.hpp"
+#include "clox/scanner/scanner.hpp"
 #include <gtest/gtest.h>
 
 class InterpreterVisitorTest : public testing::Test {
