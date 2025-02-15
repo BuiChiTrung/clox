@@ -24,22 +24,17 @@ inline std::string literal_to_string(const ExprVal &value) {
 
             if constexpr (std::is_same_v<T, bool>) {
                 return arg ? "true" : "false";
-            }
-            else if constexpr (std::is_same_v<T, double>) {
+            } else if constexpr (std::is_same_v<T, double>) {
                 if (arg == static_cast<int>(arg)) {
                     return std::to_string(static_cast<int>(arg));
-                }
-                else {
+                } else {
                     return std::format("{:.2f}", arg);
                 }
-            }
-            else if constexpr (std::is_same_v<T, std::string>) {
+            } else if constexpr (std::is_same_v<T, std::string>) {
                 return arg;
-            }
-            else if constexpr (std::is_same_v<T, LoxCallable>) {
+            } else if constexpr (std::is_same_v<T, LoxCallable>) {
                 return arg.to_string();
-            }
-            else {
+            } else {
                 return "nil";
             }
         },

@@ -32,28 +32,28 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
 // printStmt | varStmt | assignStmt | returnStmt
 std::shared_ptr<Stmt> Parser::parse_stmt() {
     try {
-        if (validate_token_and_advance({TokenType::PRINT})) {
+        if (validate_token(TokenType::PRINT)) {
             return parse_print_stmt();
         }
-        if (validate_token_and_advance({TokenType::VAR})) {
+        if (validate_token(TokenType::VAR)) {
             return parse_var_stmt();
         }
-        if (validate_token_and_advance({TokenType::LEFT_BRACE})) {
+        if (validate_token(TokenType::LEFT_BRACE)) {
             return parse_block();
         }
-        if (validate_token_and_advance({TokenType::WHILE})) {
+        if (validate_token(TokenType::WHILE)) {
             return parse_while_stmt();
         }
-        if (validate_token_and_advance({TokenType::FOR})) {
+        if (validate_token(TokenType::FOR)) {
             return parse_for_stmt();
         }
-        if (validate_token_and_advance({TokenType::IF})) {
+        if (validate_token(TokenType::IF)) {
             return parse_if_stmt();
         }
-        if (validate_token_and_advance({TokenType::FUNC})) {
+        if (validate_token(TokenType::FUNC)) {
             return parse_function_stmt();
         }
-        if (validate_token_and_advance({TokenType::RETURN})) {
+        if (validate_token(TokenType::RETURN)) {
             return parse_return_stmt();
         }
         // TODO(trung.bc): not use assign stmt as fallback stmt
@@ -69,6 +69,8 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
 
 // returnStmt → return expression? ";"
 std::shared_ptr<Stmt> Parser::parse_return_stmt() {
+    assert_tok_and_advance(TokenType::RETURN, "Expected 'return'");
+
     std::shared_ptr<Token> return_kw = get_prev_tok();
     std::shared_ptr<Expr> expr = nullptr;
 
@@ -83,6 +85,8 @@ std::shared_ptr<Stmt> Parser::parse_return_stmt() {
 
 // function → IDENTIFIER "(" parameters ")" block ;
 std::shared_ptr<Stmt> Parser::parse_function_stmt() {
+    assert_tok_and_advance(TokenType::FUNC, "Expected 'fun'");
+
     std::shared_ptr<Token> func_name =
         assert_tok_and_advance(TokenType::IDENTIFIER, "Expected function name");
 
@@ -131,10 +135,12 @@ std::vector<std::shared_ptr<VariableExpr>> Parser::parse_func_params() {
 // forStmt → "for" (varStmt | assignStmt | ";") (expression)? ";" (assignStmt)?
 // block
 std::shared_ptr<Stmt> Parser::parse_for_stmt() {
+    assert_tok_and_advance(TokenType::FOR, "Expected 'for'");
+
     std::shared_ptr<Stmt> initializer;
     if (validate_token_and_advance({TokenType::SEMICOLON})) {
         initializer = nullptr;
-    } else if (validate_token_and_advance({TokenType::VAR})) {
+    } else if (validate_token(TokenType::VAR)) {
         initializer = parse_var_stmt();
     } else {
         initializer = parse_assign_stmt();
@@ -170,6 +176,7 @@ std::shared_ptr<Stmt> Parser::parse_for_stmt() {
 
 // whileStmt → "while" expression block
 std::shared_ptr<Stmt> Parser::parse_while_stmt() {
+    assert_tok_and_advance(TokenType::WHILE, "Expected 'while'");
     auto condition = parse_expr();
 
     assert_tok_and_advance(TokenType::LEFT_BRACE,
@@ -181,6 +188,7 @@ std::shared_ptr<Stmt> Parser::parse_while_stmt() {
 
 // ifStmt -> "if" expression block ("else" block)?
 std::shared_ptr<Stmt> Parser::parse_if_stmt() {
+    assert_tok_and_advance(TokenType::IF, "Expected 'if'");
     auto condition = parse_expr();
 
     assert_tok_and_advance(TokenType::LEFT_BRACE,
@@ -217,6 +225,7 @@ std::shared_ptr<Stmt> Parser::parse_block() {
 
 // varStmt → "var" IDENTIFIER ( "=" expression )? ";"
 std::shared_ptr<Stmt> Parser::parse_var_stmt() {
+    assert_tok_and_advance(TokenType::VAR, "Expected 'var'");
     assert_tok_and_advance(TokenType::IDENTIFIER, "Expected a variable name");
     std::shared_ptr<Token> tok_var = get_prev_tok();
 
@@ -235,6 +244,7 @@ std::shared_ptr<Stmt> Parser::parse_var_stmt() {
 
 // printStmt  → "print" expression ";"
 std::shared_ptr<Stmt> Parser::parse_print_stmt() {
+    assert_tok_and_advance(TokenType::PRINT, "Expected 'print'");
     std::shared_ptr<PrintStmt> stmt(new PrintStmt(parse_expr()));
     assert_tok_and_advance(TokenType::SEMICOLON,
                            "Expected ; at the end of print statement");

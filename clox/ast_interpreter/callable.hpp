@@ -7,7 +7,6 @@
 #include <memory>
 #include <sys/types.h>
 
-// TODO(trung.bc): split to another file
 class LoxCallable {
   public:
     virtual uint get_param_num() const { return 0; }
