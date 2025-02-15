@@ -9,6 +9,7 @@
 #include <format>
 #include <iostream>
 #include <memory>
+#include <string>
 #include <variant>
 
 InterpreterVisitor::InterpreterVisitor()
@@ -185,8 +186,13 @@ ExprVal InterpreterVisitor::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_string_ptr) {
             return *left_string_ptr + *right_string_ptr;
         }
-        throw RuntimeException(b.op,
-                               "Operands must be two numbers or two strings");
+        if (left_double_ptr && right_string_ptr) {
+            return std::to_string(*left_double_ptr) + *right_string_ptr;
+        }
+        if (left_string_ptr && right_double_ptr) {
+            return *left_string_ptr + std::to_string(*right_double_ptr);
+        }
+        throw RuntimeException(b.op, "Operands must be number or string");
     case TokenType::MINUS:
         checkNumberOperands(b.op, left, right);
         return *left_double_ptr - *right_double_ptr;
