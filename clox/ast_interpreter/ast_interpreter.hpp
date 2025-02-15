@@ -23,7 +23,7 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
 
     void visit_print_stmt(const PrintStmt &p) override;
 
-    void visit_var_stmt(const VarStmt &v) override;
+    void visit_var_decl(const VarDecl &v) override;
 
     void
     visit_block_stmt(const BlockStmt &b,
@@ -33,7 +33,7 @@ class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
 
     void visit_while_stmt(const WhileStmt &w) override;
 
-    void visit_function_stmt(const FunctionStmt &f) override;
+    void visit_function_decl(const FunctionDecl &f) override;
 
     void visit_return_stmt(const ReturnStmt &r) override;
 

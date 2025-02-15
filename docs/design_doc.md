@@ -568,7 +568,7 @@ class LoxFunction : public LoxCallable {
     const FunctionStmt &func_stmt;
 }
 
-void InterpreterVisitor::visit_function_stmt(const FunctionStmt &w) {
+void InterpreterVisitor::visit_function_decl(const FunctionStmt &w) {
     std::shared_ptr<LoxFunction> func(new LoxFunction(w));
     env->add_new_variable(w.name->lexeme, func);
 }

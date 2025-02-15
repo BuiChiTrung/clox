@@ -18,52 +18,56 @@ std::shared_ptr<Expr> Parser::parse_single_expr() {
     }
 }
 
-// program → statement*
+// program → declaration*
 std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
     std::vector<std::shared_ptr<Stmt>> stmts{};
     while (!consumed_all_tokens()) {
-        stmts.push_back(parse_stmt());
+        stmts.push_back(parse_declaration());
     }
     return stmts;
 }
 
-// statement → block | function | forStmt | whileStmt | ifStmt | exprStmt |
-// printStmt | varStmt | assignStmt | returnStmt
-std::shared_ptr<Stmt> Parser::parse_stmt() {
+// declaration → varDecl | funcDecl | statement
+std::shared_ptr<Stmt> Parser::parse_declaration() {
     try {
-        if (validate_token(TokenType::PRINT)) {
-            return parse_print_stmt();
-        }
         if (validate_token(TokenType::VAR)) {
-            return parse_var_stmt();
-        }
-        if (validate_token(TokenType::LEFT_BRACE)) {
-            return parse_block();
-        }
-        if (validate_token(TokenType::WHILE)) {
-            return parse_while_stmt();
-        }
-        if (validate_token(TokenType::FOR)) {
-            return parse_for_stmt();
-        }
-        if (validate_token(TokenType::IF)) {
-            return parse_if_stmt();
+            return parse_var_decl();
         }
         if (validate_token(TokenType::FUNC)) {
-            return parse_function_stmt();
+            return parse_function_decl();
         }
-        if (validate_token(TokenType::RETURN)) {
-            return parse_return_stmt();
-        }
-        // TODO(trung.bc): not use assign stmt as fallback stmt
-        return parse_assign_stmt();
-        // return parse_expr_stmt();
+        return parse_stmt();
     } catch (ParserException &err) {
         ErrorManager::handle_parser_err(err);
-        // std::cout << err.what() << std::endl;
         panic_mode_synchornize();
         return nullptr;
     }
+}
+
+// statement → block | forStmt | whileStmt | ifStmt | exprStmt | printStmt |
+// assignStmt | returnStmt
+std::shared_ptr<Stmt> Parser::parse_stmt() {
+    if (validate_token(TokenType::PRINT)) {
+        return parse_print_stmt();
+    }
+    if (validate_token(TokenType::LEFT_BRACE)) {
+        return parse_block();
+    }
+    if (validate_token(TokenType::WHILE)) {
+        return parse_while_stmt();
+    }
+    if (validate_token(TokenType::FOR)) {
+        return parse_for_stmt();
+    }
+    if (validate_token(TokenType::IF)) {
+        return parse_if_stmt();
+    }
+    if (validate_token(TokenType::RETURN)) {
+        return parse_return_stmt();
+    }
+    // TODO(trung.bc): not use assign stmt as fallback stmt
+    return parse_assign_stmt();
+    // return parse_expr_stmt();
 }
 
 // returnStmt → return expression? ";"
@@ -83,7 +87,7 @@ std::shared_ptr<Stmt> Parser::parse_return_stmt() {
 }
 
 // function → IDENTIFIER "(" parameters ")" block ;
-std::shared_ptr<Stmt> Parser::parse_function_stmt() {
+std::shared_ptr<Stmt> Parser::parse_function_decl() {
     assert_tok_and_advance(TokenType::FUNC, "Expected function declaration");
 
     std::shared_ptr<Token> func_name =
@@ -103,7 +107,7 @@ std::shared_ptr<Stmt> Parser::parse_function_stmt() {
 
     std::shared_ptr<Stmt> func_body = parse_block();
 
-    return std::make_shared<FunctionStmt>(func_name, func_params, func_body);
+    return std::make_shared<FunctionDecl>(func_name, func_params, func_body);
 }
 
 // parameters -> "" | (IDENTIFIER (","IDENTIFIER)*)
@@ -129,7 +133,7 @@ std::vector<std::shared_ptr<VariableExpr>> Parser::parse_func_params() {
     return params;
 }
 
-// forStmt → "for" (varStmt | assignStmt | ";") (expression)? ";" (assignStmt)?
+// forStmt → "for" (varDecl | assignStmt | ";") (expression)? ";" (assignStmt)?
 // block
 std::shared_ptr<Stmt> Parser::parse_for_stmt() {
     assert_tok_and_advance(TokenType::FOR, "Expected for loop");
@@ -138,7 +142,7 @@ std::shared_ptr<Stmt> Parser::parse_for_stmt() {
     if (validate_token_and_advance({TokenType::SEMICOLON})) {
         initializer = nullptr;
     } else if (validate_token(TokenType::VAR)) {
-        initializer = parse_var_stmt();
+        initializer = parse_var_decl();
     } else {
         initializer = parse_assign_stmt();
     }
@@ -203,7 +207,7 @@ std::shared_ptr<Stmt> Parser::parse_block() {
     std::vector<std::shared_ptr<Stmt>> stmts{};
 
     while (!consumed_all_tokens() and !validate_token(TokenType::RIGHT_BRACE)) {
-        stmts.push_back(parse_stmt());
+        stmts.push_back(parse_declaration());
     }
 
     if (!validate_token_and_advance({TokenType::RIGHT_BRACE})) {
@@ -215,8 +219,8 @@ std::shared_ptr<Stmt> Parser::parse_block() {
     return std::make_shared<BlockStmt>(stmts);
 }
 
-// varStmt → "var" IDENTIFIER ( "=" expression )? ";"
-std::shared_ptr<Stmt> Parser::parse_var_stmt() {
+// varDecl → "var" IDENTIFIER ( "=" expression )? ";"
+std::shared_ptr<Stmt> Parser::parse_var_decl() {
     assert_tok_and_advance(TokenType::VAR, "Expected 'var'");
     assert_tok_and_advance(TokenType::IDENTIFIER, "Expected a variable name");
     std::shared_ptr<Token> tok_var = get_prev_tok();
@@ -231,7 +235,7 @@ std::shared_ptr<Stmt> Parser::parse_var_stmt() {
         TokenType::SEMICOLON,
         "Expected ; at the end of variable declaration statement");
 
-    return std::make_shared<VarStmt>(tok_var, var_initializer);
+    return std::make_shared<VarDecl>(tok_var, var_initializer);
 }
 
 // printStmt  → "print" expression ";"

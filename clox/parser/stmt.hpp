@@ -6,29 +6,31 @@
 
 class ExprStmt;
 class PrintStmt;
-class VarStmt;
+class VarDecl;
 class AssignStmt;
 class BlockStmt;
 class IfStmt;
 class WhileStmt;
-class FunctionStmt;
+class FunctionDecl;
 class ReturnStmt;
 
 class IStmtVisitor {
   public:
+    virtual void visit_var_decl(const VarDecl &p) = 0;
+    virtual void visit_function_decl(const FunctionDecl &f) = 0;
     virtual void visit_expr_stmt(const ExprStmt &e) = 0;
     virtual void visit_print_stmt(const PrintStmt &p) = 0;
-    virtual void visit_var_stmt(const VarStmt &p) = 0;
     virtual void visit_assign_stmt(const AssignStmt &a) = 0;
     virtual void
     visit_block_stmt(const BlockStmt &b,
                      std::shared_ptr<Environment> block_env = nullptr) = 0;
     virtual void visit_if_stmt(const IfStmt &b) = 0;
     virtual void visit_while_stmt(const WhileStmt &w) = 0;
-    virtual void visit_function_stmt(const FunctionStmt &f) = 0;
     virtual void visit_return_stmt(const ReturnStmt &r) = 0;
 };
 
+// We use the same class Stmt for both statment and declaration for simplicity
+// as both class has only 1 same method: accept
 class Stmt {
   public:
     virtual void accept(IStmtVisitor &v) = 0;
@@ -52,15 +54,15 @@ class PrintStmt : public Stmt {
     void accept(IStmtVisitor &v) override { return v.visit_print_stmt(*this); }
 };
 
-class VarStmt : public Stmt {
+class VarDecl : public Stmt {
   public:
     std::shared_ptr<Token> var_name;
     std::shared_ptr<Expr> initializer;
 
-    VarStmt(std::shared_ptr<Token> var_name, std::shared_ptr<Expr> initializer)
+    VarDecl(std::shared_ptr<Token> var_name, std::shared_ptr<Expr> initializer)
         : var_name(var_name), initializer(initializer) {};
 
-    void accept(IStmtVisitor &v) override { return v.visit_var_stmt(*this); }
+    void accept(IStmtVisitor &v) override { return v.visit_var_decl(*this); }
 };
 
 class AssignStmt : public Stmt {
@@ -107,19 +109,19 @@ class WhileStmt : public Stmt {
     void accept(IStmtVisitor &v) override { return v.visit_while_stmt(*this); }
 };
 
-class FunctionStmt : public Stmt {
+class FunctionDecl : public Stmt {
   public:
     std::shared_ptr<Token> name;
     std::vector<std::shared_ptr<VariableExpr>> params;
     std::shared_ptr<Stmt> body;
 
-    FunctionStmt(std::shared_ptr<Token> name,
+    FunctionDecl(std::shared_ptr<Token> name,
                  std::vector<std::shared_ptr<VariableExpr>> params,
                  std::shared_ptr<Stmt> body)
         : name(name), params(params), body(body) {}
 
     void accept(IStmtVisitor &v) override {
-        return v.visit_function_stmt(*this);
+        return v.visit_function_decl(*this);
     }
 };
 

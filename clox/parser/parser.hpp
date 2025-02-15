@@ -15,14 +15,15 @@ class Parser {
     std::vector<std::shared_ptr<Token>> tokens;
     uint32_t current_tok_pos = 0;
 
+    std::shared_ptr<Stmt> parse_declaration();
     std::shared_ptr<Stmt> parse_stmt();
     std::shared_ptr<Stmt> parse_return_stmt();
     std::shared_ptr<Stmt> parse_block();
-    std::shared_ptr<Stmt> parse_function_stmt();
+    std::shared_ptr<Stmt> parse_function_decl();
     std::shared_ptr<Stmt> parse_for_stmt();
     std::shared_ptr<Stmt> parse_while_stmt();
     std::shared_ptr<Stmt> parse_if_stmt();
-    std::shared_ptr<Stmt> parse_var_stmt();
+    std::shared_ptr<Stmt> parse_var_decl();
     std::shared_ptr<Stmt> parse_print_stmt();
     std::shared_ptr<Stmt> parse_assign_stmt();
     std::shared_ptr<Stmt> parse_expr_stmt();

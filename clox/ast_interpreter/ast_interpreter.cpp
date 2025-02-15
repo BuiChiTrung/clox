@@ -56,7 +56,7 @@ void InterpreterVisitor::visit_print_stmt(const PrintStmt &p) {
     std::cout << literal_to_string(val) << std::endl;
 }
 
-void InterpreterVisitor::visit_var_stmt(const VarStmt &v) {
+void InterpreterVisitor::visit_var_decl(const VarDecl &v) {
     ExprVal var_value = NIL;
     if (v.initializer != nullptr) {
         var_value = evaluate_expr(v.initializer);
@@ -79,7 +79,7 @@ void InterpreterVisitor::visit_while_stmt(const WhileStmt &w) {
     }
 }
 
-void InterpreterVisitor::visit_function_stmt(const FunctionStmt &w) {
+void InterpreterVisitor::visit_function_decl(const FunctionDecl &w) {
     std::shared_ptr<LoxFunction> func(new LoxFunction(w, env));
     env->add_new_variable(w.name->lexeme, func);
 }

@@ -31,12 +31,12 @@ class ClockNativeFunc : public LoxCallable {
 };
 
 class LoxFunction : public LoxCallable {
-    const FunctionStmt &func_stmt;
+    const FunctionDecl &func_stmt;
     // Can be global env or the env of the outer func defined this func
     std::shared_ptr<Environment> parent_env;
 
   public:
-    LoxFunction(const FunctionStmt &func_stmt,
+    LoxFunction(const FunctionDecl &func_stmt,
                 std::shared_ptr<Environment> parent_env)
         : func_stmt(func_stmt), parent_env(parent_env) {}
 
