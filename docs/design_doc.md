@@ -1,31 +1,38 @@
 **Language**: simple set of rules of syntaxs to write a program
 **Programming language implementation**: is a system for executing [computer programs](https://en.wikipedia.org/wiki/Computer_programs "Computer programs"). There are two general approaches: interpretation, compilication.
-## C2 - Terminologies
+## Terminologies
 
 ### Parts of a language
 **Scanning/Lexing**
 Takes the code stream and converts it to tokens: `(`, `,`, numers, string, etc. Ex:
 ![|650](Images/Pasted%20image%2020241123214650.png)
+
 **Parsing** 
 Takes tokens to build the Parse tree aka AST (abstract syntax tree): 
 ![|675](Images/Pasted%20image%2020241123214810.png)
+
 **Static analysis** 
 We do this for each indentifier (var, declaration). This including type check (for static type languages) and other semantic check. We then store these info in 1 of following ways:
 + Store in a field in the AST node.
 + Create a symbol table with key is the identifer.
 + Most powerful: Transform the tree into entirely new data structure (explained in other section of the book).
+
 **IR - intermediate representations** 
 + Front end of the pipeline is specific to the source language the program is written in. The back end is concerned with the final architecture where the program will run.
 + the middle presentation between the source and target language. This let you support multiple source languages and target platforms with less effort. We write one front end for each source language that produces the IR. Then one back end for  each target architecture. Ex: llvm IR ![](Images/Pasted%20image%2020240114180011.png)
+
 **Optimization**: 
 Replace the orignal program with the another one more efficient and produce the same result. Many techniques
 + Constant folding: `pennyArea = 3.14159 * (0.75 / 2) * (0.75 / 2);` ===> optimize: `pennyArea = 0.4417860938;`
+
 **Code generation**
 We are at the backend close to sth that the machine can understand. 2 choices:
 + Generate instruction for each type CPU. Overwheel
 + Generate code for a hypothetical machine, called **bytecode**, each instruction is a single byte long. We need to translate bytecode to a specific computer arch. This often done using a **virtual machine**.
+
 **Virtual machine**
 A program that emulates a hypothetical chip. Implement your VM in, say, C, and you can run your language on any platform that has a C compiler.
+
 **Runtime**
 In each language we need some services to run while the program is running. Ex: garbage collector in Java, sth to keep track type of an obj during execution in dynamic type languages, etc. These stuff called runtime. In compile language, the runtime is auto inserted into the executable file. If a VM is used, runtime lives inside the VM.
 
@@ -59,7 +66,7 @@ Ex: CPython is an interpreter but has a compiler. It parse python code to intern
 Approach in Pascal in C as in the past, memory was so precious that there wasn't enough space to store the entire source file.
 **Tree-walk interpreters**
 Exec code right after we get AST. Used in students project. **The 1st interpreter in the book uses this way.**
-## C3 - Lox language
+## Lox language
 Dynamic type
 Memory managment using GC - Garbage collector
 Datatype:
@@ -85,7 +92,7 @@ Objects: there are 2 approaches to impl obj
 + Prototype based: Javascript
 Classes: field, method, instance init, inherit.
 Standlib: impl built-in func: print, clock
-## C4 - Scanning - Scanner
+## Scanner
 The language support 2 modes:
 + Run the whole file
 + Interactive mode: run each line we type in
@@ -105,7 +112,7 @@ Token: Is a wrapper of lexeme contains other info:
 	+ Number
 + Reserved words and identifier: `for`, `while`, `and`, var name
 
-## C5 - Representing code - Parser
+## Representing code
 ### Context free grammar
 ![](Images/Pasted%20image%2020241211174820.png)
 
@@ -129,7 +136,7 @@ We have a bunch of object inherit the base class `Expr` like below: rows - class
 	
 The book choose visitor. A design pattern to write like OOP style, but define the same method for all types in a single place. This like the combination of OOP and Functional programming method. But still, we have the pros and cons of OOP.
 
-## C6 - Parser
+## Parsing expr
 ### Parsing grammar
 An expression can be present in multiple syntax trees which may return different results. Ex: `6 / 3 - 1`
 ![|400](Images/Pasted%20image%2020241224220138.png)
@@ -186,7 +193,7 @@ A good parse would:
 
 **Error recovery**: a parser responds to an error and keeps going to look for later errors. **Panic mode** is most used recovery technique.
 
-## C7 - Evaluating expression
+## Evaluating expression
 
 ### Eval expr
 There are many ways of a language implementation: compile it to machine code, another high level language, bytecode. The simplest way is to exec the syntax tree itself.
@@ -212,7 +219,7 @@ Object[] stuff = new Integer[1];
 // Compile without err but err raised at runtime
 stuff[0] = "not an int!";
 ```
-## C8 - Statements and state
+## Statements and state
 In previous chapters, we able to parse and evaluate result of a singler chapter. However, a program contains other things: variable (state), statements.
 ### Statements (stmt)
 There are many stmts. For now, category as 2 types:
@@ -413,7 +420,7 @@ void visit_block_stmt(const BlockStmt &b) override {
         this->env = parent_scope_env;
     }
 ```
-## C9 - Control flow
+## Control flow
 2 kind of control flow: 
 + Branching 
 + Looping
@@ -423,7 +430,8 @@ Note: there is a case like this
 if (first) if (second) whenTrue(); elsewhenFalse();
 ```
 This can be parsed into 1 of 2 cases below: 
-![|500](Pasted%20image%2020250204233132.png)
+![|475](Images/Pasted%20image%2020250204233132.png)
+
 Most language choose to stick `else` to nearest `if` (case 2).
 
 **Parsing rule**: To avoid the corner case above. I follow golang rule, not like the book, make it required to have {} after the condition expression. `{` also tell the parser when the condition expr is ended instead of having to use `()` wrap around expr like in C, Java.
@@ -486,7 +494,7 @@ Lox doesn’t _need_ `for` loops, they just make some common code patterns mo
 **AST Node and evaluate**
 Instead of create new type of node in the syntax tree for `for(initializer; condition; increment)` loop we reuse the `while` loop: 
 for_stmt = BlockStmt(initializer, WhileStmt(condition, {while_body, increment}))
-## C10 - Functions
+## Functions
 ### Function call
 Supported syntax: nested call `doSth(1, 2)()`. The callee: `doSth`, `doSth(1, 2)` are expression that evaluated as a function.
 **Parsing rule**: function call has higher precedence than unary
