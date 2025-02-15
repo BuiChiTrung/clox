@@ -431,7 +431,7 @@ Most language choose to stick `else` to nearest `if` (case 2).
 statement → block | ifStmt | exprStmt | printStmt | varStmt | assignStmt
 ifStmt -> "if" expression block ("else" block)?
 ```
-**Present in syntax tree**:
+**AST Node:**
 ```cpp
 class IfStmt : public Stmt {
   public:
@@ -483,7 +483,7 @@ Lox doesn’t _need_ `for` loops, they just make some common code patterns mo
 ```cpp
 // forStmt → "for" (varStmt | assignStmt | ";") (expression)? ";" (assignStmt)? block
 ```
-**Node and evaluate**
+**AST Node and evaluate**
 Instead of create new type of node in the syntax tree for `for(initializer; condition; increment)` loop we reuse the `while` loop: 
 for_stmt = BlockStmt(initializer, WhileStmt(condition, {while_body, increment}))
 ## C10 - Functions
@@ -495,7 +495,7 @@ Supported syntax: nested call `doSth(1, 2)()`. The callee: `doSth`, `doSth(1, 2)
 // call → primary ("(" arguments ")")*
 // arguments -> "" | (expression (","expression)*)
 ```
-**Node and evaluate**
+**AST Node and evaluate**
 ```cpp
 class FuncCallExpr : public Expr {
     std::shared_ptr<Expr> callee;
@@ -516,7 +516,128 @@ Note:
 + When parsing func call: check number of args exceed limit (255).
 + When evaluating func call: check number of func params = number of passed args.
 ### Native function
-### Function declaration
+Funcs the language provided like print. Example `clock()` func, which tell how many seconds passed since a particualar time.
+```cpp
+class ClockNativeFunc : public LoxCallable {
+  public:
+    ExprVal invoke(InterpreterVisitor *interpreter,
+                   std::vector<ExprVal> &args) override {
+        auto now = std::chrono::system_clock::now();
+        std::chrono::duration<double> unix_time = now.time_since_epoch();
+
+        return unix_time.count();
+    }
+
+    std::string to_string() const override { return "<native-fn clock>"; }
+};
+```
+
+In the interpreter, we add a field to save global env. Native funcs are added to the global env.
+```cpp
+InterpreterVisitor::InterpreterVisitor()
+    : global_env(std::make_shared<Environment>()) {
+    env = global_env;
+    global_env->add_new_variable("clock", std::make_shared<ClockNativeFunc>());
+}
+```
+### Function declaration + Function object
+**Parsing rule**:
+```
+// function → IDENTIFIER "(" parameters ")" block ;
+// parameters -> "" | (IDENTIFIER (","IDENTIFIER)*)
+```
+**AST node:**
+```cpp
+class FunctionStmt : public Stmt {
+    std::shared_ptr<Token> name;
+    std::vector<std::shared_ptr<VariableExpr>> params;
+    std::shared_ptr<Stmt> body;
+```
+**Eval `FunctionStmt` instance:**
+Instance of `FunctionStmt` class should give us a way to invoke it => we need to implement `LoxCallale` class. To keep the `FunctionStmt` minimal (similar to other classes present node in AST tree), we create another wrapper class around `FunctionStmt`:
+```cpp
+class LoxFunction : public LoxCallable {
+    const FunctionStmt &func_stmt;
+}
+
+void InterpreterVisitor::visit_function_stmt(const FunctionStmt &w) {
+    std::shared_ptr<LoxFunction> func(new LoxFunction(w));
+    env->add_new_variable(w.name->lexeme, func);
+}
+```
+
+Each time a func is invoked an env should be created to save var defined in the func scope and param. The env is created in the `invoke` method of `LoxFunction`. For now, the parent of that env is the global env (will be updated when we support closure).
+### Return stmt
+**Parsing rule:**
+```
+// statement → ... | returnStmt
+// returnStmt → return expression? ";"
+```
+**AST node:**
+```
+class ReturnStmt : public Stmt {
+    std::shared_ptr<Token> return_kw; // used for err reporting
+    std::shared_ptr<Expr> expr;
+}
+```
+**Eval node:** Assume we have a call stack like this:
+```
+void Interpreter.visitReturnStmt() <- throw return_val
+void Interpreter.visitIfStmt()
+void Interpreter.visitBlockStmt()
+void Interpreter.visitWhileStmt()
+void Interpreter.visitBlockStmt()
+ExprVal LoxFunction.invoke() <- catch
+ExprVal Interpreter.visitFuncCall()
+```
+
++ When return stmt is exec in the body of the func, we would stop executing other stmts. We need a way to bring the return result from `visitReturnStmt` to `visitFuncCall`. As the return type in other funcs in the call stack are `void`, one of the way to do that is **using exception to throw the return result**.
+```cpp
+class Return : std::exception {
+    ExprVal return_val;
+};
+
+void InterpreterVisitor::visit_return_stmt(const ReturnStmt &r) {
+    ExprVal return_val = NIL;
+    if (r.expr != nullptr) {
+        return_val = evaluate_expr(r.expr);
+    }
+
+    throw Return(return_val);
+}
+```
++ Catch the return result in the func to `invoke` func in defined in `LoxCallable` interface.
++ Note: the visitBlockStmt() should catch `Return` as well to update interpreter env after executing a block. 
+### Local func and closure
+For now, the parent env of a func call is always pointed to the global func. However, our language would support closure, defining a func inside another func. Ex:
+```
+// CLOSURE
+fun make_counter() {
+  var i = 0;
+  
+  fun closure() {
+    i = i + 1;
+    print i;
+  }
+
+  return closure;
+}
+
+var count = make_counter();
+count(); // 1
+count(); // 2
+```
+
+The parent env of `closure` is `make_counter`, not the global env. Solution:
++ In `LoxFunction` class, add a field to save the env of outer func `make_counter`. When eval `FunctionStmt` node, assign this field as the current env of the interpreter
+```cpp
+class LoxFunction : public LoxCallable {
+    const FunctionStmt &func_stmt;
+    // Can be global env or the env of the outer func defined this func
+    std::shared_ptr<Environment> parent_env;
+```
++ When eval `FuncCall` node, set the parent env of func call env as this field.
+
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`

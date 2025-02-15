@@ -35,21 +35,20 @@ class ClockNativeFunc : public LoxCallable {
 class LoxFunction : public LoxCallable {
     const FunctionStmt &func_stmt;
     // Can be global env or the env of the outer func defined this func
-    // (closure)
-    std::shared_ptr<Environment> closure;
+    std::shared_ptr<Environment> parent_env;
 
   public:
     LoxFunction(const FunctionStmt &func_stmt,
-                std::shared_ptr<Environment> closure)
-        : func_stmt(func_stmt), closure(closure) {}
+                std::shared_ptr<Environment> parent_env)
+        : func_stmt(func_stmt), parent_env(parent_env) {}
 
     uint get_param_num() const override { return func_stmt.params.size(); }
 
     ExprVal invoke(InterpreterVisitor *interpreter,
                    std::vector<ExprVal> &args) override {
-        auto cur_env = interpreter->env;
-
-        std::shared_ptr<Environment> func_env(new Environment(closure));
+        // Each time a func is invoked an env should be created to save var
+        // defined in the func scope
+        std::shared_ptr<Environment> func_env(new Environment(parent_env));
         for (int i = 0; i < func_stmt.params.size(); ++i) {
             func_env->add_new_variable(func_stmt.params[i]->name->lexeme,
                                        args[i]);

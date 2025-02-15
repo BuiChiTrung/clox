@@ -25,3 +25,5 @@ fun make_counter() {
 var count = make_counter();
 count(); // 1
 count(); // 2
+
+print clock();

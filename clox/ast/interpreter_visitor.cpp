@@ -36,10 +36,8 @@ void InterpreterVisitor::interpret_program(
             // exec stmt
             stmt->accept(*this);
         }
-        return;
     } catch (RuntimeException &err) {
         ErrorManager::handle_runtime_err(err);
-        return;
     }
 }
 
@@ -49,19 +47,16 @@ ExprVal InterpreterVisitor::evaluate_expr(std::shared_ptr<Expr> expr) {
 
 void InterpreterVisitor::visit_expr_stmt(const ExprStmt &e) {
     evaluate_expr(e.expr);
-    return;
 }
 
 void InterpreterVisitor::visit_assign_stmt(const AssignStmt &a) {
     ExprVal new_value = evaluate_expr(a.value);
     env->assign_new_value_to_variable(a.var->name, new_value);
-    return;
 }
 
 void InterpreterVisitor::visit_print_stmt(const PrintStmt &p) {
     ExprVal val = evaluate_expr(p.expr);
     std::cout << literal_to_string(val) << std::endl;
-    return;
 }
 
 void InterpreterVisitor::visit_var_stmt(const VarStmt &v) {
@@ -70,7 +65,6 @@ void InterpreterVisitor::visit_var_stmt(const VarStmt &v) {
         var_value = evaluate_expr(v.initializer);
     }
     env->add_new_variable(v.var_name->lexeme, var_value);
-    return;
 }
 
 void InterpreterVisitor::visit_if_stmt(const IfStmt &i) {
@@ -80,20 +74,17 @@ void InterpreterVisitor::visit_if_stmt(const IfStmt &i) {
     } else if (i.else_block != nullptr) {
         i.else_block->accept(*this);
     }
-    return;
 }
 
 void InterpreterVisitor::visit_while_stmt(const WhileStmt &w) {
     while (cast_literal_to_bool(evaluate_expr(w.condition))) {
         w.body->accept(*this);
     }
-    return;
 }
 
 void InterpreterVisitor::visit_function_stmt(const FunctionStmt &w) {
     std::shared_ptr<LoxFunction> func(new LoxFunction(w, env));
     env->add_new_variable(w.name->lexeme, func);
-    return;
 }
 
 void InterpreterVisitor::visit_block_stmt(
@@ -113,8 +104,6 @@ void InterpreterVisitor::visit_block_stmt(
         throw r;
     }
     this->env = cur_env;
-
-    return;
 }
 
 void InterpreterVisitor::visit_return_stmt(const ReturnStmt &r) {
@@ -278,7 +267,6 @@ void InterpreterVisitor::checkNumberOperand(std::shared_ptr<Token> tok,
     if (!std::holds_alternative<double>(right)) {
         throw RuntimeException(tok, "Right operand must be a number");
     }
-    return;
 }
 
 void InterpreterVisitor::checkIntOperands(std::shared_ptr<Token> tok,
@@ -293,8 +281,6 @@ void InterpreterVisitor::checkIntOperands(std::shared_ptr<Token> tok,
     if (static_cast<int>(right_double) != right_double) {
         throw RuntimeException(tok, "Right operand must be an int");
     }
-
-    return;
 }
 
 void InterpreterVisitor::checkNumberOperands(std::shared_ptr<Token> tok,
@@ -305,5 +291,4 @@ void InterpreterVisitor::checkNumberOperands(std::shared_ptr<Token> tok,
     if (!std::holds_alternative<double>(left)) {
         throw RuntimeException(tok, "Left operand must be a number");
     }
-    return;
 }
