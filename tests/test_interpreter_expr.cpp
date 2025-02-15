@@ -42,7 +42,7 @@ TEST_F(InterpreterVisitorTest, EvaluatesGroupingExpression) {
 }
 
 TEST_F(InterpreterVisitorTest, EvaluatesBinaryExpression) {
-    evaluateExpression("(1 + 2) * 3", 9.0f);
+    evaluateExpression("(1 + 2) % 3", 0.0);
     evaluateExpression("5 + (3 * 2) - 4 / 2", 9.0f);
     evaluateExpression("true and false", false);
     evaluateExpression("true or false", true);

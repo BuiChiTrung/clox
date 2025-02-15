@@ -69,7 +69,7 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
 
 // returnStmt → return expression? ";"
 std::shared_ptr<Stmt> Parser::parse_return_stmt() {
-    assert_tok_and_advance(TokenType::RETURN, "Expected 'return'");
+    assert_tok_and_advance(TokenType::RETURN, "Expected return statement");
 
     std::shared_ptr<Token> return_kw = get_prev_tok();
     std::shared_ptr<Expr> expr = nullptr;
@@ -85,7 +85,7 @@ std::shared_ptr<Stmt> Parser::parse_return_stmt() {
 
 // function → IDENTIFIER "(" parameters ")" block ;
 std::shared_ptr<Stmt> Parser::parse_function_stmt() {
-    assert_tok_and_advance(TokenType::FUNC, "Expected 'fun'");
+    assert_tok_and_advance(TokenType::FUNC, "Expected function declaration");
 
     std::shared_ptr<Token> func_name =
         assert_tok_and_advance(TokenType::IDENTIFIER, "Expected function name");
@@ -102,8 +102,6 @@ std::shared_ptr<Stmt> Parser::parse_function_stmt() {
                               "of function params list to match '('");
     }
 
-    assert_tok_and_advance(TokenType::LEFT_BRACE,
-                           "Expected { before function body");
     std::shared_ptr<Stmt> func_body = parse_block();
 
     return std::make_shared<FunctionStmt>(func_name, func_params, func_body);
@@ -135,7 +133,7 @@ std::vector<std::shared_ptr<VariableExpr>> Parser::parse_func_params() {
 // forStmt → "for" (varStmt | assignStmt | ";") (expression)? ";" (assignStmt)?
 // block
 std::shared_ptr<Stmt> Parser::parse_for_stmt() {
-    assert_tok_and_advance(TokenType::FOR, "Expected 'for'");
+    assert_tok_and_advance(TokenType::FOR, "Expected for loop");
 
     std::shared_ptr<Stmt> initializer;
     if (validate_token_and_advance({TokenType::SEMICOLON})) {
@@ -157,8 +155,6 @@ std::shared_ptr<Stmt> Parser::parse_for_stmt() {
     if (!validate_token(TokenType::LEFT_BRACE)) {
         increment = parse_assign_stmt();
     }
-    assert_tok_and_advance(TokenType::LEFT_BRACE,
-                           "Expected { after for loop increment statement.");
 
     auto body = std::dynamic_pointer_cast<BlockStmt>(parse_block());
     if (increment != nullptr) {
@@ -176,11 +172,9 @@ std::shared_ptr<Stmt> Parser::parse_for_stmt() {
 
 // whileStmt → "while" expression block
 std::shared_ptr<Stmt> Parser::parse_while_stmt() {
-    assert_tok_and_advance(TokenType::WHILE, "Expected 'while'");
+    assert_tok_and_advance(TokenType::WHILE, "Expected while loop");
     auto condition = parse_expr();
 
-    assert_tok_and_advance(TokenType::LEFT_BRACE,
-                           "Expected { after while statement");
     auto body = parse_block();
 
     return std::make_shared<WhileStmt>(condition, body);
@@ -188,17 +182,13 @@ std::shared_ptr<Stmt> Parser::parse_while_stmt() {
 
 // ifStmt -> "if" expression block ("else" block)?
 std::shared_ptr<Stmt> Parser::parse_if_stmt() {
-    assert_tok_and_advance(TokenType::IF, "Expected 'if'");
+    assert_tok_and_advance(TokenType::IF, "Expected if statement");
     auto condition = parse_expr();
 
-    assert_tok_and_advance(TokenType::LEFT_BRACE,
-                           "Expected { after if statement");
     auto if_block = parse_block();
 
     std::shared_ptr<Stmt> else_block = nullptr;
     if (validate_token_and_advance({TokenType::ELSE})) {
-        assert_tok_and_advance(TokenType::LEFT_BRACE,
-                               "Expected { after else statement");
         else_block = parse_block();
     }
 
@@ -207,6 +197,9 @@ std::shared_ptr<Stmt> Parser::parse_if_stmt() {
 
 // block → "{" statement* "}"
 std::shared_ptr<Stmt> Parser::parse_block() {
+    assert_tok_and_advance(TokenType::LEFT_BRACE,
+                           "Expected block of statements wrapped inside '{}'");
+
     auto left_brace = get_prev_tok();
     std::vector<std::shared_ptr<Stmt>> stmts{};
 
