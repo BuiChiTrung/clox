@@ -2,13 +2,13 @@
 This is a C++ implementation for Lox - a dynamic type programming language, inspired by the book Crafting Interpreters.
 
 ### Build the code
-Requirement: C++20 or newer.
+Requirement: C++17 or newer.
 ```
 ./build_clox.sh
 ```
 
 ### Features with example snippets
-Expression and statement: `./build/main demo/expression_and_statement.lox`
+Expression and statement: `./build/main ./demo/expression_and_statement.lox`
 ```
 print "Hello world";
 print 5 + (3 * 2) - 4 / 2;
@@ -21,7 +21,7 @@ c = a + b;
 print c;
 ```
 
-Variable scope: `./build/main demo/variable_scope.lox`
+Variable scope: `./build/main ./demo/variable_scope.lox`
 ```
 var a = "global a";
 var b = "global b";
@@ -44,7 +44,7 @@ print b; // global b
 print c; // global c
 ```
 
-Loop: `./build/main demo/loop.lox`
+Loop: `./build/main ./demo/loop.lox`
 ```
 // Fibonacci program
 var a = 0;
@@ -64,14 +64,14 @@ print a
 while a <= 10 {
     a = a + 1;
 ```
-`./build/main demo/parse_error_report.lox`
+`./build/main ./demo/parse_error_report.lox`
 ```
 [line 3] Error at 'while': Expected ; at the end of print statement
 [line 3] Error at '{': Expected close bracket '}' at the end of the block to match '{'
 Parser error occurs
 ```
 
-Function: `./build/main demo/function.lox`
+Function: `./build/main ./demo/function.lox`
 ```
 // NORMAL FUNCTION
 print "Fibonacci";
