@@ -18,7 +18,7 @@ class Parser {
     std::shared_ptr<Stmt> parse_declaration();
     std::shared_ptr<Stmt> parse_stmt();
     std::shared_ptr<Stmt> parse_return_stmt();
-    std::shared_ptr<Stmt> parse_block();
+    std::shared_ptr<Stmt> parse_block_stmt();
     std::shared_ptr<Stmt> parse_function_decl();
     std::shared_ptr<Stmt> parse_for_stmt();
     std::shared_ptr<Stmt> parse_while_stmt();
@@ -26,7 +26,6 @@ class Parser {
     std::shared_ptr<Stmt> parse_var_decl();
     std::shared_ptr<Stmt> parse_print_stmt();
     std::shared_ptr<Stmt> parse_assign_stmt();
-    std::shared_ptr<Stmt> parse_expr_stmt();
     std::shared_ptr<Expr> parse_expr();
     std::shared_ptr<Expr> parse_logic_or_expr();
     std::shared_ptr<Expr> parse_logic_and_expr();

@@ -76,6 +76,20 @@ void Scanner::scan_token() {
             while (!is_end_of_src() && src.at(current_pos) != '\n') {
                 current_pos++;
             }
+        } else if (next_char_is('*')) {
+            while (current_pos < src.length() - 1 &&
+                   !(src.at(current_pos) == '*' &&
+                     src.at(current_pos + 1) == '/')) {
+                if (src.at(current_pos) == '\n') {
+                    line++;
+                }
+                current_pos++;
+            }
+            if (current_pos == src.length() - 1) {
+                current_pos += 1;
+            } else { // found */ to close block of cmts
+                current_pos += 2;
+            }
         } else {
             add_token(TokenType::SLASH);
         }
