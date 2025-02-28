@@ -1,4 +1,13 @@
-print "abc" <= "cdf";
+print "abc" + 4;
+print "abc" <= "aba";
+var a = 1;
+{
+  var a = a + 2;
+  print a;
+}
+// print a;
+
+// print 10 / 0;
 /*
 var a = "global";
 {

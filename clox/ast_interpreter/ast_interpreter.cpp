@@ -53,7 +53,7 @@ void InterpreterVisitor::visit_assign_stmt(const AssignStmt &a) {
 
 void InterpreterVisitor::visit_print_stmt(const PrintStmt &p) {
     ExprVal val = evaluate_expr(p.expr);
-    std::cout << literal_to_string(val) << std::endl;
+    std::cout << exprval_to_string(val) << std::endl;
 }
 
 void InterpreterVisitor::visit_var_decl(const VarDecl &v) {
@@ -184,10 +184,10 @@ ExprVal InterpreterVisitor::visit_binary(const BinaryExpr &b) {
             return *left_string_ptr + *right_string_ptr;
         }
         if (left_double_ptr && right_string_ptr) {
-            return std::to_string(*left_double_ptr) + *right_string_ptr;
+            return double_to_string(*left_double_ptr) + *right_string_ptr;
         }
         if (left_string_ptr && right_double_ptr) {
-            return *left_string_ptr + std::to_string(*right_double_ptr);
+            return *left_string_ptr + double_to_string(*right_double_ptr);
         }
         throw RuntimeException(b.op, "Operands must be number or string");
     case TokenType::MINUS:
@@ -201,19 +201,42 @@ ExprVal InterpreterVisitor::visit_binary(const BinaryExpr &b) {
         return double(int(*left_double_ptr) % int(*right_double_ptr));
     case TokenType::SLASH:
         checkNumberOperands(b.op, left, right);
+        if (*right_double_ptr == 0) {
+            throw RuntimeException(b.op, "Devide by 0");
+        }
         return *left_double_ptr / *right_double_ptr;
     case TokenType::GREATER:
-        checkNumberOperands(b.op, left, right);
-        return *left_double_ptr > *right_double_ptr;
+        if (left_double_ptr && right_double_ptr) {
+            return *left_double_ptr > *right_double_ptr;
+        }
+        if (left_string_ptr && right_string_ptr) {
+            return *left_string_ptr > *right_string_ptr;
+        }
+        throw RuntimeException(b.op, "Expected compare 2 numbers or 2 strings");
     case TokenType::LESS:
-        checkNumberOperands(b.op, left, right);
-        return *left_double_ptr < *right_double_ptr;
+        if (left_double_ptr && right_double_ptr) {
+            return *left_double_ptr < *right_double_ptr;
+        }
+        if (left_string_ptr && right_string_ptr) {
+            return *left_string_ptr < *right_string_ptr;
+        }
+        throw RuntimeException(b.op, "Expected compare 2 numbers or 2 strings");
     case TokenType::GREATER_EQUAL:
-        checkNumberOperands(b.op, left, right);
-        return *left_double_ptr >= *right_double_ptr;
+        if (left_double_ptr && right_double_ptr) {
+            return *left_double_ptr >= *right_double_ptr;
+        }
+        if (left_string_ptr && right_string_ptr) {
+            return *left_string_ptr >= *right_string_ptr;
+        }
+        throw RuntimeException(b.op, "Expected compare 2 numbers or 2 strings");
     case TokenType::LESS_EQUAL:
-        checkNumberOperands(b.op, left, right);
-        return *left_double_ptr <= *right_double_ptr;
+        if (left_double_ptr && right_double_ptr) {
+            return *left_double_ptr <= *right_double_ptr;
+        }
+        if (left_string_ptr && right_string_ptr) {
+            return *left_string_ptr <= *right_string_ptr;
+        }
+        throw RuntimeException(b.op, "Expected compare 2 numbers or 2 strings");
     // Special case: support compare mixed type another type with bool
     case TokenType::BANG_EQUAL:
         return !is_equal(left, right);

@@ -18,7 +18,17 @@ constexpr std::monostate NIL{};
 using ExprVal = std::variant<double, bool, std::string,
                              std::shared_ptr<LoxCallable>, std::monostate>;
 
-inline std::string literal_to_string(const ExprVal &value) {
+inline std::string double_to_string(double num) {
+    if (num == static_cast<int>(num)) {
+        return std::to_string(static_cast<int>(num));
+    } else {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(2) << num;
+        return oss.str();
+    }
+}
+
+inline std::string exprval_to_string(const ExprVal &value) {
     return std::visit(
         [](auto &&arg) -> std::string {
             using T = std::decay_t<decltype(arg)>;
@@ -26,13 +36,14 @@ inline std::string literal_to_string(const ExprVal &value) {
             if constexpr (std::is_same_v<T, bool>) {
                 return arg ? "true" : "false";
             } else if constexpr (std::is_same_v<T, double>) {
-                if (arg == static_cast<int>(arg)) {
-                    return std::to_string(static_cast<int>(arg));
-                } else {
-                    std::ostringstream oss;
-                    oss << std::fixed << std::setprecision(2) << arg;
-                    return oss.str();
-                }
+                // if (arg == static_cast<int>(arg)) {
+                //     return std::to_string(static_cast<int>(arg));
+                // } else {
+                //     std::ostringstream oss;
+                //     oss << std::fixed << std::setprecision(2) << arg;
+                //     return oss.str();
+                // }
+                return double_to_string(arg);
             } else if constexpr (std::is_same_v<T, std::string>) {
                 return arg;
             } else if constexpr (std::is_same_v<T, LoxCallable>) {
