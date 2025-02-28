@@ -69,10 +69,18 @@ void AstInterpreter::visit_var_decl(const VarDecl &v) {
 }
 
 void AstInterpreter::visit_if_stmt(const IfStmt &i) {
-    auto expr_val = evaluate_expr(i.condition);
-    if (cast_literal_to_bool(expr_val)) {
-        i.if_block->accept(*this);
-    } else if (i.else_block != nullptr) {
+    bool exec_else_block = true;
+
+    for (int j = 0; j < i.conditions.size(); ++j) {
+        ExprVal expr_val = evaluate_expr(i.conditions[j]);
+        if (cast_literal_to_bool(expr_val)) {
+            i.if_blocks[j]->accept(*this);
+            exec_else_block = false;
+            break;
+        }
+    }
+
+    if (exec_else_block) {
         i.else_block->accept(*this);
     }
 }

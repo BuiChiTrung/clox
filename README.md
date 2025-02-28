@@ -89,6 +89,17 @@ for var i = 0; i < 10; i = i + 1; {
 // LANGUAGE NATIVE FUNCTION
 print "Native function get current time: " + clock() + "s";
 ```
+**Interactive mode**: run the main without passing any lox source file `./build/main`
+```
+Enter lines of text (Ctrl+D or Ctrl+Z to end):
+==> var src = "Hello VietNam";
+==> src;
+Hello VietNam
+==> 1 + 1;
+2
+```
+
+
 
 ### Run unit-tests
 Run a single unit-test

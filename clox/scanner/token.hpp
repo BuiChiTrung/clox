@@ -89,6 +89,7 @@ enum class TokenType {
     AND,
     CLASS,
     ELSE,
+    ELIF,
     FALSE,
     FUNC,
     FOR,
@@ -107,14 +108,15 @@ enum class TokenType {
 };
 
 const std::map<std::string, TokenType> reserved_kws = {
-    {"and", TokenType::AND},       {"class", TokenType::CLASS},
-    {"else", TokenType::ELSE},     {"false", TokenType::FALSE},
-    {"for", TokenType::FOR},       {"fun", TokenType::FUNC},
-    {"if", TokenType::IF},         {"nil", TokenType::NIL},
-    {"or", TokenType::OR},         {"print", TokenType::PRINT},
-    {"return", TokenType::RETURN}, {"super", TokenType::SUPER},
-    {"this", TokenType::THIS},     {"true", TokenType::TRUE},
-    {"var", TokenType::VAR},       {"while", TokenType::WHILE},
+    {"and", TokenType::AND},     {"class", TokenType::CLASS},
+    {"else", TokenType::ELSE},   {"elif", TokenType::ELIF},
+    {"false", TokenType::FALSE}, {"for", TokenType::FOR},
+    {"fun", TokenType::FUNC},    {"if", TokenType::IF},
+    {"nil", TokenType::NIL},     {"or", TokenType::OR},
+    {"print", TokenType::PRINT}, {"return", TokenType::RETURN},
+    {"super", TokenType::SUPER}, {"this", TokenType::THIS},
+    {"true", TokenType::TRUE},   {"var", TokenType::VAR},
+    {"while", TokenType::WHILE},
 };
 
 class Token {

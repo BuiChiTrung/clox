@@ -181,19 +181,25 @@ std::shared_ptr<Stmt> Parser::parse_while_stmt() {
     return std::make_shared<WhileStmt>(condition, body);
 }
 
-// ifStmt -> "if" expression block ("else" block)?
+// ifStmt -> "if" expression block ("elif" block)+ ("else" block)?
 std::shared_ptr<Stmt> Parser::parse_if_stmt() {
     assert_tok_and_advance(TokenType::IF, "Expected if statement");
-    auto condition = parse_expr();
+    static std::vector<std::shared_ptr<Expr>> conditions;
+    static std::vector<std::shared_ptr<Stmt>> if_blocks;
+    conditions.push_back(parse_expr());
+    if_blocks.push_back(parse_block_stmt());
 
-    auto if_block = parse_block_stmt();
+    while (validate_token_and_advance({TokenType::ELIF})) {
+        conditions.push_back(parse_expr());
+        if_blocks.push_back(parse_block_stmt());
+    }
 
     std::shared_ptr<Stmt> else_block = nullptr;
     if (validate_token_and_advance({TokenType::ELSE})) {
         else_block = parse_block_stmt();
     }
 
-    return std::make_shared<IfStmt>(condition, if_block, else_block);
+    return std::make_shared<IfStmt>(conditions, if_blocks, else_block);
 }
 
 // block → "{" statement* "}"
@@ -268,7 +274,6 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
         return std::make_shared<AssignStmt>(var, value);
     }
 
-    // TODO(trung.bc): move logic to handle expr stmt out of this func
     assert_tok_and_advance(TokenType::SEMICOLON,
                            "Expected ; at the end of assign statement");
     return std::make_shared<ExprStmt>(expr);

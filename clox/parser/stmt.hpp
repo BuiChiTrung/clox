@@ -3,6 +3,7 @@
 #include "clox/scanner/token.hpp"
 #include "expr.hpp"
 #include <memory>
+#include <vector>
 
 class ExprStmt;
 class PrintStmt;
@@ -87,13 +88,15 @@ class BlockStmt : public Stmt {
 
 class IfStmt : public Stmt {
   public:
-    std::shared_ptr<Expr> condition;
-    std::shared_ptr<Stmt> if_block;
+    std::vector<std::shared_ptr<Expr>> &conditions;
+    std::vector<std::shared_ptr<Stmt>> &if_blocks;
     std::shared_ptr<Stmt> else_block;
 
-    IfStmt(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> if_block,
+    IfStmt(std::vector<std::shared_ptr<Expr>> &conditions,
+           std::vector<std::shared_ptr<Stmt>> &if_blocks,
            std::shared_ptr<Stmt> else_block)
-        : condition(condition), if_block(if_block), else_block(else_block) {}
+        : conditions(conditions), if_blocks(if_blocks), else_block(else_block) {
+    }
 
     void accept(IStmtVisitor &v) override { return v.visit_if_stmt(*this); }
 };
