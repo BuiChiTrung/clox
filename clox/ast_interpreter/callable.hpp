@@ -11,7 +11,7 @@ class LoxCallable {
   public:
     virtual uint get_param_num() const { return 0; }
 
-    virtual ExprVal invoke(InterpreterVisitor *interpreter,
+    virtual ExprVal invoke(AstInterpreter *interpreter,
                            std::vector<ExprVal> &args) = 0;
 
     virtual std::string to_string() const = 0;
@@ -19,7 +19,7 @@ class LoxCallable {
 
 class ClockNativeFunc : public LoxCallable {
   public:
-    ExprVal invoke(InterpreterVisitor *interpreter,
+    ExprVal invoke(AstInterpreter *interpreter,
                    std::vector<ExprVal> &args) override {
         auto now = std::chrono::system_clock::now();
         std::chrono::duration<double> unix_time = now.time_since_epoch();
@@ -42,7 +42,7 @@ class LoxFunction : public LoxCallable {
 
     uint get_param_num() const override { return func_stmt.params.size(); }
 
-    ExprVal invoke(InterpreterVisitor *interpreter,
+    ExprVal invoke(AstInterpreter *interpreter,
                    std::vector<ExprVal> &args) override {
         // Each time a func is invoked an env should be created to save var
         // defined in the func scope

@@ -16,7 +16,7 @@ void evaluateExpression(const std::string &source, const ExprVal &expected) {
     Parser parser{tokens};
     auto expression = parser.parse_single_expr();
 
-    InterpreterVisitor interpreter;
+    AstInterpreter interpreter;
     auto actual = interpreter.interpret_single_expr(expression);
 
     ASSERT_EQ(actual, expected);

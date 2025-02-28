@@ -5,11 +5,11 @@
 #include "clox/scanner/token.hpp"
 #include <memory>
 
-class InterpreterVisitor : public IExprVisitor, public IStmtVisitor {
+class AstInterpreter : public IExprVisitor, public IStmtVisitor {
   public:
     const std::shared_ptr<Environment> global_env;
     std::shared_ptr<Environment> env;
-    InterpreterVisitor();
+    AstInterpreter();
 
     ExprVal interpret_single_expr(std::shared_ptr<Expr> expression);
 

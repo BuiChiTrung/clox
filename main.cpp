@@ -12,20 +12,21 @@
 
 class CLox {
   private:
-    static std::unique_ptr<InterpreterVisitor> interpreter_visitor;
+    static std::unique_ptr<AstInterpreter> ast_interpreter;
     // Process one line or a whole file
     static void run(std::string source) {
         std::unique_ptr<Scanner> scanner(new Scanner(source));
         std::vector<std::shared_ptr<Token>> tokens = scanner->scan_tokens();
 
-        auto parser = Parser(tokens);
-        auto stmts = parser.parse_program();
+        Parser parser = Parser(tokens);
+        std::vector<std::shared_ptr<Stmt>> stmts = parser.parse_program();
+        // std::cout << stmts.size() << "stmt size ";
         if (ErrorManager::had_err) {
             std::cout << "Parser error occurs" << std::endl;
             return;
         }
 
-        interpreter_visitor->interpret_program(stmts);
+        ast_interpreter->interpret_program(stmts);
         if (ErrorManager::had_runtime_err) {
             std::cout << "Runtime error occurs" << std::endl;
             return;
@@ -52,23 +53,24 @@ class CLox {
 
     // Interactive mode
     static void run_prompt() {
-        ErrorManager::had_err = false;
+        const std::string prompt_start = "==> ";
         std::string line;
 
         std::cout << "Enter lines of text (Ctrl+D or Ctrl+Z to end):"
                   << std::endl;
+        std::cout << prompt_start;
+
         while (std::getline(std::cin, line)) {
-            if (line.empty()) {
-                break;
-            }
-            std::cout << "> ";
+            ErrorManager::had_err = false;
+            ErrorManager::had_runtime_err = false;
             run(line);
+            std::cout << prompt_start;
         }
     }
 };
 
-std::unique_ptr<InterpreterVisitor> CLox::interpreter_visitor =
-    std::make_unique<InterpreterVisitor>();
+std::unique_ptr<AstInterpreter> CLox::ast_interpreter =
+    std::make_unique<AstInterpreter>();
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {
