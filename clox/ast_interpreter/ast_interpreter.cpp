@@ -9,7 +9,9 @@
 #include <iostream>
 #include <variant>
 
-AstInterpreter::AstInterpreter() : global_env(std::make_shared<Environment>()) {
+AstInterpreter::AstInterpreter(const bool is_interactive_mode)
+    : global_env(std::make_shared<Environment>()),
+      is_interactive_mode(is_interactive_mode) {
     env = global_env;
     global_env->add_new_variable("clock", std::make_shared<ClockNativeFunc>());
 }
@@ -42,7 +44,10 @@ ExprVal AstInterpreter::evaluate_expr(std::shared_ptr<Expr> expr) {
 }
 
 void AstInterpreter::visit_expr_stmt(const ExprStmt &e) {
-    evaluate_expr(e.expr);
+    ExprVal val = evaluate_expr(e.expr);
+    if (is_interactive_mode) {
+        std::cout << exprval_to_string(val) << std::endl;
+    }
 }
 
 void AstInterpreter::visit_assign_stmt(const AssignStmt &a) {

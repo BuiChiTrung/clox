@@ -2,6 +2,7 @@
 #include "clox/parser/parser.hpp"
 #include "clox/scanner/scanner.hpp"
 #include <gtest/gtest.h>
+#include <memory>
 
 class AstInterpreterTest : public testing::Test {
   protected:
@@ -16,8 +17,8 @@ void evaluateExpression(const std::string &source, const ExprVal &expected) {
     Parser parser{tokens};
     auto expression = parser.parse_single_expr();
 
-    AstInterpreter interpreter;
-    auto actual = interpreter.interpret_single_expr(expression);
+    auto interpreter = std::make_shared<AstInterpreter>(false);
+    auto actual = interpreter->interpret_single_expr(expression);
 
     ASSERT_EQ(actual, expected);
 }

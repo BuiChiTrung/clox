@@ -12,7 +12,6 @@
 
 class CLox {
   private:
-    static std::unique_ptr<AstInterpreter> ast_interpreter;
     // Process one line or a whole file
     static void run(std::string source) {
         std::unique_ptr<Scanner> scanner(new Scanner(source));
@@ -34,6 +33,7 @@ class CLox {
     }
 
   public:
+    static std::unique_ptr<AstInterpreter> ast_interpreter;
     static void run_file(std::string path) {
         ErrorManager::had_err = false;
         std::ifstream file(path);
@@ -69,14 +69,14 @@ class CLox {
     }
 };
 
-std::unique_ptr<AstInterpreter> CLox::ast_interpreter =
-    std::make_unique<AstInterpreter>();
+std::unique_ptr<AstInterpreter> CLox::ast_interpreter;
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {
         std::cout << "Usage: lox [script]" << std::endl;
         exit(1);
     } else if (argc == 2) {
+        CLox::ast_interpreter = std::make_unique<AstInterpreter>(false);
         CLox::run_file(argv[1]);
         if (ErrorManager::had_err) {
             exit(65);
@@ -85,6 +85,7 @@ int main(int argc, char *argv[]) {
             exit(70);
         }
     } else {
+        CLox::ast_interpreter = std::make_unique<AstInterpreter>(true);
         CLox::run_prompt();
     }
 }
