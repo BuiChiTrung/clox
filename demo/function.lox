@@ -1,5 +1,5 @@
 // NORMAL FUNCTION
-print "Fibonacci";
+print("Fibonacci");
 fun fib(n) {
   if n <= 1 {
     return n;
@@ -8,20 +8,20 @@ fun fib(n) {
 }
 
 for var i = 0; i < 10; i = i + 1; {
-  print fib(i);
+  print(fib(i));
 }
 
 // LANGUAGE NATIVE FUNCTION
-print "Native function get current time: " + clock() + "s";
+print("Native function get current time: " + clock() + "s");
 
 // CLOSURE
-print "Closure";
+print("Closure");
 fun make_counter() {
   var i = 0;
   
   fun counter() {
     i = i + 1;
-    print i;
+    print(i);
   }
 
   return counter;

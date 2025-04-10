@@ -245,7 +245,11 @@ std::shared_ptr<Stmt> Parser::parse_var_decl() {
 // printStmt  → "print" expression ";"
 std::shared_ptr<Stmt> Parser::parse_print_stmt() {
     assert_tok_and_advance(TokenType::PRINT, "Expected 'print'");
+    // assert_tok_and_advance(TokenType::LEFT_PAREN, "Expected '(' after
+    // print");
     std::shared_ptr<PrintStmt> stmt(new PrintStmt(parse_expr()));
+    // assert_tok_and_advance(TokenType::RIGHT_PAREN, "Expected ')' after
+    // print");
     assert_tok_and_advance(TokenType::SEMICOLON,
                            "Expected ; at the end of print statement");
     return stmt;
