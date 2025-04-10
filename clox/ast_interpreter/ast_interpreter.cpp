@@ -80,7 +80,7 @@ void AstInterpreter::visit_if_stmt(const IfStmt &i) {
         }
     }
 
-    if (exec_else_block) {
+    if (exec_else_block && i.else_block != nullptr) {
         i.else_block->accept(*this);
     }
 }
