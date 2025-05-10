@@ -646,6 +646,24 @@ class LoxFunction : public LoxCallable {
 ```
 + When eval `FuncCall` node, set the parent env of func call env as this field.
 
+## Resolve and binding
+### Resolver class
+Follow visitor design patter to im
+has `interpreter` as a field
+`scopes`: stack of environment. scope is hash_map: key - variable name, value - bool whether the variable is resolved or not.
+- A block statement introduces a new scope.
+- A function declaration introduces a new scope for its body and binds its parameters in that scope.
+- A variable declaration adds a new variable to the current scope.
+- Variable and assignment expressions need to have their variables resolved.
+
+### Interpret resolved var
+Store a map:
++ key: expr used to access a var
++ value: distance from the current scope to the scope where the var is defined.
+
+
+
+
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`
