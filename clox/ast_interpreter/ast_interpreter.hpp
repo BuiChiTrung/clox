@@ -4,12 +4,18 @@
 #include "clox/parser/stmt.hpp"
 #include "clox/scanner/token.hpp"
 #include <memory>
+#include <unordered_map>
 
 class AstInterpreter : public IExprVisitor, public IStmtVisitor {
   public:
     const std::shared_ptr<Environment> global_env;
     std::shared_ptr<Environment> env;
     const bool is_interactive_mode;
+    std::unordered_map<std::shared_ptr<Expr>, int> identifier_scope_depth;
+
+    // Use with Resolver class to resolve in which scope an identifier (var or
+    // func) is defined
+    void resolve_identifier(std::shared_ptr<Expr> expr, int depth);
 
     AstInterpreter(const bool is_interactive_mode);
 
@@ -39,7 +45,7 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     void visit_return_stmt(const ReturnStmt &r) override;
 
-    ExprVal visit_variable(const VariableExpr &v) override;
+    ExprVal visit_variable(const IdentifierExpr &v) override;
 
     ExprVal visit_literal(const LiteralExpr &l) override;
 

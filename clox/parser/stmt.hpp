@@ -68,10 +68,10 @@ class VarDecl : public Stmt {
 
 class AssignStmt : public Stmt {
   public:
-    std::shared_ptr<VariableExpr> var;
+    std::shared_ptr<IdentifierExpr> var;
     std::shared_ptr<Expr> value;
 
-    AssignStmt(std::shared_ptr<VariableExpr> var, std::shared_ptr<Expr> value)
+    AssignStmt(std::shared_ptr<IdentifierExpr> var, std::shared_ptr<Expr> value)
         : var(var), value(value) {}
 
     void accept(IStmtVisitor &v) override { return v.visit_assign_stmt(*this); }
@@ -115,11 +115,11 @@ class WhileStmt : public Stmt {
 class FunctionDecl : public Stmt {
   public:
     std::shared_ptr<Token> name;
-    std::vector<std::shared_ptr<VariableExpr>> params;
+    std::vector<std::shared_ptr<IdentifierExpr>> params;
     std::shared_ptr<Stmt> body;
 
     FunctionDecl(std::shared_ptr<Token> name,
-                 std::vector<std::shared_ptr<VariableExpr>> params,
+                 std::vector<std::shared_ptr<IdentifierExpr>> params,
                  std::shared_ptr<Stmt> body)
         : name(name), params(params), body(body) {}
 

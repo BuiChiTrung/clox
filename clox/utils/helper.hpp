@@ -6,3 +6,5 @@ std::vector<std::string> split_string(const std::string &str, char delimiter);
 
 // Function to trim leading and trailing spaces
 std::string strip(const std::string &str);
+
+std::string double_to_string(double num);

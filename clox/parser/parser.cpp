@@ -94,7 +94,7 @@ std::shared_ptr<Stmt> Parser::parse_function_decl() {
     std::shared_ptr<Token> left_parenthesis = assert_tok_and_advance(
         TokenType::LEFT_PAREN, "Expected '(' after function name");
 
-    std::vector<std::shared_ptr<VariableExpr>> func_params =
+    std::vector<std::shared_ptr<IdentifierExpr>> func_params =
         parse_func_params();
 
     if (!validate_token_and_advance({TokenType::RIGHT_PAREN})) {
@@ -109,16 +109,16 @@ std::shared_ptr<Stmt> Parser::parse_function_decl() {
 }
 
 // parameters -> "" | (IDENTIFIER (","IDENTIFIER)*)
-std::vector<std::shared_ptr<VariableExpr>> Parser::parse_func_params() {
+std::vector<std::shared_ptr<IdentifierExpr>> Parser::parse_func_params() {
     if (validate_token(TokenType::RIGHT_PAREN)) {
         return {};
     }
 
-    std::vector<std::shared_ptr<VariableExpr>> params{};
+    std::vector<std::shared_ptr<IdentifierExpr>> params{};
     do {
         std::shared_ptr<Token> var_name = assert_tok_and_advance(
             TokenType::IDENTIFIER, "Expected function parameter");
-        params.push_back(std::make_shared<VariableExpr>(var_name));
+        params.push_back(std::make_shared<IdentifierExpr>(var_name));
     } while (validate_token_and_advance({TokenType::COMMA}));
 
     if (params.size() > MAX_ARGS_NUM) {
@@ -263,8 +263,8 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
     if (validate_token_and_advance({TokenType::EQUAL})) {
         // TODO(trung.bc): support complex assignment - obj.x = <value>.
         // For now, only support variable assignment.
-        std::shared_ptr<VariableExpr> var =
-            std::dynamic_pointer_cast<VariableExpr>(expr);
+        std::shared_ptr<IdentifierExpr> var =
+            std::dynamic_pointer_cast<IdentifierExpr>(expr);
         if (!var) {
             throw ParserException(
                 get_cur_tok(),
@@ -423,7 +423,7 @@ std::vector<std::shared_ptr<Expr>> Parser::parse_func_call_arguments() {
 // expression ")"
 std::shared_ptr<Expr> Parser::parse_primary() {
     if (validate_token_and_advance({TokenType::IDENTIFIER})) {
-        return std::make_shared<VariableExpr>(get_prev_tok());
+        return std::make_shared<IdentifierExpr>(get_prev_tok());
     }
     if (validate_token_and_advance({TokenType::FALSE})) {
         return std::make_shared<LiteralExpr>(false);

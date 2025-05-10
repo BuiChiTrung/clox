@@ -16,6 +16,11 @@ AstInterpreter::AstInterpreter(const bool is_interactive_mode)
     global_env->add_new_variable("clock", std::make_shared<ClockNativeFunc>());
 }
 
+void AstInterpreter::resolve_identifier(std::shared_ptr<Expr> expr, int depth) {
+    identifier_scope_depth[expr] = depth;
+}
+
+// func to test if the interpreter can exec a single expression
 ExprVal
 AstInterpreter::interpret_single_expr(std::shared_ptr<Expr> expression) {
     try {
@@ -124,14 +129,14 @@ void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {
     throw ReturnVal(return_val);
 }
 
-ExprVal AstInterpreter::visit_variable(const VariableExpr &v) {
+ExprVal AstInterpreter::visit_variable(const IdentifierExpr &v) {
     return env->get_variable(v.name);
 }
 
 ExprVal AstInterpreter::visit_literal(const LiteralExpr &l) { return l.value; }
 
 ExprVal AstInterpreter::visit_grouping(const GroupExpr &g) {
-    return evaluate_expr(g.expression);
+    return evaluate_expr(g.expr);
 }
 
 ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &f) {
@@ -161,7 +166,7 @@ ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &f) {
 }
 
 ExprVal AstInterpreter::visit_unary(const UnaryExpr &u) {
-    ExprVal right = evaluate_expr(u.right);
+    ExprVal right = evaluate_expr(u.operand);
 
     switch (u.op->type) {
     case TokenType::BANG:
@@ -176,8 +181,8 @@ ExprVal AstInterpreter::visit_unary(const UnaryExpr &u) {
 }
 
 ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
-    ExprVal left = evaluate_expr(b.left);
-    ExprVal right = evaluate_expr(b.right);
+    ExprVal left = evaluate_expr(b.left_operand);
+    ExprVal right = evaluate_expr(b.right_operand);
 
     auto left_double_ptr = std::get_if<double>(&left);
     auto right_double_ptr = std::get_if<double>(&right);

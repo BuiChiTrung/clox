@@ -1,4 +1,5 @@
 #include "helper.hpp"
+#include <iomanip>
 #include <sstream>
 
 std::vector<std::string> split_string(const std::string &str, char delimiter) {
@@ -29,4 +30,14 @@ std::string strip(const std::string &str) {
     }
 
     return str.substr(start, end - start);
+}
+
+std::string double_to_string(double num) {
+    if (num == static_cast<int>(num)) {
+        return std::to_string(static_cast<int>(num));
+    } else {
+        std::ostringstream oss;
+        oss << std::fixed << std::setprecision(2) << num;
+        return oss.str();
+    }
 }

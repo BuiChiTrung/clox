@@ -6,7 +6,7 @@ class UnaryExpr;
 class BinaryExpr;
 class GroupExpr;
 class LiteralExpr;
-class VariableExpr;
+class IdentifierExpr;
 class FuncCallExpr;
 
 // Use visitor design pattern to pack all the logic of override function for all
@@ -17,7 +17,7 @@ class IExprVisitor {
     virtual ExprVal visit_grouping(const GroupExpr &g) = 0;
     virtual ExprVal visit_unary(const UnaryExpr &u) = 0;
     virtual ExprVal visit_binary(const BinaryExpr &b) = 0;
-    virtual ExprVal visit_variable(const VariableExpr &v) = 0;
+    virtual ExprVal visit_variable(const IdentifierExpr &v) = 0;
     virtual ExprVal visit_func_call(const FuncCallExpr &f) = 0;
 };
 
@@ -32,13 +32,13 @@ class Expr {
 
 class BinaryExpr : public Expr {
   public:
-    std::shared_ptr<Expr> left;
+    std::shared_ptr<Expr> left_operand;
     std::shared_ptr<Token> op;
-    std::shared_ptr<Expr> right;
+    std::shared_ptr<Expr> right_operand;
 
-    BinaryExpr(std::shared_ptr<Expr> &left, std::shared_ptr<Token> &op,
-               std::shared_ptr<Expr> &right)
-        : left(left), op(op), right(right) {}
+    BinaryExpr(std::shared_ptr<Expr> &left_operand, std::shared_ptr<Token> &op,
+               std::shared_ptr<Expr> &right_operand)
+        : left_operand(left_operand), op(op), right_operand(right_operand) {}
 
     ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_binary(*this);
@@ -47,9 +47,9 @@ class BinaryExpr : public Expr {
 
 class GroupExpr : public Expr {
   public:
-    std::shared_ptr<Expr> expression;
+    std::shared_ptr<Expr> expr;
 
-    GroupExpr(std::shared_ptr<Expr> &expression) : expression(expression) {}
+    GroupExpr(std::shared_ptr<Expr> &expr) : expr(expr) {}
 
     ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_grouping(*this);
@@ -70,21 +70,21 @@ class LiteralExpr : public Expr {
 class UnaryExpr : public Expr {
   public:
     std::shared_ptr<Token> op;
-    std::shared_ptr<Expr> right;
+    std::shared_ptr<Expr> operand;
 
-    UnaryExpr(std::shared_ptr<Token> &op, std::shared_ptr<Expr> &right)
-        : op(op), right(right) {}
+    UnaryExpr(std::shared_ptr<Token> &op, std::shared_ptr<Expr> &operand)
+        : op(op), operand(operand) {}
 
     ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_unary(*this);
     }
 };
 
-class VariableExpr : public Expr {
+class IdentifierExpr : public Expr {
   public:
     std::shared_ptr<Token> name;
 
-    VariableExpr(std::shared_ptr<Token> name) : name(name) {}
+    IdentifierExpr(std::shared_ptr<Token> name) : name(name) {}
 
     ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_variable(*this);
