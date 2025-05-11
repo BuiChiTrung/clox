@@ -4,6 +4,13 @@
 #include <memory>
 #include <vector>
 
+enum class ResolveFuncType {
+    NONE,
+    FUNCTION,
+    // METHOD,
+    // CLASS,
+};
+
 class Resolver : public IExprVisitor, public IStmtVisitor {
   public:
     Resolver(std::shared_ptr<AstInterpreter> interpreter);
@@ -43,6 +50,7 @@ class Resolver : public IExprVisitor, public IStmtVisitor {
   private:
     std::shared_ptr<AstInterpreter> interpreter;
     std::vector<std::unordered_map<std::string, bool>> scopes;
+    ResolveFuncType current_func_type;
 
     void beginScope();
     void endScope();

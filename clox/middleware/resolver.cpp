@@ -7,7 +7,7 @@
 #include <unordered_map>
 
 Resolver::Resolver(std::shared_ptr<AstInterpreter> interpreter)
-    : interpreter(interpreter) {
+    : interpreter(interpreter), current_func_type(ResolveFuncType::NONE) {
     scopes.emplace_back();
     for (const auto &identifier : interpreter->global_env->identifier_table) {
         scopes.back()[identifier.first] = true;
@@ -64,6 +64,9 @@ void Resolver::visit_while_stmt(const WhileStmt &while_stmt) {
 }
 
 void Resolver::visit_function_decl(const FunctionDecl &func_decl_stmt) {
+    ResolveFuncType enclosing_func_type = current_func_type;
+    current_func_type = ResolveFuncType::FUNCTION;
+
     declare_identifier(func_decl_stmt.name);
     define_identifier(func_decl_stmt.name);
 
@@ -78,9 +81,15 @@ void Resolver::visit_function_decl(const FunctionDecl &func_decl_stmt) {
         stmt->accept(*this);
     }
     endScope();
+
+    current_func_type = enclosing_func_type;
 }
 
 void Resolver::visit_return_stmt(const ReturnStmt &return_stmt) {
+    if (current_func_type == ResolveFuncType::NONE) {
+        ErrorManager::handle_err(return_stmt.return_kw->line,
+                                 "Can't return from outside a function.");
+    }
     return_stmt.expr->accept(*this);
 }
 
