@@ -27,7 +27,7 @@ class ErrorManager {
     static void report_error(uint line, std::string where, std::string msg);
 
   public:
-    static bool had_err;
+    static bool had_static_err;
     static bool had_runtime_err;
 
     static void handle_err(uint line, std::string msg);

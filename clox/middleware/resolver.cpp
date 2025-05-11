@@ -64,6 +64,7 @@ void Resolver::visit_while_stmt(const WhileStmt &while_stmt) {
 }
 
 void Resolver::visit_function_decl(const FunctionDecl &func_decl_stmt) {
+    declare_identifier(func_decl_stmt.name);
     define_identifier(func_decl_stmt.name);
 
     beginScope();
@@ -76,10 +77,6 @@ void Resolver::visit_function_decl(const FunctionDecl &func_decl_stmt) {
     for (auto stmt : func_body->stmts) {
         stmt->accept(*this);
     }
-    // func_decl_stmt.body->accept(*this);
-    // for (auto stmt : func_decl_stmt.body) {
-    //     stmt->accept(*this);
-    // }
     endScope();
 }
 
@@ -132,6 +129,12 @@ void Resolver::beginScope() {
 void Resolver::endScope() { scopes.pop_back(); }
 
 void Resolver::declare_identifier(std::shared_ptr<Token> identifier_name) {
+    if (scopes.back().count(identifier_name->lexeme) != 0) {
+        ErrorManager::handle_err(identifier_name->line,
+                                 "Variable with name " +
+                                     identifier_name->lexeme +
+                                     " already declared in this scope.");
+    }
     scopes.back()[identifier_name->lexeme] = false;
 }
 void Resolver::define_identifier(std::shared_ptr<Token> identifier_name) {

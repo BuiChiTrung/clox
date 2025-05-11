@@ -1,13 +1,13 @@
 #include "clox/error_manager/error_manager.hpp"
 #include <iostream>
 
-inline bool ErrorManager::had_err = false;
+inline bool ErrorManager::had_static_err = false;
 inline bool ErrorManager::had_runtime_err = false;
 
 void ErrorManager::report_error(uint line, std::string where, std::string msg) {
     std::cout << "[line " << line << "] Error" + where + ": " + msg
               << std::endl;
-    had_err = true;
+    had_static_err = true;
 }
 
 void ErrorManager::handle_err(uint line, std::string msg) {
@@ -21,7 +21,6 @@ void ErrorManager::handle_err(std::shared_ptr<Token> tok, std::string msg) {
 void ErrorManager::handle_runtime_err(const RuntimeException &err) {
     had_runtime_err = true;
     handle_err(err.tok, err.message);
-    // std::cout << err.what() << std::endl;
 }
 
 void ErrorManager::handle_parser_err(const ParserException &err) {

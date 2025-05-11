@@ -20,16 +20,19 @@ class CLox {
 
         Parser parser = Parser(tokens);
         std::vector<std::shared_ptr<Stmt>> stmts = parser.parse_program();
-        // std::cout << stmts.size() << "stmt size ";
-        if (ErrorManager::had_err) {
+        if (ErrorManager::had_static_err) {
             std::cout << "Parser error occurs" << std::endl;
             return;
         }
 
         Resolver resolver = Resolver(ast_interpreter);
-        // TODO(trung.bc): update
+        // TODO(trung.bc): update, provide resolve function in resolver class
         for (auto stmt : stmts) {
             stmt->accept(resolver);
+        }
+        if (ErrorManager::had_static_err) {
+            std::cout << "Resolver error occurs" << std::endl;
+            return;
         }
 
         ast_interpreter->interpret_program(stmts);
@@ -42,7 +45,7 @@ class CLox {
   public:
     static std::shared_ptr<AstInterpreter> ast_interpreter;
     static void run_file(std::string path) {
-        ErrorManager::had_err = false;
+        ErrorManager::had_static_err = false;
         std::ifstream file(path);
         std::string content;
 
@@ -68,7 +71,7 @@ class CLox {
         std::cout << prompt_start;
 
         while (std::getline(std::cin, line)) {
-            ErrorManager::had_err = false;
+            ErrorManager::had_static_err = false;
             ErrorManager::had_runtime_err = false;
             run(line);
             std::cout << prompt_start;
@@ -85,7 +88,7 @@ int main(int argc, char *argv[]) {
     } else if (argc == 2) {
         CLox::ast_interpreter = std::make_shared<AstInterpreter>(false);
         CLox::run_file(argv[1]);
-        if (ErrorManager::had_err) {
+        if (ErrorManager::had_static_err) {
             exit(65);
         }
         if (ErrorManager::had_runtime_err) {
