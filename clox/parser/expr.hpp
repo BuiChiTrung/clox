@@ -13,12 +13,12 @@ class FuncCallExpr;
 // Exp subclass in a seperate Visitor class.
 class IExprVisitor {
   public:
-    virtual ExprVal visit_literal(const LiteralExpr &l) = 0;
-    virtual ExprVal visit_grouping(const GroupExpr &g) = 0;
-    virtual ExprVal visit_unary(const UnaryExpr &u) = 0;
-    virtual ExprVal visit_binary(const BinaryExpr &b) = 0;
-    virtual ExprVal visit_variable(const IdentifierExpr &v) = 0;
-    virtual ExprVal visit_func_call(const FuncCallExpr &f) = 0;
+    virtual ExprVal visit_literal(const LiteralExpr &) = 0;
+    virtual ExprVal visit_grouping(const GroupExpr &) = 0;
+    virtual ExprVal visit_unary(const UnaryExpr &) = 0;
+    virtual ExprVal visit_binary(const BinaryExpr &) = 0;
+    virtual ExprVal visit_identifier(const IdentifierExpr &) = 0;
+    virtual ExprVal visit_func_call(const FuncCallExpr &) = 0;
 };
 
 class Expr {
@@ -87,7 +87,7 @@ class IdentifierExpr : public Expr {
     IdentifierExpr(std::shared_ptr<Token> name) : name(name) {}
 
     ExprVal accept(IExprVisitor &visitor) override {
-        return visitor.visit_variable(*this);
+        return visitor.visit_identifier(*this);
     }
 };
 

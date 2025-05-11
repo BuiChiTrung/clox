@@ -28,7 +28,7 @@ class Resolver : public IExprVisitor, public IStmtVisitor {
 
     void visit_return_stmt(const ReturnStmt &r) override;
 
-    ExprVal visit_variable(const IdentifierExpr &v) override;
+    ExprVal visit_identifier(const IdentifierExpr &v) override;
 
     ExprVal visit_literal(const LiteralExpr &l) override;
 

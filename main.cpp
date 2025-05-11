@@ -1,5 +1,6 @@
 #include "clox/ast_interpreter/ast_interpreter.hpp"
 #include "clox/error_manager/error_manager.hpp"
+#include "clox/middleware/resolver.hpp"
 #include "clox/parser/parser.hpp"
 #include "clox/scanner/scanner.hpp"
 #include "clox/scanner/token.hpp"
@@ -25,6 +26,12 @@ class CLox {
             return;
         }
 
+        Resolver resolver = Resolver(ast_interpreter);
+        // TODO(trung.bc): update
+        for (auto stmt : stmts) {
+            stmt->accept(resolver);
+        }
+
         ast_interpreter->interpret_program(stmts);
         if (ErrorManager::had_runtime_err) {
             std::cout << "Runtime error occurs" << std::endl;
@@ -33,7 +40,7 @@ class CLox {
     }
 
   public:
-    static std::unique_ptr<AstInterpreter> ast_interpreter;
+    static std::shared_ptr<AstInterpreter> ast_interpreter;
     static void run_file(std::string path) {
         ErrorManager::had_err = false;
         std::ifstream file(path);
@@ -69,14 +76,14 @@ class CLox {
     }
 };
 
-std::unique_ptr<AstInterpreter> CLox::ast_interpreter;
+std::shared_ptr<AstInterpreter> CLox::ast_interpreter;
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {
         std::cout << "Usage: lox [script]" << std::endl;
         exit(1);
     } else if (argc == 2) {
-        CLox::ast_interpreter = std::make_unique<AstInterpreter>(false);
+        CLox::ast_interpreter = std::make_shared<AstInterpreter>(false);
         CLox::run_file(argv[1]);
         if (ErrorManager::had_err) {
             exit(65);
@@ -85,7 +92,7 @@ int main(int argc, char *argv[]) {
             exit(70);
         }
     } else {
-        CLox::ast_interpreter = std::make_unique<AstInterpreter>(true);
+        CLox::ast_interpreter = std::make_shared<AstInterpreter>(true);
         CLox::run_prompt();
     }
 }

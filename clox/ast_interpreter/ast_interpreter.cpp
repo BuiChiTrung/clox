@@ -16,10 +16,6 @@ AstInterpreter::AstInterpreter(const bool is_interactive_mode)
     global_env->add_new_variable("clock", std::make_shared<ClockNativeFunc>());
 }
 
-void AstInterpreter::resolve_identifier(std::shared_ptr<Expr> expr, int depth) {
-    identifier_scope_depth[expr] = depth;
-}
-
 // func to test if the interpreter can exec a single expression
 ExprVal
 AstInterpreter::interpret_single_expr(std::shared_ptr<Expr> expression) {
@@ -57,7 +53,11 @@ void AstInterpreter::visit_expr_stmt(const ExprStmt &e) {
 
 void AstInterpreter::visit_assign_stmt(const AssignStmt &a) {
     ExprVal new_value = evaluate_expr(a.value);
-    env->assign_new_value_to_variable(a.var->name, new_value);
+    // env->assign_new_value_to_variable(a.var->name, new_value);
+
+    const IdentifierExpr *ptr = a.var.get();
+    int depth = identifier_scope_depth[ptr];
+    move_up_env(depth)->identifier_table[a.var->name->lexeme] = new_value;
 }
 
 void AstInterpreter::visit_print_stmt(const PrintStmt &p) {
@@ -129,8 +129,20 @@ void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {
     throw ReturnVal(return_val);
 }
 
-ExprVal AstInterpreter::visit_variable(const IdentifierExpr &v) {
-    return env->get_variable(v.name);
+ExprVal
+AstInterpreter::visit_identifier(const IdentifierExpr &identifier_expr) {
+    // return env->get_variable(identifier_expr.name);
+
+    const IdentifierExpr *ptr = &identifier_expr;
+    if (identifier_scope_depth.count(ptr) == 0) {
+        throw RuntimeException(identifier_expr.name,
+                               "Reference to non-exist identifier: " +
+                                   identifier_expr.name->lexeme);
+    }
+
+    int depth = identifier_scope_depth[ptr];
+
+    return move_up_env(depth)->identifier_table[identifier_expr.name->lexeme];
 }
 
 ExprVal AstInterpreter::visit_literal(const LiteralExpr &l) { return l.value; }
@@ -331,4 +343,19 @@ void AstInterpreter::checkNumberOperands(std::shared_ptr<Token> tok,
     if (!std::holds_alternative<double>(left)) {
         throw RuntimeException(tok, "Left operand must be a number");
     }
+}
+
+void AstInterpreter::resolve_identifier(const IdentifierExpr &identifier_expr,
+                                        int depth) {
+    const IdentifierExpr *ptr = &identifier_expr;
+    identifier_scope_depth[ptr] = depth;
+}
+
+std::shared_ptr<Environment> AstInterpreter::move_up_env(int depth) {
+    auto env = this->env;
+    for (int i = 0; i < depth; ++i) {
+        env = env->parent_scope_env;
+    }
+
+    return env;
 }

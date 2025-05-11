@@ -1,11 +1,18 @@
 #include "clox/middleware/resolver.hpp"
 #include "clox/error_manager/error_manager.hpp"
+#include "clox/parser/stmt.hpp"
 #include "clox/scanner/token.hpp"
 #include <memory>
+#include <string>
 #include <unordered_map>
 
 Resolver::Resolver(std::shared_ptr<AstInterpreter> interpreter)
-    : interpreter(interpreter), scopes({}) {};
+    : interpreter(interpreter) {
+    scopes.emplace_back();
+    for (const auto &identifier : interpreter->global_env->identifier_table) {
+        scopes.back()[identifier.first] = true;
+    }
+};
 
 void Resolver::visit_expr_stmt(const ExprStmt &expr_stmt) {
     expr_stmt.expr->accept(*this);
@@ -16,7 +23,9 @@ void Resolver::visit_assign_stmt(const AssignStmt &assign_stmt) {
     resolve_identifier(*assign_stmt.var);
 }
 
-void Resolver::visit_print_stmt(const PrintStmt &p) {}
+void Resolver::visit_print_stmt(const PrintStmt &print_stmt) {
+    print_stmt.expr->accept(*this);
+}
 
 void Resolver::visit_var_decl(const VarDecl &var_decl_stmt) {
     declare_identifier(var_decl_stmt.var_name);
@@ -61,7 +70,16 @@ void Resolver::visit_function_decl(const FunctionDecl &func_decl_stmt) {
     for (auto param : func_decl_stmt.params) {
         define_identifier(param->name);
     }
-    func_decl_stmt.body->accept(*this);
+    // TODO(trung.bc): techdebt
+    std::shared_ptr<BlockStmt> func_body =
+        std::dynamic_pointer_cast<BlockStmt>(func_decl_stmt.body);
+    for (auto stmt : func_body->stmts) {
+        stmt->accept(*this);
+    }
+    // func_decl_stmt.body->accept(*this);
+    // for (auto stmt : func_decl_stmt.body) {
+    //     stmt->accept(*this);
+    // }
     endScope();
 }
 
@@ -69,14 +87,15 @@ void Resolver::visit_return_stmt(const ReturnStmt &return_stmt) {
     return_stmt.expr->accept(*this);
 }
 
-ExprVal Resolver::visit_variable(const IdentifierExpr &var_expr) {
-    if (scopes.size() > 0 and scopes.back()[var_expr.name->lexeme] == false) {
+ExprVal Resolver::visit_identifier(const IdentifierExpr &identifier_expr) {
+    if (scopes.back().count(identifier_expr.name->lexeme) != 0 and
+        scopes.back()[identifier_expr.name->lexeme] == false) {
         ErrorManager::handle_err(
-            var_expr.name->line,
+            identifier_expr.name->line,
             "Can't read local variable in its own initializer.");
     }
 
-    resolve_identifier(var_expr);
+    resolve_identifier(identifier_expr);
     return NIL;
 }
 
@@ -113,25 +132,17 @@ void Resolver::beginScope() {
 void Resolver::endScope() { scopes.pop_back(); }
 
 void Resolver::declare_identifier(std::shared_ptr<Token> identifier_name) {
-    if (scopes.size() == 0) {
-        return;
-    }
-
     scopes.back()[identifier_name->lexeme] = false;
 }
 void Resolver::define_identifier(std::shared_ptr<Token> identifier_name) {
-    if (scopes.size() == 0) {
-        return;
-    }
-
     scopes.back()[identifier_name->lexeme] = true;
 }
 
-void Resolver::resolve_identifier(const IdentifierExpr &var_expr) {
+void Resolver::resolve_identifier(const IdentifierExpr &identifier_expr) {
     for (int i = scopes.size() - 1; i >= 0; --i) {
-        if (scopes[i].count(var_expr.name->lexeme) > 0) {
-            // TODO(trung.bc): implement this func
-            // interpreter.resolve_var();
+        if (scopes[i].count(identifier_expr.name->lexeme) != 0) {
+            interpreter->resolve_identifier(identifier_expr,
+                                            scopes.size() - 1 - i);
             return;
         }
     }
