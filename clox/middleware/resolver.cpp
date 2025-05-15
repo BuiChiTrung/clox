@@ -17,6 +17,11 @@ IdentifierResolver::IdentifierResolver(
 
 void IdentifierResolver::resolve_program(
     std::vector<std::shared_ptr<Stmt>> &stmts) {
+    resolve_stmts(stmts);
+}
+
+void IdentifierResolver::resolve_stmts(
+    std::vector<std::shared_ptr<Stmt>> &stmts) {
     for (auto &stmt : stmts) {
         stmt->accept(*this);
     }
@@ -88,12 +93,9 @@ void IdentifierResolver::visit_function_decl(
     for (auto param : func_decl_stmt.params) {
         define_identifier(param->name);
     }
-    // TODO(trung.bc): techdebt
     std::shared_ptr<BlockStmt> func_body =
         std::dynamic_pointer_cast<BlockStmt>(func_decl_stmt.body);
-    for (auto stmt : func_body->stmts) {
-        stmt->accept(*this);
-    }
+    resolve_stmts(func_body->stmts);
     endScope();
 
     current_func_type = enclosing_func_type;

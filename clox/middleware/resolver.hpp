@@ -13,6 +13,8 @@ enum class ResolveFuncType {
 
 class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
   private:
+    void resolve_stmts(std::vector<std::shared_ptr<Stmt>> &stmts);
+
     void visit_expr_stmt(const ExprStmt &e) override;
 
     void visit_assign_stmt(const AssignStmt &a) override;
