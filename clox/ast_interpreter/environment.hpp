@@ -1,11 +1,11 @@
 #pragma once
 #include "clox/scanner/token.hpp"
-#include <map>
 #include <memory>
+#include <unordered_map>
 
 class Environment {
   public:
-    std::map<std::string, ExprVal> identifier_table;
+    std::unordered_map<std::string, ExprVal> identifier_table;
     std::shared_ptr<Environment> parent_scope_env;
     Environment();
     Environment(std::shared_ptr<Environment> parent_scope_env);

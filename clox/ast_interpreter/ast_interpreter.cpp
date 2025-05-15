@@ -178,14 +178,14 @@ ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &f) {
 ExprVal AstInterpreter::visit_unary(const UnaryExpr &u) {
     ExprVal right = evaluate_expr(u.operand);
 
-    switch (u.op->type) {
+    switch (u.operation->type) {
     case TokenType::BANG:
         return !cast_literal_to_bool(right);
     case TokenType::MINUS:
-        check_number_operand(u.op, right);
+        check_number_operand(u.operation, right);
         return -std::get<double>(right);
     default:
-        ErrorManager::handle_err(u.op->line, "Invalid unary expression");
+        ErrorManager::handle_err(u.operation->line, "Invalid unary expression");
         return NIL;
     }
 }
@@ -199,7 +199,7 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
     auto left_string_ptr = std::get_if<std::string>(&left);
     auto right_string_ptr = std::get_if<std::string>(&right);
 
-    switch (b.op->type) {
+    switch (b.operation->type) {
     // Special case: + op can be used to concate 2 strings
     case TokenType::PLUS:
         if (left_double_ptr && right_double_ptr) {
@@ -214,20 +214,21 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_double_ptr) {
             return *left_string_ptr + double_to_string(*right_double_ptr);
         }
-        throw RuntimeException(b.op, "Operands must be number or string");
+        throw RuntimeException(b.operation,
+                               "Operands must be number or string");
     case TokenType::MINUS:
-        check_number_operands(b.op, left, right);
+        check_number_operands(b.operation, left, right);
         return *left_double_ptr - *right_double_ptr;
     case TokenType::STAR:
-        check_number_operands(b.op, left, right);
+        check_number_operands(b.operation, left, right);
         return *left_double_ptr * *right_double_ptr;
     case TokenType::MOD:
-        check_int_operands(b.op, left, right);
+        check_int_operands(b.operation, left, right);
         return double(int(*left_double_ptr) % int(*right_double_ptr));
     case TokenType::SLASH:
-        check_number_operands(b.op, left, right);
+        check_number_operands(b.operation, left, right);
         if (*right_double_ptr == 0) {
-            throw RuntimeException(b.op, "Devide by 0");
+            throw RuntimeException(b.operation, "Devide by 0");
         }
         return *left_double_ptr / *right_double_ptr;
     case TokenType::GREATER:
@@ -237,7 +238,8 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_string_ptr) {
             return *left_string_ptr > *right_string_ptr;
         }
-        throw RuntimeException(b.op, "Expected compare 2 numbers or 2 strings");
+        throw RuntimeException(b.operation,
+                               "Expected compare 2 numbers or 2 strings");
     case TokenType::LESS:
         if (left_double_ptr && right_double_ptr) {
             return *left_double_ptr < *right_double_ptr;
@@ -245,7 +247,8 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_string_ptr) {
             return *left_string_ptr < *right_string_ptr;
         }
-        throw RuntimeException(b.op, "Expected compare 2 numbers or 2 strings");
+        throw RuntimeException(b.operation,
+                               "Expected compare 2 numbers or 2 strings");
     case TokenType::GREATER_EQUAL:
         if (left_double_ptr && right_double_ptr) {
             return *left_double_ptr >= *right_double_ptr;
@@ -253,7 +256,8 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_string_ptr) {
             return *left_string_ptr >= *right_string_ptr;
         }
-        throw RuntimeException(b.op, "Expected compare 2 numbers or 2 strings");
+        throw RuntimeException(b.operation,
+                               "Expected compare 2 numbers or 2 strings");
     case TokenType::LESS_EQUAL:
         if (left_double_ptr && right_double_ptr) {
             return *left_double_ptr <= *right_double_ptr;
@@ -261,7 +265,8 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_string_ptr) {
             return *left_string_ptr <= *right_string_ptr;
         }
-        throw RuntimeException(b.op, "Expected compare 2 numbers or 2 strings");
+        throw RuntimeException(b.operation,
+                               "Expected compare 2 numbers or 2 strings");
     // Special case: support compare mixed type another type with bool
     case TokenType::BANG_EQUAL:
         return !is_equal(left, right);
@@ -279,7 +284,8 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         }
         return cast_literal_to_bool(right);
     default:
-        ErrorManager::handle_err(b.op->line, "Invalid binary expression");
+        ErrorManager::handle_err(b.operation->line,
+                                 "Invalid binary expression");
         return NIL;
     }
 }

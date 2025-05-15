@@ -5,12 +5,6 @@
 #include <memory>
 
 class Parser {
-  public:
-    Parser(std::vector<std::shared_ptr<Token>> tokens);
-
-    std::vector<std::shared_ptr<Stmt>> parse_program();
-    std::shared_ptr<Expr> parse_single_expr();
-
   private:
     std::vector<std::shared_ptr<Token>> tokens;
     uint32_t current_tok_pos = 0;
@@ -49,4 +43,10 @@ class Parser {
     std::shared_ptr<Token> get_cur_tok();
 
     void panic_mode_synchornize();
+
+  public:
+    Parser(std::vector<std::shared_ptr<Token>> tokens);
+
+    std::vector<std::shared_ptr<Stmt>> parse_program();
+    std::shared_ptr<Expr> parse_single_expr();
 };

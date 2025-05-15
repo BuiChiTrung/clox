@@ -33,12 +33,13 @@ class Expr {
 class BinaryExpr : public Expr {
   public:
     std::shared_ptr<Expr> left_operand;
-    std::shared_ptr<Token> op;
+    std::shared_ptr<Token> operation;
     std::shared_ptr<Expr> right_operand;
 
     BinaryExpr(std::shared_ptr<Expr> &left_operand, std::shared_ptr<Token> &op,
                std::shared_ptr<Expr> &right_operand)
-        : left_operand(left_operand), op(op), right_operand(right_operand) {}
+        : left_operand(left_operand), operation(op),
+          right_operand(right_operand) {}
 
     ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_binary(*this);
@@ -69,11 +70,11 @@ class LiteralExpr : public Expr {
 
 class UnaryExpr : public Expr {
   public:
-    std::shared_ptr<Token> op;
+    std::shared_ptr<Token> operation;
     std::shared_ptr<Expr> operand;
 
     UnaryExpr(std::shared_ptr<Token> &op, std::shared_ptr<Expr> &operand)
-        : op(op), operand(operand) {}
+        : operation(op), operand(operand) {}
 
     ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_unary(*this);

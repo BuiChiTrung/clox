@@ -12,7 +12,7 @@ for var i = 0; i < 10; i = i + 1; {
 }
 
 // LANGUAGE NATIVE FUNCTION
-print("Native function get current time: " + clock() + "s");
+// print("Native function get current time: " + clock() + "s");
 
 // CLOSURE
 print("Closure");

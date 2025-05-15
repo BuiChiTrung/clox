@@ -15,6 +15,7 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
   public:
     IdentifierResolver(std::shared_ptr<AstInterpreter> interpreter);
 
+  private:
     void visit_expr_stmt(const ExprStmt &e) override;
 
     void visit_assign_stmt(const AssignStmt &a) override;
@@ -47,7 +48,6 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_binary(const BinaryExpr &b) override;
 
-  private:
     std::shared_ptr<AstInterpreter> interpreter;
     std::vector<std::unordered_map<std::string, bool>> scopes;
     ResolveFuncType current_func_type;
