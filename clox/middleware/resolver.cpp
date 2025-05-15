@@ -15,6 +15,13 @@ IdentifierResolver::IdentifierResolver(
     }
 };
 
+void IdentifierResolver::resolve_program(
+    std::vector<std::shared_ptr<Stmt>> &stmts) {
+    for (auto &stmt : stmts) {
+        stmt->accept(*this);
+    }
+}
+
 void IdentifierResolver::visit_expr_stmt(const ExprStmt &expr_stmt) {
     expr_stmt.expr->accept(*this);
 }

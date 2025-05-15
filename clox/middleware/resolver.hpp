@@ -12,9 +12,6 @@ enum class ResolveFuncType {
 };
 
 class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
-  public:
-    IdentifierResolver(std::shared_ptr<AstInterpreter> interpreter);
-
   private:
     void visit_expr_stmt(const ExprStmt &e) override;
 
@@ -59,4 +56,9 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
     void define_identifier(std::shared_ptr<Token> var_name);
 
     void resolve_identifier(const IdentifierExpr &var_expr);
+
+  public:
+    IdentifierResolver(std::shared_ptr<AstInterpreter> interpreter);
+
+    void resolve_program(std::vector<std::shared_ptr<Stmt>> &stmts);
 };

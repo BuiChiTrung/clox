@@ -26,10 +26,7 @@ class CLox {
         }
 
         IdentifierResolver resolver = IdentifierResolver(ast_interpreter);
-        // TODO(trung.bc): update, provide resolve function in resolver class
-        for (auto stmt : stmts) {
-            stmt->accept(resolver);
-        }
+        resolver.resolve_program(stmts);
         if (ErrorManager::had_static_err) {
             std::cout << "Resolver error occurs" << std::endl;
             return;
