@@ -25,7 +25,7 @@ class CLox {
             return;
         }
 
-        Resolver resolver = Resolver(ast_interpreter);
+        IdentifierResolver resolver = IdentifierResolver(ast_interpreter);
         // TODO(trung.bc): update, provide resolve function in resolver class
         for (auto stmt : stmts) {
             stmt->accept(resolver);

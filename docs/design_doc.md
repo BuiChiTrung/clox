@@ -647,23 +647,68 @@ class LoxFunction : public LoxCallable {
 + When eval `FuncCall` node, set the parent env of func call env as this field.
 
 ## Resolve and binding
+### Static scope
+A **variable expression will always resolve to the same variable declaration** no matter how many times the expr is exec. In this example, we would expect that `showA()` print out "global" twice, `a` is always resolve to the global var `a`.
+```
+// scope0
+var a = "global";
+
+// scope1
+{
+  // scope2
+  fun showA() {
+    print a;
+  }
+
+  showA();
+  var a = "block";
+  showA();
+}
+```
+
+However, with implementation from previous chapters our printed result would be `global` then `block` because in the 2nd `showA()` call, we find `a` from scope2 => scope1 => scope0 and found a local `a` at scope1.
+### Semantics Analysis
+Revise from the 1st chapter, our compiler/intepreter go through the following steps:
++ **Syntactic analysis**: check a program is grammatically correct (done by parser)
++ **Semantic analysis**: go further to tell what the program means, tell if there is any logic err (Ex: `return` stmt outside a func, a var declared twice, ...). Our problem mentioned above could be sol in this phase we by: with every variable mentioned, we figures out which declaration it refers to.
++ **Interpret** the program.
 ### Resolver class
-Follow visitor design patter to im
-has `interpreter` as a field
-`scopes`: stack of environment. scope is hash_map: key - variable name, value - bool whether the variable is resolved or not.
-- A block statement introduces a new scope.
-- A function declaration introduces a new scope for its body and binds its parameters in that scope.
-- A variable declaration adds a new variable to the current scope.
-- Variable and assignment expressions need to have their variables resolved.
+We resolve variable by storing info of **how many scope we have to jump from the current scope** variable usage to the scope in which the variable is declared. This is done by implementing another class follow the visitor design pattern which travesal through all nodes in the AST before **interpreting**.
+```cpp
+class IdentifierResolver
+	  std::shared_ptr<AstInterpreter> interpreter;
+		
+	  # key - variable name, 
+	  # value - whether the variable is resolved or not.
+    std::vector<std::unordered_map<std::string, bool>> scopes;
 
+		void visit_block_stmt(const BlockStmt &b, std::shared_ptr<Environment> block_env = nullptr) override;
+		...
+    ExprVal visit_identifier(const IdentifierExpr &v) override;
+```
+
+Interesting type of nodes:
+- `visit_block_stmt`: introduces a new scope.
+- `visit_function_decl`: introduces a new scope for its body and binds its parameters in that scope.
+- `visit_var_decl`: adds a new variable to the current scope. Special case, since this case is useless in reality, we would raise an err.
+	```cpp
+	var a = a;
+	```
+- `visit_assign_stmt`: Variable and assignment expressions need to have their variables resolved.
 ### Interpret resolved var
-Store a map:
-+ key: expr used to access a var
-+ value: distance from the current scope to the scope where the var is defined.
+Add a map in the interpreter to store info of **how many scope we have to jump from the current scope** variable usage to the scope in which the variable is declared. This map is updated while we traversal in ast node in `IdentifierResolver` class
+```cpp
+// key: pointer to the variable usage node in ast.
+// value: distance from the current scope of the ast node to the scope where the var is defined.
+std::unordered_map<const IdentifierExpr *, int> identifier_scope_depth;
+```
 
-
-
-
+In the `main.cpp`, call resolver before interpreter
+### Resolution errors
+In the resolver state, we can detect other error
++ In the same scope, a var is declared multiple times.
++ `return` stmt invoked outside a func, `break` outside a loop, etc.
++ Many IDEs will warn if you have unreachable code after a `return` statement, or a local variable whose value is never read
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`

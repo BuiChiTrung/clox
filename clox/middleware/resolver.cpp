@@ -6,7 +6,8 @@
 #include <string>
 #include <unordered_map>
 
-Resolver::Resolver(std::shared_ptr<AstInterpreter> interpreter)
+IdentifierResolver::IdentifierResolver(
+    std::shared_ptr<AstInterpreter> interpreter)
     : interpreter(interpreter), current_func_type(ResolveFuncType::NONE) {
     scopes.emplace_back();
     for (const auto &identifier : interpreter->global_env->identifier_table) {
@@ -14,20 +15,25 @@ Resolver::Resolver(std::shared_ptr<AstInterpreter> interpreter)
     }
 };
 
-void Resolver::visit_expr_stmt(const ExprStmt &expr_stmt) {
+void IdentifierResolver::visit_expr_stmt(const ExprStmt &expr_stmt) {
     expr_stmt.expr->accept(*this);
 }
 
-void Resolver::visit_assign_stmt(const AssignStmt &assign_stmt) {
+void IdentifierResolver::visit_assign_stmt(const AssignStmt &assign_stmt) {
     assign_stmt.value->accept(*this);
     resolve_identifier(*assign_stmt.var);
 }
 
-void Resolver::visit_print_stmt(const PrintStmt &print_stmt) {
+void IdentifierResolver::visit_print_stmt(const PrintStmt &print_stmt) {
     print_stmt.expr->accept(*this);
 }
 
-void Resolver::visit_var_decl(const VarDecl &var_decl_stmt) {
+void IdentifierResolver::visit_var_decl(const VarDecl &var_decl_stmt) {
+    /*
+       Need a pair of func declare and define to handle a special case: var is
+       accessed in its initializer. var a = a;
+        => raise error
+    */
     declare_identifier(var_decl_stmt.var_name);
     if (var_decl_stmt.initializer != nullptr) {
         var_decl_stmt.initializer->accept(*this);
@@ -35,8 +41,8 @@ void Resolver::visit_var_decl(const VarDecl &var_decl_stmt) {
     define_identifier(var_decl_stmt.var_name);
 }
 
-void Resolver::visit_block_stmt(const BlockStmt &block_stmt,
-                                std::shared_ptr<Environment> block_env) {
+void IdentifierResolver::visit_block_stmt(
+    const BlockStmt &block_stmt, std::shared_ptr<Environment> block_env) {
     beginScope();
     for (auto stmt : block_stmt.stmts) {
         stmt->accept(*this);
@@ -44,7 +50,7 @@ void Resolver::visit_block_stmt(const BlockStmt &block_stmt,
     endScope();
 }
 
-void Resolver::visit_if_stmt(const IfStmt &if_stmt) {
+void IdentifierResolver::visit_if_stmt(const IfStmt &if_stmt) {
     for (auto condition : if_stmt.conditions) {
         condition->accept(*this);
     }
@@ -58,12 +64,13 @@ void Resolver::visit_if_stmt(const IfStmt &if_stmt) {
     }
 }
 
-void Resolver::visit_while_stmt(const WhileStmt &while_stmt) {
+void IdentifierResolver::visit_while_stmt(const WhileStmt &while_stmt) {
     while_stmt.condition->accept(*this);
     while_stmt.body->accept(*this);
 }
 
-void Resolver::visit_function_decl(const FunctionDecl &func_decl_stmt) {
+void IdentifierResolver::visit_function_decl(
+    const FunctionDecl &func_decl_stmt) {
     ResolveFuncType enclosing_func_type = current_func_type;
     current_func_type = ResolveFuncType::FUNCTION;
 
@@ -85,7 +92,7 @@ void Resolver::visit_function_decl(const FunctionDecl &func_decl_stmt) {
     current_func_type = enclosing_func_type;
 }
 
-void Resolver::visit_return_stmt(const ReturnStmt &return_stmt) {
+void IdentifierResolver::visit_return_stmt(const ReturnStmt &return_stmt) {
     if (current_func_type == ResolveFuncType::NONE) {
         ErrorManager::handle_err(return_stmt.return_kw->line,
                                  "Can't return from outside a function.");
@@ -93,7 +100,8 @@ void Resolver::visit_return_stmt(const ReturnStmt &return_stmt) {
     return_stmt.expr->accept(*this);
 }
 
-ExprVal Resolver::visit_identifier(const IdentifierExpr &identifier_expr) {
+ExprVal
+IdentifierResolver::visit_identifier(const IdentifierExpr &identifier_expr) {
     if (scopes.back().count(identifier_expr.name->lexeme) != 0 and
         scopes.back()[identifier_expr.name->lexeme] == false) {
         ErrorManager::handle_err(
@@ -105,14 +113,17 @@ ExprVal Resolver::visit_identifier(const IdentifierExpr &identifier_expr) {
     return NIL;
 }
 
-ExprVal Resolver::visit_literal(const LiteralExpr &literal_expr) { return NIL; }
+ExprVal IdentifierResolver::visit_literal(const LiteralExpr &literal_expr) {
+    return NIL;
+}
 
-ExprVal Resolver::visit_grouping(const GroupExpr &group_expr) {
+ExprVal IdentifierResolver::visit_grouping(const GroupExpr &group_expr) {
     group_expr.expr->accept(*this);
     return NIL;
 }
 
-ExprVal Resolver::visit_func_call(const FuncCallExpr &func_call_expr) {
+ExprVal
+IdentifierResolver::visit_func_call(const FuncCallExpr &func_call_expr) {
     func_call_expr.callee->accept(*this);
     for (auto arg : func_call_expr.args) {
         arg->accept(*this);
@@ -120,24 +131,30 @@ ExprVal Resolver::visit_func_call(const FuncCallExpr &func_call_expr) {
     return NIL;
 }
 
-ExprVal Resolver::visit_unary(const UnaryExpr &unary_expr) {
+ExprVal IdentifierResolver::visit_unary(const UnaryExpr &unary_expr) {
     unary_expr.operand->accept(*this);
     return NIL;
 }
 
-ExprVal Resolver::visit_binary(const BinaryExpr &binary_expr) {
+ExprVal IdentifierResolver::visit_binary(const BinaryExpr &binary_expr) {
     binary_expr.left_operand->accept(*this);
     binary_expr.right_operand->accept(*this);
     return NIL;
 }
 
-void Resolver::beginScope() {
+void IdentifierResolver::beginScope() {
     scopes.push_back(std::unordered_map<std::string, bool>{});
 }
 
-void Resolver::endScope() { scopes.pop_back(); }
+void IdentifierResolver::endScope() { scopes.pop_back(); }
 
-void Resolver::declare_identifier(std::shared_ptr<Token> identifier_name) {
+/*
+Adds identifier to the innermost scope so that it shadows any outer one and so
+that we know the variable exists. We mark it as “not ready yet” by binding its
+name to false in the scope map.
+*/
+void IdentifierResolver::declare_identifier(
+    std::shared_ptr<Token> identifier_name) {
     if (scopes.back().count(identifier_name->lexeme) != 0) {
         ErrorManager::handle_err(identifier_name->line,
                                  "Variable with name " +
@@ -146,11 +163,15 @@ void Resolver::declare_identifier(std::shared_ptr<Token> identifier_name) {
     }
     scopes.back()[identifier_name->lexeme] = false;
 }
-void Resolver::define_identifier(std::shared_ptr<Token> identifier_name) {
+
+// Mark identifier as resolved
+void IdentifierResolver::define_identifier(
+    std::shared_ptr<Token> identifier_name) {
     scopes.back()[identifier_name->lexeme] = true;
 }
 
-void Resolver::resolve_identifier(const IdentifierExpr &identifier_expr) {
+void IdentifierResolver::resolve_identifier(
+    const IdentifierExpr &identifier_expr) {
     for (int i = scopes.size() - 1; i >= 0; --i) {
         if (scopes[i].count(identifier_expr.name->lexeme) != 0) {
             interpreter->resolve_identifier(identifier_expr,

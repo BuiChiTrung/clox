@@ -11,9 +11,9 @@ enum class ResolveFuncType {
     // CLASS,
 };
 
-class Resolver : public IExprVisitor, public IStmtVisitor {
+class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
   public:
-    Resolver(std::shared_ptr<AstInterpreter> interpreter);
+    IdentifierResolver(std::shared_ptr<AstInterpreter> interpreter);
 
     void visit_expr_stmt(const ExprStmt &e) override;
 

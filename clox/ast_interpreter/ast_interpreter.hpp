@@ -57,12 +57,12 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     bool is_equal(ExprVal left, ExprVal right);
 
-    void checkNumberOperand(std::shared_ptr<Token> tok, ExprVal right);
+    void check_number_operand(std::shared_ptr<Token> tok, ExprVal right);
 
-    void checkNumberOperands(std::shared_ptr<Token> tok, ExprVal left,
-                             ExprVal right);
-    void checkIntOperands(std::shared_ptr<Token> tok, ExprVal left,
-                          ExprVal right);
+    void check_number_operands(std::shared_ptr<Token> tok, ExprVal left,
+                               ExprVal right);
+    void check_int_operands(std::shared_ptr<Token> tok, ExprVal left,
+                            ExprVal right);
 
     // Use with Resolver class to resolve in which scope an identifier (var or
     // func) is defined

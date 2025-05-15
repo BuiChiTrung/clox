@@ -1,1 +1,2 @@
-global
+[line 15] Error: Can't return from outside a function.
+Resolver error occurs

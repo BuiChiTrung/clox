@@ -131,8 +131,6 @@ void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {
 
 ExprVal
 AstInterpreter::visit_identifier(const IdentifierExpr &identifier_expr) {
-    // return env->get_variable(identifier_expr.name);
-
     const IdentifierExpr *ptr = &identifier_expr;
     if (identifier_scope_depth.count(ptr) == 0) {
         throw RuntimeException(identifier_expr.name,
@@ -184,7 +182,7 @@ ExprVal AstInterpreter::visit_unary(const UnaryExpr &u) {
     case TokenType::BANG:
         return !cast_literal_to_bool(right);
     case TokenType::MINUS:
-        checkNumberOperand(u.op, right);
+        check_number_operand(u.op, right);
         return -std::get<double>(right);
     default:
         ErrorManager::handle_err(u.op->line, "Invalid unary expression");
@@ -218,16 +216,16 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         }
         throw RuntimeException(b.op, "Operands must be number or string");
     case TokenType::MINUS:
-        checkNumberOperands(b.op, left, right);
+        check_number_operands(b.op, left, right);
         return *left_double_ptr - *right_double_ptr;
     case TokenType::STAR:
-        checkNumberOperands(b.op, left, right);
+        check_number_operands(b.op, left, right);
         return *left_double_ptr * *right_double_ptr;
     case TokenType::MOD:
-        checkIntOperands(b.op, left, right);
+        check_int_operands(b.op, left, right);
         return double(int(*left_double_ptr) % int(*right_double_ptr));
     case TokenType::SLASH:
-        checkNumberOperands(b.op, left, right);
+        check_number_operands(b.op, left, right);
         if (*right_double_ptr == 0) {
             throw RuntimeException(b.op, "Devide by 0");
         }
@@ -314,16 +312,16 @@ bool AstInterpreter::is_equal(ExprVal left, ExprVal right) {
     return left == right;
 }
 
-void AstInterpreter::checkNumberOperand(std::shared_ptr<Token> tok,
-                                        ExprVal right) {
+void AstInterpreter::check_number_operand(std::shared_ptr<Token> tok,
+                                          ExprVal right) {
     if (!std::holds_alternative<double>(right)) {
         throw RuntimeException(tok, "Right operand must be a number");
     }
 }
 
-void AstInterpreter::checkIntOperands(std::shared_ptr<Token> tok, ExprVal left,
-                                      ExprVal right) {
-    checkNumberOperands(tok, left, right);
+void AstInterpreter::check_int_operands(std::shared_ptr<Token> tok,
+                                        ExprVal left, ExprVal right) {
+    check_number_operands(tok, left, right);
 
     double left_double = std::get<double>(left);
     if (static_cast<int>(left_double) != left_double) {
@@ -335,8 +333,8 @@ void AstInterpreter::checkIntOperands(std::shared_ptr<Token> tok, ExprVal left,
     }
 }
 
-void AstInterpreter::checkNumberOperands(std::shared_ptr<Token> tok,
-                                         ExprVal left, ExprVal right) {
+void AstInterpreter::check_number_operands(std::shared_ptr<Token> tok,
+                                           ExprVal left, ExprVal right) {
     if (!std::holds_alternative<double>(right)) {
         throw RuntimeException(tok, "Right operand must be a number");
     }
