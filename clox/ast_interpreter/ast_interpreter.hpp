@@ -29,6 +29,8 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     void visit_function_decl(const FunctionDecl &f) override;
 
+    void visit_class_decl(const ClassDecl &) override;
+
     void visit_return_stmt(const ReturnStmt &r) override;
 
     ExprVal visit_identifier(const IdentifierExpr &v) override;
@@ -66,7 +68,7 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     ExprVal interpret_single_expr(std::shared_ptr<Expr> expression);
 
-    void interpret_program(std::vector<std::shared_ptr<Stmt>> stmts);
+    void interpret_program(const std::vector<std::shared_ptr<Stmt>> &stmts);
 
     // Use with Resolver class to resolve in which scope an identifier (var or
     // func) is defined

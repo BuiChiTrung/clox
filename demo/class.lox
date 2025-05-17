@@ -1,0 +1,9 @@
+class FootballPlayer {
+    pass() {
+    }
+}
+
+print(FootballPlayer);
+
+var messi = FootballPlayer();
+print(messi);

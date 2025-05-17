@@ -1,43 +1,25 @@
 #pragma once
-#include <memory>
 #include <sys/types.h>
 
-#include "clox/utils/helper.hpp"
 #include "clox/utils/magic_enum.hpp"
 #include <iomanip>
 #include <map>
 #include <sstream>
 #include <string>
-#include <variant>
+// #include <variant>
 
 const uint MAX_ARGS_NUM = 255;
 
+// TODO(trung.bc): check code structure here
 class LoxCallable;
+class LoxClass;
+class LoxInstance;
 
 // std::monostate to present nil in Lox
 constexpr std::monostate NIL{};
-using ExprVal = std::variant<double, bool, std::string,
-                             std::shared_ptr<LoxCallable>, std::monostate>;
-
-inline std::string exprval_to_string(const ExprVal &value) {
-    return std::visit(
-        [](auto &&arg) -> std::string {
-            using T = std::decay_t<decltype(arg)>;
-
-            if constexpr (std::is_same_v<T, bool>) {
-                return arg ? "true" : "false";
-            } else if constexpr (std::is_same_v<T, double>) {
-                return double_to_string(arg);
-            } else if constexpr (std::is_same_v<T, std::string>) {
-                return arg;
-            } else if constexpr (std::is_same_v<T, LoxCallable>) {
-                return arg.to_string();
-            } else {
-                return "nil";
-            }
-        },
-        value);
-}
+using ExprVal =
+    std::variant<double, bool, std::string, std::shared_ptr<LoxCallable>,
+                 std::shared_ptr<LoxInstance>, std::monostate>;
 
 enum class TokenType {
     // Single-character tokens.

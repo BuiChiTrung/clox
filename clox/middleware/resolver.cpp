@@ -101,6 +101,11 @@ void IdentifierResolver::visit_function_decl(
     current_func_type = enclosing_func_type;
 }
 
+void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
+    declare_identifier(class_decl_stmt.name);
+    define_identifier(class_decl_stmt.name);
+}
+
 void IdentifierResolver::visit_return_stmt(const ReturnStmt &return_stmt) {
     if (current_func_type == ResolveFuncType::NONE) {
         ErrorManager::handle_err(return_stmt.return_kw->line,

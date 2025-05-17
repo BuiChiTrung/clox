@@ -66,3 +66,30 @@ class LoxFunction : public LoxCallable {
         return "<fn " + func_stmt.name->lexeme + ">";
     }
 };
+
+class LoxClass : public LoxCallable {
+  private:
+    std::string name;
+    friend class LoxInstance;
+
+  public:
+    LoxClass(std::string name) : name(name) {}
+
+    ExprVal invoke(AstInterpreter *interpreter,
+                   std::vector<ExprVal> &args) override {
+        auto lox_instance = std::make_shared<LoxInstance>(*this);
+        return lox_instance;
+    }
+
+    std::string to_string() const override { return "Class " + name; }
+};
+
+class LoxInstance {
+  private:
+    LoxClass &lox_class;
+
+  public:
+    LoxInstance(LoxClass &lox_class) : lox_class(lox_class) {}
+
+    std::string to_string() const { return "Instance " + lox_class.name; }
+};

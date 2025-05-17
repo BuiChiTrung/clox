@@ -5,8 +5,10 @@
 #include "clox/parser/expr.hpp"
 #include "clox/parser/stmt.hpp"
 #include "clox/scanner/token.hpp"
+#include "clox/utils/helper.hpp"
 
 #include <iostream>
+#include <memory>
 #include <variant>
 
 AstInterpreter::AstInterpreter(const bool is_interactive_mode)
@@ -29,7 +31,7 @@ AstInterpreter::interpret_single_expr(std::shared_ptr<Expr> expression) {
 }
 
 void AstInterpreter::interpret_program(
-    std::vector<std::shared_ptr<Stmt>> stmts) {
+    const std::vector<std::shared_ptr<Stmt>> &stmts) {
     try {
         for (const auto &stmt : stmts) {
             // exec stmt
@@ -42,6 +44,29 @@ void AstInterpreter::interpret_program(
 
 ExprVal AstInterpreter::evaluate_expr(std::shared_ptr<Expr> expr) {
     return expr->accept(*this);
+}
+
+inline std::string exprval_to_string(const ExprVal &value) {
+    return std::visit(
+        [](auto &&arg) -> std::string {
+            using T = std::decay_t<decltype(arg)>;
+
+            if constexpr (std::is_same_v<T, bool>) {
+                return arg ? "true" : "false";
+            } else if constexpr (std::is_same_v<T, double>) {
+                return double_to_string(arg);
+            } else if constexpr (std::is_same_v<T, std::string>) {
+                return arg;
+            } else if constexpr (std::is_same_v<T,
+                                                std::shared_ptr<LoxCallable>> ||
+                                 std::is_same_v<T,
+                                                std::shared_ptr<LoxInstance>>) {
+                return arg ? arg->to_string() : "nil";
+            } else {
+                return "nil";
+            }
+        },
+        value);
 }
 
 void AstInterpreter::visit_expr_stmt(const ExprStmt &e) {
@@ -99,6 +124,11 @@ void AstInterpreter::visit_while_stmt(const WhileStmt &w) {
 void AstInterpreter::visit_function_decl(const FunctionDecl &w) {
     std::shared_ptr<LoxFunction> func(new LoxFunction(w, env));
     env->add_new_variable(w.name->lexeme, func);
+}
+
+void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
+    std::shared_ptr<LoxClass> lox_class(new LoxClass(class_decl.name->lexeme));
+    env->add_new_variable(class_decl.name->lexeme, lox_class);
 }
 
 void AstInterpreter::visit_block_stmt(const BlockStmt &b,

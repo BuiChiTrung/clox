@@ -14,6 +14,7 @@ class IfStmt;
 class WhileStmt;
 class FunctionDecl;
 class ReturnStmt;
+class ClassDecl;
 
 class IStmtVisitor {
   public:
@@ -28,6 +29,7 @@ class IStmtVisitor {
     virtual void visit_if_stmt(const IfStmt &b) = 0;
     virtual void visit_while_stmt(const WhileStmt &w) = 0;
     virtual void visit_return_stmt(const ReturnStmt &r) = 0;
+    virtual void visit_class_decl(const ClassDecl &) = 0;
 };
 
 // We use the same class Stmt for both statment and declaration for simplicity
@@ -143,4 +145,16 @@ class ReturnVal : std::exception {
   public:
     ExprVal return_val;
     ReturnVal(ExprVal return_val) : return_val(return_val) {}
+};
+
+class ClassDecl : public Stmt {
+  public:
+    std::shared_ptr<Token> name;
+    std::vector<std::shared_ptr<Stmt>> methods;
+
+    ClassDecl(std::shared_ptr<Token> name,
+              std::vector<std::shared_ptr<Stmt>> &methods)
+        : name(name), methods(methods) {}
+
+    void accept(IStmtVisitor &v) override { return v.visit_class_decl(*this); }
 };

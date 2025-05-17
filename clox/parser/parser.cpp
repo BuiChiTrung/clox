@@ -27,7 +27,7 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse_program() {
     return stmts;
 }
 
-// declaration → varDecl | funcDecl | statement
+// declaration → varDecl | funcDecl | classDecl | statement
 std::shared_ptr<Stmt> Parser::parse_declaration() {
     try {
         if (validate_token(TokenType::VAR)) {
@@ -35,6 +35,9 @@ std::shared_ptr<Stmt> Parser::parse_declaration() {
         }
         if (validate_token(TokenType::FUNC)) {
             return parse_function_decl();
+        }
+        if (validate_token(TokenType::CLASS)) {
+            return parse_class_decl();
         }
         return parse_stmt();
     } catch (ParserException &err) {
@@ -84,10 +87,34 @@ std::shared_ptr<Stmt> Parser::parse_return_stmt() {
     return std::make_shared<ReturnStmt>(return_kw, expr);
 }
 
-// funcDecl → IDENTIFIER "(" parameters ")" block ;
+// funcDecl → "fun" function;
 std::shared_ptr<Stmt> Parser::parse_function_decl() {
     assert_tok_and_advance(TokenType::FUNC, "Expected function declaration");
+    return parse_function();
+}
 
+// classDecl -> "class" IDENTIFIER "{" method* "}"
+std::shared_ptr<Stmt> Parser::parse_class_decl() {
+    assert_tok_and_advance(TokenType::CLASS, "Expected class declaration");
+    std::shared_ptr<Token> class_name =
+        assert_tok_and_advance(TokenType::IDENTIFIER, "Expected class name");
+
+    assert_tok_and_advance(TokenType::LEFT_BRACE,
+                           "Expected '{' at the start of class body");
+
+    std::vector<std::shared_ptr<Stmt>> methods{};
+    while (!consumed_all_tokens() and !validate_token(TokenType::RIGHT_BRACE)) {
+        methods.push_back(parse_function());
+    }
+
+    assert_tok_and_advance(TokenType::RIGHT_BRACE,
+                           "Expected '}' at the end of class body");
+
+    return std::make_shared<ClassDecl>(class_name, methods);
+}
+
+// function -> IDENTIFIER "(" parameters ")" block
+std::shared_ptr<Stmt> Parser::parse_function() {
     std::shared_ptr<Token> func_name =
         assert_tok_and_advance(TokenType::IDENTIFIER, "Expected function name");
 

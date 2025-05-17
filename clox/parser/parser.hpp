@@ -14,6 +14,8 @@ class Parser {
     std::shared_ptr<Stmt> parse_return_stmt();
     std::shared_ptr<Stmt> parse_block_stmt();
     std::shared_ptr<Stmt> parse_function_decl();
+    std::shared_ptr<Stmt> parse_class_decl();
+    std::shared_ptr<Stmt> parse_function();
     std::shared_ptr<Stmt> parse_for_stmt();
     std::shared_ptr<Stmt> parse_while_stmt();
     std::shared_ptr<Stmt> parse_if_stmt();
