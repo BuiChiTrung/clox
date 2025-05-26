@@ -33,6 +33,8 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     void visit_return_stmt(const ReturnStmt &r) override;
 
+    void visit_set_prop(const SetPropStmt &) override;
+
     ExprVal visit_identifier(const IdentifierExpr &v) override;
 
     ExprVal visit_literal(const LiteralExpr &l) override;
@@ -40,6 +42,8 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
     ExprVal visit_grouping(const GroupExpr &g) override;
 
     ExprVal visit_func_call(const FuncCallExpr &f) override;
+
+    ExprVal visit_get_prop(const GetPropExpr &) override;
 
     ExprVal visit_unary(const UnaryExpr &u) override;
 

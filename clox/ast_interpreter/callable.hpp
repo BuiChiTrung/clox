@@ -1,11 +1,14 @@
 #include "clox/ast_interpreter/ast_interpreter.hpp"
 #include "clox/ast_interpreter/environment.hpp"
+#include "clox/error_manager/error_manager.hpp"
 #include "clox/parser/stmt.hpp"
 #include "clox/scanner/token.hpp"
 
 #include <chrono>
 #include <memory>
+#include <string>
 #include <sys/types.h>
+#include <unordered_map>
 
 class LoxCallable {
   public:
@@ -70,10 +73,15 @@ class LoxFunction : public LoxCallable {
 class LoxClass : public LoxCallable {
   private:
     std::string name;
+    std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods;
     friend class LoxInstance;
+    friend class AstInterpreter;
 
   public:
-    LoxClass(std::string name) : name(name) {}
+    LoxClass(
+        std::string name,
+        std::unordered_map<std::string, std::shared_ptr<LoxFunction>> &methods)
+        : name(name), methods(methods) {}
 
     ExprVal invoke(AstInterpreter *interpreter,
                    std::vector<ExprVal> &args) override {
@@ -87,9 +95,24 @@ class LoxClass : public LoxCallable {
 class LoxInstance {
   private:
     LoxClass &lox_class;
+    std::unordered_map<std::string, ExprVal> props;
+    friend class AstInterpreter;
 
   public:
     LoxInstance(LoxClass &lox_class) : lox_class(lox_class) {}
 
     std::string to_string() const { return "Instance " + lox_class.name; }
+
+    ExprVal get_field(std::shared_ptr<Token> field_name) {
+        if (props.count(field_name->lexeme) > 0) {
+            return props[field_name->lexeme];
+        }
+        if (lox_class.methods.count(field_name->lexeme)) {
+            return lox_class.methods[field_name->lexeme];
+        }
+
+        throw RuntimeException(field_name, "Instance field" +
+                                               field_name->lexeme +
+                                               " does not exists.");
+    }
 };

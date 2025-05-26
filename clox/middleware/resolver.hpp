@@ -7,8 +7,7 @@
 enum class ResolveFuncType {
     NONE,
     FUNCTION,
-    // METHOD,
-    // CLASS,
+    METHOD,
 };
 
 class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
@@ -37,6 +36,8 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
 
     void visit_return_stmt(const ReturnStmt &) override;
 
+    void visit_set_prop(const SetPropStmt &) override;
+
     ExprVal visit_identifier(const IdentifierExpr &) override;
 
     ExprVal visit_literal(const LiteralExpr &) override;
@@ -44,6 +45,8 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
     ExprVal visit_grouping(const GroupExpr &) override;
 
     ExprVal visit_func_call(const FuncCallExpr &) override;
+
+    ExprVal visit_get_prop(const GetPropExpr &) override;
 
     ExprVal visit_unary(const UnaryExpr &) override;
 

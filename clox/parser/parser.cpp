@@ -93,7 +93,7 @@ std::shared_ptr<Stmt> Parser::parse_function_decl() {
     return parse_function();
 }
 
-// classDecl -> "class" IDENTIFIER "{" method* "}"
+// classDecl -> "class" IDENTIFIER "{" function* "}"
 std::shared_ptr<Stmt> Parser::parse_class_decl() {
     assert_tok_and_advance(TokenType::CLASS, "Expected class declaration");
     std::shared_ptr<Token> class_name =
@@ -102,9 +102,11 @@ std::shared_ptr<Stmt> Parser::parse_class_decl() {
     assert_tok_and_advance(TokenType::LEFT_BRACE,
                            "Expected '{' at the start of class body");
 
-    std::vector<std::shared_ptr<Stmt>> methods{};
+    std::vector<std::shared_ptr<FunctionDecl>> methods{};
     while (!consumed_all_tokens() and !validate_token(TokenType::RIGHT_BRACE)) {
-        methods.push_back(parse_function());
+        auto method = parse_function();
+        // TODO(trung.bc): change parser return type
+        methods.push_back(std::dynamic_pointer_cast<FunctionDecl>(method));
     }
 
     assert_tok_and_advance(TokenType::RIGHT_BRACE,
@@ -282,29 +284,31 @@ std::shared_ptr<Stmt> Parser::parse_print_stmt() {
     return stmt;
 }
 
-// assignStmt -> l_value "=" expression";" | exprStmt
+// assignStmt -> (call".")?IDENTIFIER "=" expression";" | exprStmt
 // exprStmt → expression ";" ;
 std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
     std::shared_ptr<Expr> expr = parse_expr();
 
     if (validate_token_and_advance({TokenType::EQUAL})) {
-        // TODO(trung.bc): support complex assignment - obj.x = <value>.
         // For now, only support variable assignment.
-        std::shared_ptr<IdentifierExpr> var =
-            std::dynamic_pointer_cast<IdentifierExpr>(expr);
-        if (!var) {
-            throw ParserException(
-                get_cur_tok(),
-                "Expected to assign new value to a variable only");
+        auto identifier_expr = std::dynamic_pointer_cast<IdentifierExpr>(expr);
+        auto get_prop_expr = std::dynamic_pointer_cast<GetPropExpr>(expr);
+        if (!identifier_expr && !get_prop_expr) {
+            throw ParserException(get_cur_tok(),
+                                  "Expected to assign new value to a variable "
+                                  "or instance property");
         }
 
-        // can be both r-value, l-value
         std::shared_ptr<Expr> value = parse_expr();
         assert_tok_and_advance(TokenType::SEMICOLON,
                                "Expected ; at the end of assign statement");
-        return std::make_shared<AssignStmt>(var, value);
+
+        if (identifier_expr) {
+            return std::make_shared<AssignStmt>(identifier_expr, value);
+        }
     }
 
+    // Expr stmt
     assert_tok_and_advance(TokenType::SEMICOLON,
                            "Expected ; at the end of assign statement");
     return std::make_shared<ExprStmt>(expr);
@@ -406,23 +410,31 @@ std::shared_ptr<Expr> Parser::parse_unary() {
     return parse_call();
 }
 
-// call → primary ("(" arguments ")")*
+// call → primary ("(" arguments ")" | "." IDENTIFIER)*
 std::shared_ptr<Expr> Parser::parse_call() {
-    std::shared_ptr<Expr> func_call_expr = parse_primary();
+    std::shared_ptr<Expr> call_expr = parse_primary();
 
-    while (validate_token_and_advance({TokenType::LEFT_PAREN})) {
-        std::vector<std::shared_ptr<Expr>> arguments =
-            parse_func_call_arguments();
+    while (true) {
+        if (validate_token_and_advance({TokenType::LEFT_PAREN})) {
+            std::vector<std::shared_ptr<Expr>> arguments =
+                parse_func_call_arguments();
 
-        assert_tok_and_advance(TokenType::RIGHT_PAREN,
-                               "Expected ')' after function invocation");
-        std::shared_ptr<Token> right_paren = get_prev_tok();
+            assert_tok_and_advance(TokenType::RIGHT_PAREN,
+                                   "Expected ')' after function invocation");
+            std::shared_ptr<Token> right_paren = get_prev_tok();
 
-        func_call_expr = std::make_shared<FuncCallExpr>(func_call_expr,
-                                                        right_paren, arguments);
+            call_expr = std::make_shared<FuncCallExpr>(call_expr, right_paren,
+                                                       arguments);
+        } else if (validate_token_and_advance({TokenType::DOT})) {
+            std::shared_ptr<Token> field = assert_tok_and_advance(
+                TokenType::IDENTIFIER, "Expected instance field");
+            call_expr = std::make_shared<GetPropExpr>(call_expr, field);
+        } else {
+            break;
+        }
     }
 
-    return func_call_expr;
+    return call_expr;
 }
 
 // arguments -> "" | (expression (","expression)*)
