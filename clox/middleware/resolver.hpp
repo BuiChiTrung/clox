@@ -40,6 +40,8 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_identifier(const IdentifierExpr &) override;
 
+    ExprVal visit_this(const ThisExpr &this_expr) override;
+
     ExprVal visit_literal(const LiteralExpr &) override;
 
     ExprVal visit_grouping(const GroupExpr &) override;
@@ -56,13 +58,13 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
     std::vector<std::unordered_map<std::string, bool>> scopes;
     ResolveFuncType current_func_type;
 
-    void beginScope();
-    void endScope();
+    void addScope();
+    void closeScope();
 
     void declare_identifier(std::shared_ptr<Token> var_name);
     void define_identifier(std::shared_ptr<Token> var_name);
 
-    void resolve_identifier(const IdentifierExpr &var_expr);
+    void resolve_identifier(const IdentifierExpr *);
 
   public:
     IdentifierResolver(std::shared_ptr<AstInterpreter> interpreter);

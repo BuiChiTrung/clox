@@ -458,11 +458,14 @@ std::vector<std::shared_ptr<Expr>> Parser::parse_func_call_arguments() {
     return args;
 }
 
-// primary → IDENTIFIER | NUMBER | STRING | "true" | "false" | "nil" | "("
+// primary → IDENTIFIER | "this" | NUMBER | STRING | "true" | "false" | "nil" | "("
 // expression ")"
 std::shared_ptr<Expr> Parser::parse_primary() {
     if (validate_token_and_advance({TokenType::IDENTIFIER})) {
         return std::make_shared<IdentifierExpr>(get_prev_tok());
+    }
+    if (validate_token_and_advance({TokenType::THIS})) {
+        return std::make_shared<ThisExpr>(get_prev_tok());
     }
     if (validate_token_and_advance({TokenType::FALSE})) {
         return std::make_shared<LiteralExpr>(false);

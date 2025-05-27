@@ -37,6 +37,7 @@ class LoxFunction : public LoxCallable {
     const FunctionDecl &func_stmt;
     // Can be global env or the env of the outer func defined this func
     std::shared_ptr<Environment> parent_env;
+    friend class LoxInstance;
 
   public:
     LoxFunction(const FunctionDecl &func_stmt,
@@ -85,8 +86,11 @@ class LoxClass : public LoxCallable {
 
     ExprVal invoke(AstInterpreter *interpreter,
                    std::vector<ExprVal> &args) override {
+        // TODO(trung.bc): can we avoid new?
+        // auto lox_instance = new LoxInstance(*this);
+        // return lox_instance;
         auto lox_instance = std::make_shared<LoxInstance>(*this);
-        return lox_instance;
+        return lox_instance.get();
     }
 
     std::string to_string() const override { return "Class " + name; }
@@ -108,7 +112,9 @@ class LoxInstance {
             return props[field_name->lexeme];
         }
         if (lox_class.methods.count(field_name->lexeme)) {
-            return lox_class.methods[field_name->lexeme];
+            auto method = lox_class.methods[field_name->lexeme];
+            method->parent_env->identifier_table["this"] = this;
+            return method;
         }
 
         throw RuntimeException(field_name, "Instance field" +

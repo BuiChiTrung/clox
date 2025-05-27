@@ -1,5 +1,6 @@
 #include "clox/middleware/resolver.hpp"
 #include "clox/error_manager/error_manager.hpp"
+#include "clox/parser/expr.hpp"
 #include "clox/parser/stmt.hpp"
 #include "clox/scanner/token.hpp"
 #include <memory>
@@ -33,7 +34,7 @@ void IdentifierResolver::visit_expr_stmt(const ExprStmt &expr_stmt) {
 
 void IdentifierResolver::visit_assign_stmt(const AssignStmt &assign_stmt) {
     assign_stmt.value->accept(*this);
-    resolve_identifier(*assign_stmt.var);
+    resolve_identifier(assign_stmt.var.get());
 }
 
 void IdentifierResolver::visit_print_stmt(const PrintStmt &print_stmt) {
@@ -55,11 +56,11 @@ void IdentifierResolver::visit_var_decl(const VarDecl &var_decl_stmt) {
 
 void IdentifierResolver::visit_block_stmt(
     const BlockStmt &block_stmt, std::shared_ptr<Environment> block_env) {
-    beginScope();
+    addScope();
     for (auto stmt : block_stmt.stmts) {
         stmt->accept(*this);
     }
-    endScope();
+    closeScope();
 }
 
 void IdentifierResolver::visit_if_stmt(const IfStmt &if_stmt) {
@@ -89,14 +90,14 @@ void IdentifierResolver::visit_function_decl(
     declare_identifier(func_decl_stmt.name);
     define_identifier(func_decl_stmt.name);
 
-    beginScope();
+    addScope();
     for (auto param : func_decl_stmt.params) {
         define_identifier(param->name);
     }
     std::shared_ptr<BlockStmt> func_body =
         std::dynamic_pointer_cast<BlockStmt>(func_decl_stmt.body);
     resolve_stmts(func_body->stmts);
-    endScope();
+    closeScope();
 
     current_func_type = enclosing_func_type;
 }
@@ -105,10 +106,13 @@ void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
     declare_identifier(class_decl_stmt.name);
     define_identifier(class_decl_stmt.name);
 
+    addScope();
+    scopes.back()["this"] = true;
     for (auto method : class_decl_stmt.methods) {
         current_func_type = ResolveFuncType::METHOD;
         method->accept(*this);
     }
+    closeScope();
 }
 
 void IdentifierResolver::visit_return_stmt(const ReturnStmt &return_stmt) {
@@ -133,8 +137,24 @@ IdentifierResolver::visit_identifier(const IdentifierExpr &identifier_expr) {
             "Can't read local variable in its own initializer.");
     }
 
-    resolve_identifier(identifier_expr);
+    resolve_identifier(&identifier_expr);
     return NIL;
+}
+
+ExprVal IdentifierResolver::visit_this(const ThisExpr &this_expr) {
+    resolve_identifier(&this_expr);
+    return NIL;
+}
+
+void IdentifierResolver::resolve_identifier(
+    const IdentifierExpr *identifier_expr) {
+    for (int i = scopes.size() - 1; i >= 0; --i) {
+        if (scopes[i].count(identifier_expr->name->lexeme) != 0) {
+            interpreter->resolve_identifier(identifier_expr,
+                                            scopes.size() - 1 - i);
+            return;
+        }
+    }
 }
 
 ExprVal IdentifierResolver::visit_literal(const LiteralExpr &literal_expr) {
@@ -171,11 +191,11 @@ ExprVal IdentifierResolver::visit_binary(const BinaryExpr &binary_expr) {
     return NIL;
 }
 
-void IdentifierResolver::beginScope() {
+void IdentifierResolver::addScope() {
     scopes.push_back(std::unordered_map<std::string, bool>{});
 }
 
-void IdentifierResolver::endScope() { scopes.pop_back(); }
+void IdentifierResolver::closeScope() { scopes.pop_back(); }
 
 /*
 Adds identifier to the innermost scope so that it shadows any outer one and so
@@ -197,15 +217,4 @@ void IdentifierResolver::declare_identifier(
 void IdentifierResolver::define_identifier(
     std::shared_ptr<Token> identifier_name) {
     scopes.back()[identifier_name->lexeme] = true;
-}
-
-void IdentifierResolver::resolve_identifier(
-    const IdentifierExpr &identifier_expr) {
-    for (int i = scopes.size() - 1; i >= 0; --i) {
-        if (scopes[i].count(identifier_expr.name->lexeme) != 0) {
-            interpreter->resolve_identifier(identifier_expr,
-                                            scopes.size() - 1 - i);
-            return;
-        }
-    }
 }

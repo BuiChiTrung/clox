@@ -1,2 +1,11 @@
-var a = 1;
-print(a);
+class FootballPlayer {
+    pass() {
+        print("This is a through pass");
+    }
+}
+
+print(FootballPlayer);
+
+var messi = FootballPlayer();
+print(messi);
+//messi.pass();

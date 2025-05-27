@@ -37,6 +37,8 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_identifier(const IdentifierExpr &v) override;
 
+    ExprVal visit_this(const ThisExpr &this_expr) override;
+
     ExprVal visit_literal(const LiteralExpr &l) override;
 
     ExprVal visit_grouping(const GroupExpr &g) override;
@@ -76,5 +78,5 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     // Use with Resolver class to resolve in which scope an identifier (var or
     // func) is defined
-    void resolve_identifier(const IdentifierExpr &identifier_expr, int depth);
+    void resolve_identifier(const IdentifierExpr *, int depth);
 };

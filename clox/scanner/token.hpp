@@ -19,7 +19,7 @@ class LoxInstance;
 constexpr std::monostate NIL{};
 using ExprVal =
     std::variant<double, bool, std::string, std::shared_ptr<LoxCallable>,
-                 std::shared_ptr<LoxInstance>, std::monostate>;
+                 LoxInstance *, std::monostate>;
 
 enum class TokenType {
     // Single-character tokens.

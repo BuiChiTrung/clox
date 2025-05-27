@@ -8,4 +8,4 @@ print(FootballPlayer);
 
 var messi = FootballPlayer();
 print(messi);
-messi.pass();
+//messi.pass();

@@ -62,6 +62,8 @@ inline std::string exprval_to_string(const ExprVal &value) {
                                  std::is_same_v<T,
                                                 std::shared_ptr<LoxInstance>>) {
                 return arg ? arg->to_string() : "nil";
+            } else if constexpr (std::is_same_v<T, LoxInstance *>) {
+                return arg ? arg->to_string() : "nil";
             } else {
                 return "nil";
             }
@@ -129,6 +131,9 @@ void AstInterpreter::visit_function_decl(const FunctionDecl &func_decl) {
 void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
     std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods = {};
 
+    auto class_env = std::make_shared<Environment>(env);
+    class_env->add_new_variable("this", NIL);
+
     for (auto method : class_decl.methods) {
         auto lox_method = std::make_shared<LoxFunction>(*method.get(), env);
         methods[method->name->lexeme] = lox_method;
@@ -167,10 +172,10 @@ void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {
 }
 
 void AstInterpreter::visit_set_prop(const SetPropStmt &set_prop_stmt) {
-    std::shared_ptr<LoxInstance> lox_instance = nullptr;
+    LoxInstance *lox_instance = nullptr;
     try {
-        lox_instance = std::get<std::shared_ptr<LoxInstance>>(
-            set_prop_stmt.lox_instance->accept(*this));
+        lox_instance =
+            std::get<LoxInstance *>(set_prop_stmt.lox_instance->accept(*this));
     } catch (std::bad_variant_access) {
         throw RuntimeException(set_prop_stmt.prop_name,
                                "Can only call property of a lox instance.");
@@ -192,6 +197,20 @@ AstInterpreter::visit_identifier(const IdentifierExpr &identifier_expr) {
     int depth = identifier_scope_depth[ptr];
 
     return move_up_env(depth)->identifier_table[identifier_expr.name->lexeme];
+}
+
+// TODO(trung.bc): merge functions
+ExprVal AstInterpreter::visit_this(const ThisExpr &this_expr) {
+    const ThisExpr *ptr = &this_expr;
+    if (identifier_scope_depth.count(ptr) == 0) {
+        throw RuntimeException(this_expr.name,
+                               "Reference to non-exist identifier: " +
+                                   this_expr.name->lexeme);
+    }
+
+    int depth = identifier_scope_depth[ptr];
+
+    return move_up_env(depth)->identifier_table[this_expr.name->lexeme];
 }
 
 ExprVal AstInterpreter::visit_literal(const LiteralExpr &l) { return l.value; }
@@ -227,10 +246,10 @@ ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &f) {
 }
 
 ExprVal AstInterpreter::visit_get_prop(const GetPropExpr &expr) {
-    std::shared_ptr<LoxInstance> lox_instance = nullptr;
+    LoxInstance *lox_instance = nullptr;
     try {
-        lox_instance = std::get<std::shared_ptr<LoxInstance>>(
-            expr.lox_instance->accept(*this));
+        lox_instance =
+            std::get<LoxInstance *>(expr.lox_instance->accept(*this));
     } catch (std::bad_variant_access) {
         throw RuntimeException(expr.prop_name,
                                "Can only call property of a lox instance.");
@@ -413,10 +432,9 @@ void AstInterpreter::check_number_operands(std::shared_ptr<Token> tok,
     }
 }
 
-void AstInterpreter::resolve_identifier(const IdentifierExpr &identifier_expr,
-                                        int depth) {
-    const IdentifierExpr *ptr = &identifier_expr;
-    identifier_scope_depth[ptr] = depth;
+void AstInterpreter::resolve_identifier(
+    const IdentifierExpr *identifier_expr_ptr, int depth) {
+    identifier_scope_depth[identifier_expr_ptr] = depth;
 }
 
 std::shared_ptr<Environment> AstInterpreter::move_up_env(int depth) {
