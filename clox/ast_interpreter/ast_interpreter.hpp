@@ -39,7 +39,9 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_this(const ThisExpr &this_expr) override;
 
-    ExprVal evaluate_identifier(const IdentifierExpr *);
+    // Use pointer to support polymorphism: downcast from ThisExpr to
+    // IdentifierExpr
+    ExprVal evaluate_identifier(const IdentifierExpr &);
 
     ExprVal visit_literal(const LiteralExpr &l) override;
 

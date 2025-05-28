@@ -185,25 +185,25 @@ void AstInterpreter::visit_set_prop(const SetPropStmt &set_prop_stmt) {
 
 ExprVal
 AstInterpreter::visit_identifier(const IdentifierExpr &identifier_expr) {
-    return evaluate_identifier(&identifier_expr);
+    return evaluate_identifier(identifier_expr);
 }
 
 ExprVal AstInterpreter::visit_this(const ThisExpr &this_expr) {
-    return evaluate_identifier(&this_expr);
+    return evaluate_identifier(this_expr);
 }
 
 ExprVal
-AstInterpreter::evaluate_identifier(const IdentifierExpr *identifier_expr_ptr) {
-    if (identifier_scope_depth.count(identifier_expr_ptr) == 0) {
-        throw RuntimeException(identifier_expr_ptr->name,
+AstInterpreter::evaluate_identifier(const IdentifierExpr &identifier_expr_ptr) {
+    const IdentifierExpr *ptr = &identifier_expr_ptr;
+    if (identifier_scope_depth.count(ptr) == 0) {
+        throw RuntimeException(ptr->name,
                                "Reference to non-exist identifier: " +
-                                   identifier_expr_ptr->name->lexeme);
+                                   ptr->name->lexeme);
     }
 
-    int depth = identifier_scope_depth[identifier_expr_ptr];
+    int depth = identifier_scope_depth[ptr];
 
-    return move_up_env(depth)
-        ->identifier_table[identifier_expr_ptr->name->lexeme];
+    return move_up_env(depth)->identifier_table[ptr->name->lexeme];
 }
 
 ExprVal AstInterpreter::visit_literal(const LiteralExpr &l) { return l.value; }
