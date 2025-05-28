@@ -106,6 +106,9 @@ void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
     declare_identifier(class_decl_stmt.name);
     define_identifier(class_decl_stmt.name);
 
+    auto enclosing_class_type = current_class_type;
+    current_class_type = ResolveClassType::CLASS;
+
     addScope();
     scopes.back()["this"] = true;
     for (auto method : class_decl_stmt.methods) {
@@ -113,11 +116,13 @@ void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
         method->accept(*this);
     }
     closeScope();
+
+    current_class_type = enclosing_class_type;
 }
 
 void IdentifierResolver::visit_return_stmt(const ReturnStmt &return_stmt) {
     if (current_func_type == ResolveFuncType::NONE) {
-        ErrorManager::handle_err(return_stmt.return_kw->line,
+        ErrorManager::handle_err(return_stmt.return_kw,
                                  "Can't return from outside a function.");
     }
     return_stmt.expr->accept(*this);
@@ -142,6 +147,10 @@ IdentifierResolver::visit_identifier(const IdentifierExpr &identifier_expr) {
 }
 
 ExprVal IdentifierResolver::visit_this(const ThisExpr &this_expr) {
+    if (current_class_type != ResolveClassType::CLASS) {
+        ErrorManager::handle_err(this_expr.name,
+                                 "Can't return from outside a class method.");
+    }
     resolve_identifier(&this_expr);
     return NIL;
 }

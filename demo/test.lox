@@ -1,11 +1,12 @@
 class FootballPlayer {
     pass() {
-        print("This is a through pass");
+        print("This is a " + this.skill);
     }
 }
 
-print(FootballPlayer);
-
 var messi = FootballPlayer();
+print(FootballPlayer);
 print(messi);
-//messi.pass();
+
+messi.skill = "Through pass";
+messi.pass();

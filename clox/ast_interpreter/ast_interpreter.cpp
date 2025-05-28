@@ -62,8 +62,6 @@ inline std::string exprval_to_string(const ExprVal &value) {
                                  std::is_same_v<T,
                                                 std::shared_ptr<LoxInstance>>) {
                 return arg ? arg->to_string() : "nil";
-            } else if constexpr (std::is_same_v<T, LoxInstance *>) {
-                return arg ? arg->to_string() : "nil";
             } else {
                 return "nil";
             }
@@ -172,10 +170,10 @@ void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {
 }
 
 void AstInterpreter::visit_set_prop(const SetPropStmt &set_prop_stmt) {
-    LoxInstance *lox_instance = nullptr;
+    std::shared_ptr<LoxInstance> lox_instance = nullptr;
     try {
-        lox_instance =
-            std::get<LoxInstance *>(set_prop_stmt.lox_instance->accept(*this));
+        lox_instance = std::get<std::shared_ptr<LoxInstance>>(
+            set_prop_stmt.lox_instance->accept(*this));
     } catch (std::bad_variant_access) {
         throw RuntimeException(set_prop_stmt.prop_name,
                                "Can only call property of a lox instance.");
@@ -246,10 +244,10 @@ ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &f) {
 }
 
 ExprVal AstInterpreter::visit_get_prop(const GetPropExpr &expr) {
-    LoxInstance *lox_instance = nullptr;
+    std::shared_ptr<LoxInstance> lox_instance = nullptr;
     try {
-        lox_instance =
-            std::get<LoxInstance *>(expr.lox_instance->accept(*this));
+        lox_instance = std::get<std::shared_ptr<LoxInstance>>(
+            expr.lox_instance->accept(*this));
     } catch (std::bad_variant_access) {
         throw RuntimeException(expr.prop_name,
                                "Can only call property of a lox instance.");

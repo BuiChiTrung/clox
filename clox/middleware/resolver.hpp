@@ -10,6 +10,12 @@ enum class ResolveFuncType {
     METHOD,
 };
 
+enum class ResolveClassType {
+    NONE,
+    CLASS,
+    // SUB_CLASS
+};
+
 class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
   private:
     void resolve_stmts(std::vector<std::shared_ptr<Stmt>> &stmts);
@@ -57,6 +63,7 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
     std::shared_ptr<AstInterpreter> interpreter;
     std::vector<std::unordered_map<std::string, bool>> scopes;
     ResolveFuncType current_func_type;
+    ResolveClassType current_class_type;
 
     void addScope();
     void closeScope();

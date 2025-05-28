@@ -86,14 +86,11 @@ class LoxClass : public LoxCallable {
 
     ExprVal invoke(AstInterpreter *interpreter,
                    std::vector<ExprVal> &args) override {
-        // TODO(trung.bc): can we avoid new?
-        // auto lox_instance = new LoxInstance(*this);
-        // return lox_instance;
         auto lox_instance = std::make_shared<LoxInstance>(*this);
-        return lox_instance.get();
+        return lox_instance;
     }
 
-    std::string to_string() const override { return "Class " + name; }
+    std::string to_string() const override { return "<Class " + name + ">"; }
 };
 
 class LoxInstance {
@@ -105,7 +102,9 @@ class LoxInstance {
   public:
     LoxInstance(LoxClass &lox_class) : lox_class(lox_class) {}
 
-    std::string to_string() const { return "Instance " + lox_class.name; }
+    std::string to_string() const {
+        return "<Instance " + lox_class.name + ">";
+    }
 
     ExprVal get_field(std::shared_ptr<Token> field_name) {
         if (props.count(field_name->lexeme) > 0) {
@@ -113,7 +112,10 @@ class LoxInstance {
         }
         if (lox_class.methods.count(field_name->lexeme)) {
             auto method = lox_class.methods[field_name->lexeme];
-            method->parent_env->identifier_table["this"] = this;
+            // Use no-op deleter to make sure that "this" is not deallocate
+            // after shared_ptr run out of scope.
+            method->parent_env->identifier_table["this"] =
+                std::shared_ptr<LoxInstance>(this, [](LoxInstance *) {});
             return method;
         }
 

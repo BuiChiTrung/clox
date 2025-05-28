@@ -1,4 +1,5 @@
 #pragma once
+#include <memory>
 #include <sys/types.h>
 
 #include "clox/utils/magic_enum.hpp"
@@ -19,7 +20,7 @@ class LoxInstance;
 constexpr std::monostate NIL{};
 using ExprVal =
     std::variant<double, bool, std::string, std::shared_ptr<LoxCallable>,
-                 LoxInstance *, std::monostate>;
+                 std::shared_ptr<LoxInstance>, std::monostate>;
 
 enum class TokenType {
     // Single-character tokens.

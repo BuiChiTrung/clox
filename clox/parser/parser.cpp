@@ -284,7 +284,7 @@ std::shared_ptr<Stmt> Parser::parse_print_stmt() {
     return stmt;
 }
 
-// assignStmt -> (call".")?IDENTIFIER "=" expression";" | exprStmt
+// assignStmt -> (IDENTIFIER | call) "=" expression";" | exprStmt
 // exprStmt → expression ";" ;
 std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
     std::shared_ptr<Expr> expr = parse_expr();
@@ -305,6 +305,9 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
 
         if (identifier_expr) {
             return std::make_shared<AssignStmt>(identifier_expr, value);
+        } else {
+            return std::make_shared<SetPropStmt>(
+                get_prop_expr->lox_instance, get_prop_expr->prop_name, value);
         }
     }
 
@@ -458,8 +461,8 @@ std::vector<std::shared_ptr<Expr>> Parser::parse_func_call_arguments() {
     return args;
 }
 
-// primary → IDENTIFIER | "this" | NUMBER | STRING | "true" | "false" | "nil" | "("
-// expression ")"
+// primary → IDENTIFIER | "this" | NUMBER | STRING | "true" | "false" | "nil" |
+// "(" expression ")"
 std::shared_ptr<Expr> Parser::parse_primary() {
     if (validate_token_and_advance({TokenType::IDENTIFIER})) {
         return std::make_shared<IdentifierExpr>(get_prev_tok());
