@@ -142,9 +142,10 @@ void IdentifierResolver::visit_return_stmt(const ReturnStmt &return_stmt) {
     return_stmt.expr->accept(*this);
 }
 
-void IdentifierResolver::visit_set_prop(const SetPropStmt &set_prop_stmt) {
-    set_prop_stmt.lox_instance->accept(*this);
-    set_prop_stmt.value->accept(*this);
+void IdentifierResolver::visit_set_class_field(
+    const SetClassFieldStmt &set_class_field_stmt) {
+    set_class_field_stmt.lox_instance->accept(*this);
+    set_class_field_stmt.value->accept(*this);
 }
 
 ExprVal
@@ -198,8 +199,9 @@ IdentifierResolver::visit_func_call(const FuncCallExpr &func_call_expr) {
     return NIL;
 }
 
-ExprVal IdentifierResolver::visit_get_prop(const GetPropExpr &get_prop_expr) {
-    get_prop_expr.lox_instance->accept(*this);
+ExprVal IdentifierResolver::visit_get_class_field(
+    const GetClassFieldExpr &get_class_field_expr) {
+    get_class_field_expr.lox_instance->accept(*this);
     return NIL;
 }
 

@@ -292,8 +292,9 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
     if (validate_token_and_advance({TokenType::EQUAL})) {
         // For now, only support variable assignment.
         auto identifier_expr = std::dynamic_pointer_cast<IdentifierExpr>(expr);
-        auto get_prop_expr = std::dynamic_pointer_cast<GetPropExpr>(expr);
-        if (!identifier_expr && !get_prop_expr) {
+        auto get_class_field_expr =
+            std::dynamic_pointer_cast<GetClassFieldExpr>(expr);
+        if (!identifier_expr && !get_class_field_expr) {
             throw ParserException(get_cur_tok(),
                                   "Expected to assign new value to a variable "
                                   "or instance property");
@@ -306,8 +307,9 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
         if (identifier_expr) {
             return std::make_shared<AssignStmt>(identifier_expr, value);
         } else {
-            return std::make_shared<SetPropStmt>(
-                get_prop_expr->lox_instance, get_prop_expr->prop_name, value);
+            return std::make_shared<SetClassFieldStmt>(
+                get_class_field_expr->lox_instance,
+                get_class_field_expr->field_token, value);
         }
     }
 
@@ -431,7 +433,7 @@ std::shared_ptr<Expr> Parser::parse_call() {
         } else if (validate_token_and_advance({TokenType::DOT})) {
             std::shared_ptr<Token> field = assert_tok_and_advance(
                 TokenType::IDENTIFIER, "Expected instance field");
-            call_expr = std::make_shared<GetPropExpr>(call_expr, field);
+            call_expr = std::make_shared<GetClassFieldExpr>(call_expr, field);
         } else {
             break;
         }

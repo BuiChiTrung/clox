@@ -1,5 +1,6 @@
 #include "ast_interpreter.hpp"
 #include "clox/ast_interpreter/callable.hpp"
+#include "clox/ast_interpreter/class.hpp"
 #include "clox/ast_interpreter/environment.hpp"
 #include "clox/error_manager/error_manager.hpp"
 #include "clox/parser/expr.hpp"
@@ -127,13 +128,13 @@ void AstInterpreter::visit_function_decl(const FunctionDecl &func_decl) {
 }
 
 void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
-    std::unordered_map<std::string, std::shared_ptr<LoxFunction>> methods = {};
+    std::unordered_map<std::string, std::shared_ptr<LoxMethod>> methods = {};
 
     auto class_env = std::make_shared<Environment>(env);
     class_env->add_new_variable("this", NIL);
 
     for (auto method : class_decl.methods) {
-        auto lox_method = std::make_shared<LoxFunction>(*method.get(), env);
+        auto lox_method = std::make_shared<LoxMethod>(*method.get(), env);
         methods[method->name->lexeme] = lox_method;
     }
     auto lox_class =
@@ -169,18 +170,19 @@ void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {
     throw ReturnVal(return_val);
 }
 
-void AstInterpreter::visit_set_prop(const SetPropStmt &set_prop_stmt) {
+void AstInterpreter::visit_set_class_field(
+    const SetClassFieldStmt &set_class_field_stmt) {
     std::shared_ptr<LoxInstance> lox_instance = nullptr;
     try {
         lox_instance = std::get<std::shared_ptr<LoxInstance>>(
-            set_prop_stmt.lox_instance->accept(*this));
+            set_class_field_stmt.lox_instance->accept(*this));
     } catch (std::bad_variant_access) {
-        throw RuntimeException(set_prop_stmt.prop_name,
+        throw RuntimeException(set_class_field_stmt.field_token,
                                "Can only call property of a lox instance.");
     }
 
-    ExprVal value = evaluate_expr(set_prop_stmt.value);
-    lox_instance->props[set_prop_stmt.prop_name->lexeme] = value;
+    ExprVal value = evaluate_expr(set_class_field_stmt.value);
+    lox_instance->props[set_class_field_stmt.field_token->lexeme] = value;
 }
 
 ExprVal
@@ -238,17 +240,17 @@ ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &f) {
     return func->invoke(this, arg_vals);
 }
 
-ExprVal AstInterpreter::visit_get_prop(const GetPropExpr &expr) {
+ExprVal AstInterpreter::visit_get_class_field(const GetClassFieldExpr &expr) {
     std::shared_ptr<LoxInstance> lox_instance = nullptr;
     try {
         lox_instance = std::get<std::shared_ptr<LoxInstance>>(
             expr.lox_instance->accept(*this));
     } catch (std::bad_variant_access) {
-        throw RuntimeException(expr.prop_name,
+        throw RuntimeException(expr.field_token,
                                "Can only call property of a lox instance.");
     }
 
-    return lox_instance->get_field(expr.prop_name);
+    return lox_instance->get_field(expr.field_token);
 }
 
 ExprVal AstInterpreter::visit_unary(const UnaryExpr &u) {

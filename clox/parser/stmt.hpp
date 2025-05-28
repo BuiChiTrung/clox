@@ -15,7 +15,7 @@ class WhileStmt;
 class FunctionDecl;
 class ReturnStmt;
 class ClassDecl;
-class SetPropStmt;
+class SetClassFieldStmt;
 
 class IStmtVisitor {
   public:
@@ -31,7 +31,7 @@ class IStmtVisitor {
     virtual void visit_while_stmt(const WhileStmt &w) = 0;
     virtual void visit_return_stmt(const ReturnStmt &r) = 0;
     virtual void visit_class_decl(const ClassDecl &) = 0;
-    virtual void visit_set_prop(const SetPropStmt &) = 0;
+    virtual void visit_set_class_field(const SetClassFieldStmt &) = 0;
 };
 
 // We use the same class Stmt for both statment and declaration for simplicity
@@ -162,15 +162,18 @@ class ClassDecl : public Stmt {
     void accept(IStmtVisitor &v) override { return v.visit_class_decl(*this); }
 };
 
-class SetPropStmt : public Stmt {
+class SetClassFieldStmt : public Stmt {
   public:
     std::shared_ptr<Expr> lox_instance;
-    std::shared_ptr<Token> prop_name;
+    std::shared_ptr<Token> field_token;
     std::shared_ptr<Expr> value;
 
-    SetPropStmt(std::shared_ptr<Expr> lox_instance,
-                std::shared_ptr<Token> prop_name, std::shared_ptr<Expr> value)
-        : lox_instance(lox_instance), prop_name(prop_name), value(value) {}
+    SetClassFieldStmt(std::shared_ptr<Expr> lox_instance,
+                      std::shared_ptr<Token> field_token,
+                      std::shared_ptr<Expr> value)
+        : lox_instance(lox_instance), field_token(field_token), value(value) {}
 
-    void accept(IStmtVisitor &v) override { return v.visit_set_prop(*this); }
+    void accept(IStmtVisitor &v) override {
+        return v.visit_set_class_field(*this);
+    }
 };

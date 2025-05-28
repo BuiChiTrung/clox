@@ -45,7 +45,7 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
 
     void visit_return_stmt(const ReturnStmt &) override;
 
-    void visit_set_prop(const SetPropStmt &) override;
+    void visit_set_class_field(const SetClassFieldStmt &) override;
 
     ExprVal visit_identifier(const IdentifierExpr &) override;
 
@@ -57,7 +57,7 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_func_call(const FuncCallExpr &) override;
 
-    ExprVal visit_get_prop(const GetPropExpr &) override;
+    ExprVal visit_get_class_field(const GetClassFieldExpr &) override;
 
     ExprVal visit_unary(const UnaryExpr &) override;
 

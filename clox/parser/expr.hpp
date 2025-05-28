@@ -8,7 +8,7 @@ class GroupExpr;
 class LiteralExpr;
 class IdentifierExpr;
 class FuncCallExpr;
-class GetPropExpr;
+class GetClassFieldExpr;
 class ThisExpr;
 
 // Use visitor design pattern to pack all the logic of override function for all
@@ -21,7 +21,7 @@ class IExprVisitor {
     virtual ExprVal visit_binary(const BinaryExpr &) = 0;
     virtual ExprVal visit_identifier(const IdentifierExpr &) = 0;
     virtual ExprVal visit_func_call(const FuncCallExpr &) = 0;
-    virtual ExprVal visit_get_prop(const GetPropExpr &) = 0;
+    virtual ExprVal visit_get_class_field(const GetClassFieldExpr &) = 0;
     virtual ExprVal visit_this(const ThisExpr &) = 0;
 };
 
@@ -120,16 +120,16 @@ class FuncCallExpr : public Expr {
     }
 };
 
-class GetPropExpr : public Expr {
+class GetClassFieldExpr : public Expr {
   public:
     std::shared_ptr<Expr> lox_instance;
-    std::shared_ptr<Token> prop_name;
+    std::shared_ptr<Token> field_token;
 
-    GetPropExpr(std::shared_ptr<Expr> lox_instance,
-                std::shared_ptr<Token> prop_name)
-        : lox_instance(lox_instance), prop_name(prop_name) {}
+    GetClassFieldExpr(std::shared_ptr<Expr> lox_instance,
+                      std::shared_ptr<Token> field_token)
+        : lox_instance(lox_instance), field_token(field_token) {}
 
     ExprVal accept(IExprVisitor &visitor) override {
-        return visitor.visit_get_prop(*this);
+        return visitor.visit_get_class_field(*this);
     }
 };
