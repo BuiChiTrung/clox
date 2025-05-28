@@ -34,7 +34,7 @@ void IdentifierResolver::visit_expr_stmt(const ExprStmt &expr_stmt) {
 
 void IdentifierResolver::visit_assign_stmt(const AssignStmt &assign_stmt) {
     assign_stmt.value->accept(*this);
-    resolve_identifier(assign_stmt.var.get());
+    resolve_identifier(*assign_stmt.var);
 }
 
 void IdentifierResolver::visit_print_stmt(const PrintStmt &print_stmt) {
@@ -84,8 +84,36 @@ void IdentifierResolver::visit_while_stmt(const WhileStmt &while_stmt) {
 
 void IdentifierResolver::visit_function_decl(
     const FunctionDecl &func_decl_stmt) {
+    resolve_function(func_decl_stmt, ResolveFuncType::FUNCTION);
+}
+
+void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
+    declare_identifier(class_decl_stmt.name);
+    define_identifier(class_decl_stmt.name);
+
+    auto enclosing_class_type = current_class_type;
+    current_class_type = ResolveClassType::CLASS;
+
+    addScope(); // class scope
+    scopes.back()["this"] = true;
+    for (auto method : class_decl_stmt.methods) {
+        bool is_constructor =
+            method->name->lexeme == class_decl_stmt.name->lexeme;
+        if (is_constructor) {
+            resolve_function(*method, ResolveFuncType::CONSTRUCTOR);
+        } else {
+            resolve_function(*method, ResolveFuncType::METHOD);
+        }
+    }
+    closeScope();
+
+    current_class_type = enclosing_class_type;
+}
+
+void IdentifierResolver::resolve_function(const FunctionDecl &func_decl_stmt,
+                                          ResolveFuncType func_type) {
     ResolveFuncType enclosing_func_type = current_func_type;
-    current_func_type = ResolveFuncType::FUNCTION;
+    current_func_type = func_type;
 
     declare_identifier(func_decl_stmt.name);
     define_identifier(func_decl_stmt.name);
@@ -102,28 +130,14 @@ void IdentifierResolver::visit_function_decl(
     current_func_type = enclosing_func_type;
 }
 
-void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
-    declare_identifier(class_decl_stmt.name);
-    define_identifier(class_decl_stmt.name);
-
-    auto enclosing_class_type = current_class_type;
-    current_class_type = ResolveClassType::CLASS;
-
-    addScope();
-    scopes.back()["this"] = true;
-    for (auto method : class_decl_stmt.methods) {
-        current_func_type = ResolveFuncType::METHOD;
-        method->accept(*this);
-    }
-    closeScope();
-
-    current_class_type = enclosing_class_type;
-}
-
 void IdentifierResolver::visit_return_stmt(const ReturnStmt &return_stmt) {
     if (current_func_type == ResolveFuncType::NONE) {
         ErrorManager::handle_err(return_stmt.return_kw,
-                                 "Can't return from outside a function.");
+                                 "Cannot return from outside a function.");
+    }
+    if (current_func_type == ResolveFuncType::CONSTRUCTOR) {
+        ErrorManager::handle_err(return_stmt.return_kw,
+                                 "Cannot return inside the class constructor.");
     }
     return_stmt.expr->accept(*this);
 }
@@ -142,7 +156,7 @@ IdentifierResolver::visit_identifier(const IdentifierExpr &identifier_expr) {
             "Can't read local variable in its own initializer.");
     }
 
-    resolve_identifier(&identifier_expr);
+    resolve_identifier(identifier_expr);
     return NIL;
 }
 
@@ -151,15 +165,15 @@ ExprVal IdentifierResolver::visit_this(const ThisExpr &this_expr) {
         ErrorManager::handle_err(this_expr.name,
                                  "Can't return from outside a class method.");
     }
-    resolve_identifier(&this_expr);
+    resolve_identifier(this_expr);
     return NIL;
 }
 
 void IdentifierResolver::resolve_identifier(
-    const IdentifierExpr *identifier_expr) {
+    const IdentifierExpr &identifier_expr) {
     for (int i = scopes.size() - 1; i >= 0; --i) {
-        if (scopes[i].count(identifier_expr->name->lexeme) != 0) {
-            interpreter->resolve_identifier(identifier_expr,
+        if (scopes[i].count(identifier_expr.name->lexeme) != 0) {
+            interpreter->resolve_identifier(&identifier_expr,
                                             scopes.size() - 1 - i);
             return;
         }

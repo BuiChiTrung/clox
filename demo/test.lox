@@ -1,6 +1,11 @@
 class FootballPlayer {
+    FootballPlayer() {
+        print("Init this: ");
+        print(this);
+    }
     pass() {
-        print("This is a " + this.skill);
+        var adj = "wonderful";
+        print("This is a " + adj + " " + this.skill);
     }
 }
 
@@ -10,3 +15,4 @@ print(messi);
 
 messi.skill = "Through pass";
 messi.pass();
+print(messi.FootballPlayer());

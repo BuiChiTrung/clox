@@ -1,3 +1,7 @@
+Init this: 
+<Instance FootballPlayer>
 <Class FootballPlayer>
 <Instance FootballPlayer>
-This is a Through pass
+This is a wonderful Through pass
+[line 18] Error at 'FootballPlayer': Constructor cannot be called by a class instance.
+Runtime error occurs

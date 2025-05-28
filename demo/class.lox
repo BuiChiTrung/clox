@@ -1,4 +1,7 @@
 class FootballPlayer {
+    init() {
+        print(this);
+    }
     pass() {
         var adj = "wonderful";
         print("This is a " + adj + " " + this.skill);

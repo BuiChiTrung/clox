@@ -8,6 +8,9 @@ enum class ResolveFuncType {
     NONE,
     FUNCTION,
     METHOD,
+    // Constructor is a special method (not allow return_kw, etc). It
+    // should be a seperate type.
+    CONSTRUCTOR,
 };
 
 enum class ResolveClassType {
@@ -71,7 +74,8 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
     void declare_identifier(std::shared_ptr<Token> var_name);
     void define_identifier(std::shared_ptr<Token> var_name);
 
-    void resolve_identifier(const IdentifierExpr *);
+    void resolve_identifier(const IdentifierExpr &);
+    void resolve_function(const FunctionDecl &, ResolveFuncType);
 
   public:
     IdentifierResolver(std::shared_ptr<AstInterpreter> interpreter);

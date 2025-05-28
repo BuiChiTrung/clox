@@ -39,6 +39,8 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_this(const ThisExpr &this_expr) override;
 
+    ExprVal evaluate_identifier(const IdentifierExpr *);
+
     ExprVal visit_literal(const LiteralExpr &l) override;
 
     ExprVal visit_grouping(const GroupExpr &g) override;
