@@ -41,7 +41,7 @@ class LoxClass : public LoxCallable {
     }
 
     // Class constructor, a method equal to class_name
-    ExprVal invoke(AstInterpreter *interpreter,
+    ExprVal invoke(AstInterpreter &interpreter,
                    std::vector<ExprVal> &args) override {
         auto lox_instance = std::make_shared<LoxInstance>(*this);
         auto constructor = get_method(name);

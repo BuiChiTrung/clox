@@ -9,5 +9,5 @@ class Environment {
     std::shared_ptr<Environment> parent_scope_env;
     Environment();
     Environment(std::shared_ptr<Environment> parent_scope_env);
-    void add_new_variable(std::string name, ExprVal value);
+    void add_new_variable(std::string name, const ExprVal &value);
 };

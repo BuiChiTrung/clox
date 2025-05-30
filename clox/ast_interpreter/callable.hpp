@@ -14,7 +14,7 @@ class LoxCallable {
   public:
     virtual uint get_param_num() { return 0; }
 
-    virtual ExprVal invoke(AstInterpreter *interpreter,
+    virtual ExprVal invoke(AstInterpreter &interpreter,
                            std::vector<ExprVal> &args) = 0;
 
     virtual std::string to_string() const = 0;
@@ -22,7 +22,7 @@ class LoxCallable {
 
 class ClockNativeFunc : public LoxCallable {
   public:
-    ExprVal invoke(AstInterpreter *interpreter,
+    ExprVal invoke(AstInterpreter &interpreter,
                    std::vector<ExprVal> &args) override {
         auto now = std::chrono::system_clock::now();
         std::chrono::duration<double> unix_time = now.time_since_epoch();
@@ -46,7 +46,7 @@ class LoxFunction : public LoxCallable {
 
     uint get_param_num() override { return func_stmt.params.size(); }
 
-    ExprVal invoke(AstInterpreter *interpreter,
+    ExprVal invoke(AstInterpreter &interpreter,
                    std::vector<ExprVal> &args) override {
         // Each time a func is invoked an env should be created to save var
         // defined in the func scope
@@ -58,7 +58,7 @@ class LoxFunction : public LoxCallable {
 
         auto block = std::dynamic_pointer_cast<BlockStmt>(func_stmt.body);
         try {
-            interpreter->visit_block_stmt(*block, func_env);
+            interpreter.visit_block_stmt(*block, func_env);
         } catch (ReturnVal r) {
             return r.return_val;
         }

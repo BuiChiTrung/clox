@@ -9,6 +9,6 @@ Environment::Environment() {
 Environment::Environment(std::shared_ptr<Environment> parent_scope_env)
     : parent_scope_env(parent_scope_env) {}
 
-void Environment::add_new_variable(std::string name, ExprVal value) {
+void Environment::add_new_variable(std::string name, const ExprVal &value) {
     identifier_table[name] = value;
 }

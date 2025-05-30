@@ -8,8 +8,7 @@
 
 class AstInterpreter : public IExprVisitor, public IStmtVisitor {
   private:
-    friend class LoxFunction;
-    ExprVal evaluate_expr(std::shared_ptr<Expr> expr);
+    ExprVal evaluate_expr(Expr &expr);
 
     void visit_expr_stmt(const ExprStmt &e) override;
 
@@ -55,32 +54,34 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_binary(const BinaryExpr &b) override;
 
-    bool cast_literal_to_bool(ExprVal val);
+    bool cast_literal_to_bool(const ExprVal &val);
 
-    bool is_equal(ExprVal left, ExprVal right);
+    bool is_equal(const ExprVal &left, const ExprVal &right);
 
-    void check_number_operand(std::shared_ptr<Token> tok, ExprVal right);
+    void check_number_operand(std::shared_ptr<Token> tok, const ExprVal &right);
 
-    void check_number_operands(std::shared_ptr<Token> tok, ExprVal left,
-                               ExprVal right);
-    void check_int_operands(std::shared_ptr<Token> tok, ExprVal left,
-                            ExprVal right);
+    void check_number_operands(std::shared_ptr<Token> tok, const ExprVal &left,
+                               const ExprVal &right);
+    void check_int_operands(std::shared_ptr<Token> tok, const ExprVal &left,
+                            const ExprVal &right);
 
     std::shared_ptr<Environment> move_up_env(int depth);
+    std::shared_ptr<Environment> env;
+    std::unordered_map<const IdentifierExpr *, int> identifier_scope_depth;
+    const std::shared_ptr<Environment> global_env;
+    // Use with Resolver class to resolve in which scope an identifier (var or
+    // func) is defined
+    void resolve_identifier(const IdentifierExpr &, int depth);
 
   public:
-    const std::shared_ptr<Environment> global_env;
-    std::shared_ptr<Environment> env;
     const bool is_interactive_mode;
-    std::unordered_map<const IdentifierExpr *, int> identifier_scope_depth;
 
     AstInterpreter(const bool is_interactive_mode);
 
-    ExprVal interpret_single_expr(std::shared_ptr<Expr> expression);
+    ExprVal interpret_single_expr(Expr &expression);
 
     void interpret_program(const std::vector<std::shared_ptr<Stmt>> &stmts);
 
-    // Use with Resolver class to resolve in which scope an identifier (var or
-    // func) is defined
-    void resolve_identifier(const IdentifierExpr *, int depth);
+    friend class LoxFunction;
+    friend class IdentifierResolver;
 };

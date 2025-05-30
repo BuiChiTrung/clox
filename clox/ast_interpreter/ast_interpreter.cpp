@@ -20,8 +20,7 @@ AstInterpreter::AstInterpreter(const bool is_interactive_mode)
 }
 
 // func to test if the interpreter can exec a single expression
-ExprVal
-AstInterpreter::interpret_single_expr(std::shared_ptr<Expr> expression) {
+ExprVal AstInterpreter::interpret_single_expr(Expr &expression) {
     try {
         ExprVal result = evaluate_expr(expression);
         return result;
@@ -43,9 +42,7 @@ void AstInterpreter::interpret_program(
     }
 }
 
-ExprVal AstInterpreter::evaluate_expr(std::shared_ptr<Expr> expr) {
-    return expr->accept(*this);
-}
+ExprVal AstInterpreter::evaluate_expr(Expr &expr) { return expr.accept(*this); }
 
 inline std::string exprval_to_string(const ExprVal &value) {
     return std::visit(
@@ -71,14 +68,14 @@ inline std::string exprval_to_string(const ExprVal &value) {
 }
 
 void AstInterpreter::visit_expr_stmt(const ExprStmt &e) {
-    ExprVal val = evaluate_expr(e.expr);
+    ExprVal val = evaluate_expr(*e.expr);
     if (is_interactive_mode) {
         std::cout << exprval_to_string(val) << std::endl;
     }
 }
 
 void AstInterpreter::visit_assign_stmt(const AssignStmt &a) {
-    ExprVal new_value = evaluate_expr(a.value);
+    ExprVal new_value = evaluate_expr(*a.value);
     // env->assign_new_value_to_variable(a.var->name, new_value);
 
     const IdentifierExpr *ptr = a.var.get();
@@ -87,14 +84,14 @@ void AstInterpreter::visit_assign_stmt(const AssignStmt &a) {
 }
 
 void AstInterpreter::visit_print_stmt(const PrintStmt &p) {
-    ExprVal val = evaluate_expr(p.expr);
+    ExprVal val = evaluate_expr(*p.expr);
     std::cout << exprval_to_string(val) << std::endl;
 }
 
 void AstInterpreter::visit_var_decl(const VarDecl &v) {
     ExprVal var_value = NIL;
     if (v.initializer != nullptr) {
-        var_value = evaluate_expr(v.initializer);
+        var_value = evaluate_expr(*v.initializer);
     }
     env->add_new_variable(v.var_name->lexeme, var_value);
 }
@@ -103,7 +100,7 @@ void AstInterpreter::visit_if_stmt(const IfStmt &i) {
     bool exec_else_block = true;
 
     for (int j = 0; j < i.conditions.size(); ++j) {
-        ExprVal expr_val = evaluate_expr(i.conditions[j]);
+        ExprVal expr_val = evaluate_expr(*i.conditions[j]);
         if (cast_literal_to_bool(expr_val)) {
             i.if_blocks[j]->accept(*this);
             exec_else_block = false;
@@ -117,7 +114,7 @@ void AstInterpreter::visit_if_stmt(const IfStmt &i) {
 }
 
 void AstInterpreter::visit_while_stmt(const WhileStmt &w) {
-    while (cast_literal_to_bool(evaluate_expr(w.condition))) {
+    while (cast_literal_to_bool(evaluate_expr(*w.condition))) {
         w.body->accept(*this);
     }
 }
@@ -164,7 +161,7 @@ void AstInterpreter::visit_block_stmt(const BlockStmt &b,
 void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {
     ExprVal return_val = NIL;
     if (r.expr != nullptr) {
-        return_val = evaluate_expr(r.expr);
+        return_val = evaluate_expr(*r.expr);
     }
 
     throw ReturnVal(return_val);
@@ -181,7 +178,7 @@ void AstInterpreter::visit_set_class_field(
                                "Can only call property of a lox instance.");
     }
 
-    ExprVal value = evaluate_expr(set_class_field_stmt.value);
+    ExprVal value = evaluate_expr(*set_class_field_stmt.value);
     lox_instance->props[set_class_field_stmt.field_token->lexeme] = value;
 }
 
@@ -211,11 +208,11 @@ AstInterpreter::evaluate_identifier(const IdentifierExpr &identifier_expr_ptr) {
 ExprVal AstInterpreter::visit_literal(const LiteralExpr &l) { return l.value; }
 
 ExprVal AstInterpreter::visit_grouping(const GroupExpr &g) {
-    return evaluate_expr(g.expr);
+    return evaluate_expr(*g.expr);
 }
 
 ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &f) {
-    ExprVal callee = evaluate_expr(f.callee);
+    ExprVal callee = evaluate_expr(*f.callee);
 
     if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee)) {
         throw RuntimeException(f.close_parenthesis,
@@ -234,10 +231,10 @@ ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &f) {
 
     std::vector<ExprVal> arg_vals{};
     for (auto arg : f.args) {
-        arg_vals.push_back(evaluate_expr(arg));
+        arg_vals.push_back(evaluate_expr(*arg));
     }
 
-    return func->invoke(this, arg_vals);
+    return func->invoke(*this, arg_vals);
 }
 
 ExprVal AstInterpreter::visit_get_class_field(const GetClassFieldExpr &expr) {
@@ -254,7 +251,7 @@ ExprVal AstInterpreter::visit_get_class_field(const GetClassFieldExpr &expr) {
 }
 
 ExprVal AstInterpreter::visit_unary(const UnaryExpr &u) {
-    ExprVal right = evaluate_expr(u.operand);
+    ExprVal right = evaluate_expr(*u.operand);
 
     switch (u.operation->type) {
     case TokenType::BANG:
@@ -269,8 +266,8 @@ ExprVal AstInterpreter::visit_unary(const UnaryExpr &u) {
 }
 
 ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
-    ExprVal left = evaluate_expr(b.left_operand);
-    ExprVal right = evaluate_expr(b.right_operand);
+    ExprVal left = evaluate_expr(*b.left_operand);
+    ExprVal right = evaluate_expr(*b.right_operand);
 
     auto left_double_ptr = std::get_if<double>(&left);
     auto right_double_ptr = std::get_if<double>(&right);
@@ -368,7 +365,7 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
     }
 }
 
-bool AstInterpreter::cast_literal_to_bool(ExprVal val) {
+bool AstInterpreter::cast_literal_to_bool(const ExprVal &val) {
     if (const auto boolPtr(std::get_if<bool>(&val)); boolPtr) {
         return *boolPtr;
     }
@@ -386,7 +383,7 @@ bool AstInterpreter::cast_literal_to_bool(ExprVal val) {
     exit(1);
 }
 
-bool AstInterpreter::is_equal(ExprVal left, ExprVal right) {
+bool AstInterpreter::is_equal(const ExprVal &left, const ExprVal &right) {
     if (std::holds_alternative<bool>(left) ||
         std::holds_alternative<bool>(right)) {
         return cast_literal_to_bool(left) == cast_literal_to_bool(right);
@@ -397,14 +394,15 @@ bool AstInterpreter::is_equal(ExprVal left, ExprVal right) {
 }
 
 void AstInterpreter::check_number_operand(std::shared_ptr<Token> tok,
-                                          ExprVal right) {
+                                          const ExprVal &right) {
     if (!std::holds_alternative<double>(right)) {
         throw RuntimeException(tok, "Right operand must be a number");
     }
 }
 
 void AstInterpreter::check_int_operands(std::shared_ptr<Token> tok,
-                                        ExprVal left, ExprVal right) {
+                                        const ExprVal &left,
+                                        const ExprVal &right) {
     check_number_operands(tok, left, right);
 
     double left_double = std::get<double>(left);
@@ -418,7 +416,8 @@ void AstInterpreter::check_int_operands(std::shared_ptr<Token> tok,
 }
 
 void AstInterpreter::check_number_operands(std::shared_ptr<Token> tok,
-                                           ExprVal left, ExprVal right) {
+                                           const ExprVal &left,
+                                           const ExprVal &right) {
     if (!std::holds_alternative<double>(right)) {
         throw RuntimeException(tok, "Right operand must be a number");
     }
@@ -427,9 +426,9 @@ void AstInterpreter::check_number_operands(std::shared_ptr<Token> tok,
     }
 }
 
-void AstInterpreter::resolve_identifier(
-    const IdentifierExpr *identifier_expr_ptr, int depth) {
-    identifier_scope_depth[identifier_expr_ptr] = depth;
+void AstInterpreter::resolve_identifier(const IdentifierExpr &identifier_expr,
+                                        int depth) {
+    identifier_scope_depth[&identifier_expr] = depth;
 }
 
 std::shared_ptr<Environment> AstInterpreter::move_up_env(int depth) {

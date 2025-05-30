@@ -18,7 +18,7 @@ void evaluateExpression(const std::string &source, const ExprVal &expected) {
     auto expression = parser.parse_single_expr();
 
     auto interpreter = std::make_shared<AstInterpreter>(false);
-    auto actual = interpreter->interpret_single_expr(expression);
+    auto actual = interpreter->interpret_single_expr(*expression);
 
     ASSERT_EQ(actual, expected);
 }

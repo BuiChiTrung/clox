@@ -174,7 +174,7 @@ void IdentifierResolver::resolve_identifier(
     const IdentifierExpr &identifier_expr) {
     for (int i = scopes.size() - 1; i >= 0; --i) {
         if (scopes[i].count(identifier_expr.name->lexeme) != 0) {
-            interpreter->resolve_identifier(&identifier_expr,
+            interpreter->resolve_identifier(identifier_expr,
                                             scopes.size() - 1 - i);
             return;
         }
