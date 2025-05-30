@@ -14,25 +14,25 @@ void ErrorManager::handle_err(uint line, std::string msg) {
     report_error(line, "", msg);
 }
 
-void ErrorManager::handle_err(std::shared_ptr<Token> tok, std::string msg) {
-    report_error(tok->line, " at '" + tok->lexeme + "'", msg);
+void ErrorManager::handle_err(const Token &tok, std::string msg) {
+    report_error(tok.line, " at '" + tok.lexeme + "'", msg);
 }
 
 void ErrorManager::handle_runtime_err(const RuntimeException &err) {
     had_runtime_err = true;
-    handle_err(err.tok, err.message);
+    handle_err(*err.tok, err.message);
 }
 
 void ErrorManager::handle_parser_err(const ParserException &err) {
-    handle_err(err.tok, err.message);
+    handle_err(*err.tok, err.message);
 }
 
 ParserException::ParserException(std::shared_ptr<Token> tok,
-                                 const std::string &message)
+                                 std::string message)
     : message(message), tok(tok) {}
 
 RuntimeException::RuntimeException(std::shared_ptr<Token> tok,
-                                   const std::string &message)
+                                   std::string message)
     : message(message), tok(tok) {}
 
 const char *RuntimeException::what() const noexcept {

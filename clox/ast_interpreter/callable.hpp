@@ -50,7 +50,7 @@ class LoxFunction : public LoxCallable {
                    std::vector<ExprVal> &args) override {
         // Each time a func is invoked an env should be created to save var
         // defined in the func scope
-        std::shared_ptr<Environment> func_env(new Environment(parent_env));
+        auto func_env = std::make_shared<Environment>(parent_env);
         for (int i = 0; i < func_stmt.params.size(); ++i) {
             func_env->add_new_variable(func_stmt.params[i]->name->lexeme,
                                        args[i]);

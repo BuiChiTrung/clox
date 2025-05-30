@@ -47,11 +47,11 @@ void IdentifierResolver::visit_var_decl(const VarDecl &var_decl_stmt) {
        accessed in its initializer. var a = a;
         => raise error
     */
-    declare_identifier(var_decl_stmt.var_name);
+    declare_identifier(*var_decl_stmt.var_name);
     if (var_decl_stmt.initializer != nullptr) {
         var_decl_stmt.initializer->accept(*this);
     }
-    define_identifier(var_decl_stmt.var_name);
+    define_identifier(*var_decl_stmt.var_name);
 }
 
 void IdentifierResolver::visit_block_stmt(
@@ -88,8 +88,8 @@ void IdentifierResolver::visit_function_decl(
 }
 
 void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
-    declare_identifier(class_decl_stmt.name);
-    define_identifier(class_decl_stmt.name);
+    declare_identifier(*class_decl_stmt.name);
+    define_identifier(*class_decl_stmt.name);
 
     auto enclosing_class_type = current_class_type;
     current_class_type = ResolveClassType::CLASS;
@@ -115,12 +115,12 @@ void IdentifierResolver::resolve_function(const FunctionDecl &func_decl_stmt,
     ResolveFuncType enclosing_func_type = current_func_type;
     current_func_type = func_type;
 
-    declare_identifier(func_decl_stmt.name);
-    define_identifier(func_decl_stmt.name);
+    declare_identifier(*func_decl_stmt.name);
+    define_identifier(*func_decl_stmt.name);
 
     addScope();
     for (auto param : func_decl_stmt.params) {
-        define_identifier(param->name);
+        define_identifier(*param->name);
     }
     std::shared_ptr<BlockStmt> func_body =
         std::dynamic_pointer_cast<BlockStmt>(func_decl_stmt.body);
@@ -132,11 +132,11 @@ void IdentifierResolver::resolve_function(const FunctionDecl &func_decl_stmt,
 
 void IdentifierResolver::visit_return_stmt(const ReturnStmt &return_stmt) {
     if (current_func_type == ResolveFuncType::NONE) {
-        ErrorManager::handle_err(return_stmt.return_kw,
+        ErrorManager::handle_err(*return_stmt.return_kw,
                                  "Cannot return from outside a function.");
     }
     if (current_func_type == ResolveFuncType::CONSTRUCTOR) {
-        ErrorManager::handle_err(return_stmt.return_kw,
+        ErrorManager::handle_err(*return_stmt.return_kw,
                                  "Cannot return inside the class constructor.");
     }
     return_stmt.expr->accept(*this);
@@ -163,7 +163,7 @@ IdentifierResolver::visit_identifier(const IdentifierExpr &identifier_expr) {
 
 ExprVal IdentifierResolver::visit_this(const ThisExpr &this_expr) {
     if (current_class_type != ResolveClassType::CLASS) {
-        ErrorManager::handle_err(this_expr.name,
+        ErrorManager::handle_err(*this_expr.name,
                                  "Can't return from outside a class method.");
     }
     resolve_identifier(this_expr);
@@ -227,19 +227,17 @@ Adds identifier to the innermost scope so that it shadows any outer one and so
 that we know the variable exists. We mark it as “not ready yet” by binding its
 name to false in the scope map.
 */
-void IdentifierResolver::declare_identifier(
-    std::shared_ptr<Token> identifier_name) {
-    if (scopes.back().count(identifier_name->lexeme) != 0) {
-        ErrorManager::handle_err(identifier_name->line,
+void IdentifierResolver::declare_identifier(const Token &identifier_name) {
+    if (scopes.back().count(identifier_name.lexeme) != 0) {
+        ErrorManager::handle_err(identifier_name.line,
                                  "Variable with name " +
-                                     identifier_name->lexeme +
+                                     identifier_name.lexeme +
                                      " already declared in this scope.");
     }
-    scopes.back()[identifier_name->lexeme] = false;
+    scopes.back()[identifier_name.lexeme] = false;
 }
 
 // Mark identifier as resolved
-void IdentifierResolver::define_identifier(
-    std::shared_ptr<Token> identifier_name) {
-    scopes.back()[identifier_name->lexeme] = true;
+void IdentifierResolver::define_identifier(const Token &identifier_name) {
+    scopes.back()[identifier_name.lexeme] = true;
 }

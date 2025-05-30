@@ -19,17 +19,17 @@ class SetClassFieldStmt;
 
 class IStmtVisitor {
   public:
-    virtual void visit_var_decl(const VarDecl &p) = 0;
-    virtual void visit_function_decl(const FunctionDecl &f) = 0;
-    virtual void visit_expr_stmt(const ExprStmt &e) = 0;
-    virtual void visit_print_stmt(const PrintStmt &p) = 0;
-    virtual void visit_assign_stmt(const AssignStmt &a) = 0;
+    virtual void visit_var_decl(const VarDecl &) = 0;
+    virtual void visit_function_decl(const FunctionDecl &) = 0;
+    virtual void visit_expr_stmt(const ExprStmt &) = 0;
+    virtual void visit_print_stmt(const PrintStmt &) = 0;
+    virtual void visit_assign_stmt(const AssignStmt &) = 0;
     virtual void
     visit_block_stmt(const BlockStmt &b,
                      std::shared_ptr<Environment> block_env = nullptr) = 0;
-    virtual void visit_if_stmt(const IfStmt &b) = 0;
-    virtual void visit_while_stmt(const WhileStmt &w) = 0;
-    virtual void visit_return_stmt(const ReturnStmt &r) = 0;
+    virtual void visit_if_stmt(const IfStmt &) = 0;
+    virtual void visit_while_stmt(const WhileStmt &) = 0;
+    virtual void visit_return_stmt(const ReturnStmt &) = 0;
     virtual void visit_class_decl(const ClassDecl &) = 0;
     virtual void visit_set_class_field(const SetClassFieldStmt &) = 0;
 };
