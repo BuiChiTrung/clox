@@ -20,7 +20,7 @@ class SetClassFieldStmt;
 class IStmtVisitor {
   public:
     virtual void visit_var_decl(const VarDecl &) = 0;
-    virtual void visit_function_decl(const FunctionDecl &) = 0;
+    virtual void visit_function_decl(FunctionDecl &) = 0;
     virtual void visit_expr_stmt(const ExprStmt &) = 0;
     virtual void visit_print_stmt(const PrintStmt &) = 0;
     virtual void visit_assign_stmt(const AssignStmt &) = 0;

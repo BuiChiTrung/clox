@@ -41,3 +41,5 @@ std::string double_to_string(double num) {
         return oss.str();
     }
 }
+
+void smart_pointer_no_op_deleter(void *) {}

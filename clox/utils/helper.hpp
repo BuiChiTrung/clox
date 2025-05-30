@@ -8,3 +8,5 @@ std::vector<std::string> split_string(const std::string &str, char delimiter);
 std::string strip(const std::string &str);
 
 std::string double_to_string(double num);
+
+void smart_pointer_no_op_deleter(void *);

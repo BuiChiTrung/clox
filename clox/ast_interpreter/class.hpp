@@ -1,21 +1,24 @@
 #pragma once
 #include "clox/ast_interpreter/callable.hpp"
 #include "clox/error_manager/error_manager.hpp"
+#include "clox/utils/helper.hpp"
 
+#include <memory>
 #include <sys/types.h>
 
 class LoxMethod : public LoxFunction {
   public:
     using LoxFunction::LoxFunction;
     std::string to_string() const override {
-        return "<Method " + func_stmt.name->lexeme + ">";
+        return "<Method " + func_stmt->name->lexeme + ">";
     }
 
     void bind_this_kw_to_class_method(LoxInstance &instance) {
         // Use no-op deleter to make sure that "this" is not deallocate
         // after shared_ptr run out of scope.
         this->parent_env->identifier_table["this"] =
-            std::shared_ptr<LoxInstance>(&instance, [](LoxInstance *) {});
+            std::shared_ptr<LoxInstance>(&instance,
+                                         smart_pointer_no_op_deleter);
     }
 };
 
@@ -29,7 +32,7 @@ class LoxClass : public LoxCallable {
   public:
     LoxClass(
         std::string name,
-        std::unordered_map<std::string, std::shared_ptr<LoxMethod>> &methods)
+        std::unordered_map<std::string, std::shared_ptr<LoxMethod>> methods)
         : name(name), methods(methods) {}
 
     uint get_param_num() override {
@@ -43,7 +46,9 @@ class LoxClass : public LoxCallable {
     // Class constructor, a method equal to class_name
     ExprVal invoke(AstInterpreter &interpreter,
                    std::vector<ExprVal> &args) override {
-        auto lox_instance = std::make_shared<LoxInstance>(*this);
+        auto lox_class_sp =
+            std::shared_ptr<LoxClass>(this, smart_pointer_no_op_deleter);
+        auto lox_instance = std::make_shared<LoxInstance>(lox_class_sp);
         auto constructor = get_method(name);
         if (constructor != nullptr) {
             constructor->bind_this_kw_to_class_method(*lox_instance);
@@ -64,12 +69,12 @@ class LoxClass : public LoxCallable {
 
 class LoxInstance {
   private:
-    LoxClass &lox_class;
+    std::shared_ptr<LoxClass> lox_class;
     std::unordered_map<std::string, ExprVal> props;
     friend class AstInterpreter;
 
   public:
-    LoxInstance(LoxClass &lox_class) : lox_class(lox_class) {}
+    LoxInstance(std::shared_ptr<LoxClass> lox_class) : lox_class(lox_class) {}
 
     ExprVal get_field(std::shared_ptr<Token> field_token) {
         std::string field_name = field_token->lexeme;
@@ -77,14 +82,14 @@ class LoxInstance {
             return props[field_name];
         }
 
-        if (field_name == lox_class.name) {
+        if (field_name == lox_class->name) {
             throw RuntimeException(
                 field_token,
                 "Constructor cannot be called by a class instance.");
         }
 
-        if (lox_class.methods.count(field_name)) {
-            auto method = lox_class.get_method(field_name);
+        if (lox_class->methods.count(field_name)) {
+            auto method = lox_class->get_method(field_name);
             method->bind_this_kw_to_class_method(*this);
             return method;
         }
@@ -94,6 +99,6 @@ class LoxInstance {
     }
 
     std::string to_string() const {
-        return "<Instance " + lox_class.name + ">";
+        return "<Instance " + lox_class->name + ">";
     }
 };

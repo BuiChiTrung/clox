@@ -82,8 +82,7 @@ void IdentifierResolver::visit_while_stmt(const WhileStmt &while_stmt) {
     while_stmt.body->accept(*this);
 }
 
-void IdentifierResolver::visit_function_decl(
-    const FunctionDecl &func_decl_stmt) {
+void IdentifierResolver::visit_function_decl(FunctionDecl &func_decl_stmt) {
     resolve_function(func_decl_stmt, ResolveFuncType::FUNCTION);
 }
 

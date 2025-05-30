@@ -35,28 +35,28 @@ class ClockNativeFunc : public LoxCallable {
 
 class LoxFunction : public LoxCallable {
   protected:
-    const FunctionDecl &func_stmt;
+    std::shared_ptr<FunctionDecl> func_stmt;
     // Can be global env or the env of the outer func defined this func
     std::shared_ptr<Environment> parent_env;
 
   public:
-    LoxFunction(const FunctionDecl &func_stmt,
+    LoxFunction(std::shared_ptr<FunctionDecl> func_stmt,
                 std::shared_ptr<Environment> parent_env)
         : func_stmt(func_stmt), parent_env(parent_env) {}
 
-    uint get_param_num() override { return func_stmt.params.size(); }
+    uint get_param_num() override { return func_stmt->params.size(); }
 
     ExprVal invoke(AstInterpreter &interpreter,
                    std::vector<ExprVal> &args) override {
         // Each time a func is invoked an env should be created to save var
         // defined in the func scope
         auto func_env = std::make_shared<Environment>(parent_env);
-        for (int i = 0; i < func_stmt.params.size(); ++i) {
-            func_env->add_new_variable(func_stmt.params[i]->name->lexeme,
+        for (int i = 0; i < func_stmt->params.size(); ++i) {
+            func_env->add_new_variable(func_stmt->params[i]->name->lexeme,
                                        args[i]);
         }
 
-        auto block = std::dynamic_pointer_cast<BlockStmt>(func_stmt.body);
+        auto block = std::dynamic_pointer_cast<BlockStmt>(func_stmt->body);
         try {
             interpreter.visit_block_stmt(*block, func_env);
         } catch (ReturnVal r) {
@@ -67,6 +67,6 @@ class LoxFunction : public LoxCallable {
     }
 
     std::string to_string() const override {
-        return "<fn " + func_stmt.name->lexeme + ">";
+        return "<fn " + func_stmt->name->lexeme + ">";
     }
 };

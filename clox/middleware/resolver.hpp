@@ -39,7 +39,7 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
 
     void visit_while_stmt(const WhileStmt &) override;
 
-    void visit_function_decl(const FunctionDecl &) override;
+    void visit_function_decl(FunctionDecl &) override;
 
     void visit_class_decl(const ClassDecl &) override;
 

@@ -119,8 +119,10 @@ void AstInterpreter::visit_while_stmt(const WhileStmt &w) {
     }
 }
 
-void AstInterpreter::visit_function_decl(const FunctionDecl &func_decl) {
-    auto func = std::make_shared<LoxFunction>(func_decl, env);
+void AstInterpreter::visit_function_decl(FunctionDecl &func_decl) {
+    auto func_decl_sp =
+        std::shared_ptr<FunctionDecl>(&func_decl, smart_pointer_no_op_deleter);
+    auto func = std::make_shared<LoxFunction>(func_decl_sp, env);
     env->add_new_variable(func_decl.name->lexeme, func);
 }
 
@@ -131,7 +133,7 @@ void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
     class_env->add_new_variable("this", NIL);
 
     for (auto method : class_decl.methods) {
-        auto lox_method = std::make_shared<LoxMethod>(*method.get(), env);
+        auto lox_method = std::make_shared<LoxMethod>(method, env);
         methods[method->name->lexeme] = lox_method;
     }
     auto lox_class =
