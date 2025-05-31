@@ -7,7 +7,8 @@
 #include <memory>
 #include <vector>
 
-Parser::Parser(std::vector<std::shared_ptr<Token>> tokens) : tokens(tokens) {}
+Parser::Parser(const std::vector<std::shared_ptr<Token>> &tokens)
+    : tokens(tokens) {}
 
 std::shared_ptr<Expr> Parser::parse_single_expr() {
     try {
@@ -499,7 +500,8 @@ std::shared_ptr<Expr> Parser::parse_primary() {
 
 bool Parser::consumed_all_tokens() { return current_tok_pos >= tokens.size(); }
 
-bool Parser::validate_token_and_advance(std::vector<TokenType> tok_types) {
+bool Parser::validate_token_and_advance(
+    const std::vector<TokenType> &tok_types) {
     if (consumed_all_tokens()) {
         return false;
     }

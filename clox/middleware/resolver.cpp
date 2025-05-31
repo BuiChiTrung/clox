@@ -17,12 +17,12 @@ IdentifierResolver::IdentifierResolver(
 };
 
 void IdentifierResolver::resolve_program(
-    std::vector<std::shared_ptr<Stmt>> &stmts) {
+    const std::vector<std::shared_ptr<Stmt>> &stmts) {
     resolve_stmts(stmts);
 }
 
 void IdentifierResolver::resolve_stmts(
-    std::vector<std::shared_ptr<Stmt>> &stmts) {
+    const std::vector<std::shared_ptr<Stmt>> &stmts) {
     for (auto &stmt : stmts) {
         stmt->accept(*this);
     }

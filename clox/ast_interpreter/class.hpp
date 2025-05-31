@@ -32,7 +32,7 @@ class LoxClass : public LoxCallable {
   public:
     LoxClass(
         std::string name,
-        std::unordered_map<std::string, std::shared_ptr<LoxMethod>> methods)
+        std::unordered_map<std::string, std::shared_ptr<LoxMethod>> &methods)
         : name(name), methods(methods) {}
 
     uint get_param_num() override {

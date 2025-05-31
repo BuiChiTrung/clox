@@ -36,7 +36,7 @@ class Parser {
     std::shared_ptr<Expr> parse_primary();
 
     bool consumed_all_tokens();
-    bool validate_token_and_advance(std::vector<TokenType> tok_types);
+    bool validate_token_and_advance(const std::vector<TokenType> &tok_types);
     std::shared_ptr<Token> assert_tok_and_advance(TokenType type,
                                                   std::string msg);
     bool validate_token(TokenType tok_type);
@@ -47,7 +47,7 @@ class Parser {
     void panic_mode_synchornize();
 
   public:
-    Parser(std::vector<std::shared_ptr<Token>> tokens);
+    Parser(const std::vector<std::shared_ptr<Token>> &tokens);
 
     std::vector<std::shared_ptr<Stmt>> parse_program();
     std::shared_ptr<Expr> parse_single_expr();

@@ -73,7 +73,7 @@ enum class TokenType {
     EOS, // end of source code
 };
 
-const std::map<std::string, TokenType> reserved_kws = {
+const std::unordered_map<std::string, TokenType> reserved_kws = {
     {"and", TokenType::AND},     {"class", TokenType::CLASS},
     {"else", TokenType::ELSE},   {"elif", TokenType::ELIF},
     {"false", TokenType::FALSE}, {"for", TokenType::FOR},

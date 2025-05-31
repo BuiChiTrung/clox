@@ -85,15 +85,15 @@ class BlockStmt : public Stmt {
   public:
     std::vector<std::shared_ptr<Stmt>> stmts;
 
-    BlockStmt(std::vector<std::shared_ptr<Stmt>> stmts) : stmts(stmts) {}
+    BlockStmt(const std::vector<std::shared_ptr<Stmt>> &stmts) : stmts(stmts) {}
 
     void accept(IStmtVisitor &v) override { return v.visit_block_stmt(*this); }
 };
 
 class IfStmt : public Stmt {
   public:
-    std::vector<std::shared_ptr<Expr>> &conditions;
-    std::vector<std::shared_ptr<Stmt>> &if_blocks;
+    std::vector<std::shared_ptr<Expr>> conditions;
+    std::vector<std::shared_ptr<Stmt>> if_blocks;
     std::shared_ptr<Stmt> else_block;
 
     IfStmt(std::vector<std::shared_ptr<Expr>> &conditions,
@@ -124,7 +124,7 @@ class FunctionDecl : public Stmt {
     std::shared_ptr<Stmt> body;
 
     FunctionDecl(std::shared_ptr<Token> name,
-                 std::vector<std::shared_ptr<IdentifierExpr>> params,
+                 std::vector<std::shared_ptr<IdentifierExpr>> &params,
                  std::shared_ptr<Stmt> body)
         : name(name), params(params), body(body) {}
 

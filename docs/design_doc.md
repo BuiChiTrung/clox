@@ -709,6 +709,34 @@ In the resolver state, we can detect other error
 + In the same scope, a var is declared multiple times.
 + `return` stmt invoked outside a func, `break` outside a loop, etc.
 + Many IDEs will warn if you have unreachable code after a `return` statement, or a local variable whose value is never read
+## Classes
+### OOP and classes
+3 paths to OOP:
++ classes: C++, Go (we use this path)
++ prototypes: Javascript, Lua
++ mulmethods: CLOS, Dylan, etc
+### Class declaration
+```cpp
+class Breakfast {
+  cook() {
+    print "Eggs a-fryin'!";
+}
+```
+**Parsing rule:**
+```
+// declaration → varDecl | funcDecl | classDecl | statement
+// classDecl -> "class" IDENTIFIER "{" function* "}"
+// function -> IDENTIFIER "(" parameters ")" block
+```
+**AST node:**
+```
+class ClassDecl : public Stmt {
+    std::shared_ptr<Token> name;
+    std::vector<std::shared_ptr<FunctionDecl>> methods;
+}
+```
+**Resolver + Eval node:** check the src code
+### Creating instance
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`

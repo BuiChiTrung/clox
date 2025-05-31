@@ -112,7 +112,7 @@ class FuncCallExpr : public Expr {
 
     FuncCallExpr(std::shared_ptr<Expr> callee,
                  std::shared_ptr<Token> close_parenthesis,
-                 std::vector<std::shared_ptr<Expr>> args)
+                 std::vector<std::shared_ptr<Expr>> &args)
         : callee(callee), close_parenthesis(close_parenthesis), args(args) {}
 
     ExprVal accept(IExprVisitor &visitor) override {

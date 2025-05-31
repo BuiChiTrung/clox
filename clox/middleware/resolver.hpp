@@ -21,7 +21,7 @@ enum class ResolveClassType {
 
 class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
   private:
-    void resolve_stmts(std::vector<std::shared_ptr<Stmt>> &stmts);
+    void resolve_stmts(const std::vector<std::shared_ptr<Stmt>> &stmts);
 
     void visit_expr_stmt(const ExprStmt &) override;
 
@@ -80,5 +80,5 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
   public:
     IdentifierResolver(std::shared_ptr<AstInterpreter> interpreter);
 
-    void resolve_program(std::vector<std::shared_ptr<Stmt>> &stmts);
+    void resolve_program(const std::vector<std::shared_ptr<Stmt>> &stmts);
 };
