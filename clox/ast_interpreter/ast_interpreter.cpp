@@ -2,6 +2,7 @@
 #include "clox/ast_interpreter/callable.hpp"
 #include "clox/ast_interpreter/class.hpp"
 #include "clox/ast_interpreter/environment.hpp"
+#include "clox/common/constants.hpp"
 #include "clox/common/error_manager.hpp"
 #include "clox/common/token.hpp"
 #include "clox/parser/expr.hpp"

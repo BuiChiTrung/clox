@@ -1,4 +1,6 @@
 #pragma once
+
+#include "clox/common/constants.hpp"
 #include "clox/common/token.hpp"
 #include <memory>
 #include <vector>

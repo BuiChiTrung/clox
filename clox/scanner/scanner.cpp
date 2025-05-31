@@ -1,5 +1,6 @@
 #include "clox/scanner/scanner.hpp"
 #include "clox/common/error_manager.hpp"
+#include "clox/common/token.hpp"
 #include <cctype>
 #include <memory>
 #include <string>

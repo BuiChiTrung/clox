@@ -8,8 +8,6 @@
 #include <sstream>
 #include <string>
 
-const uint MAX_ARGS_NUM = 255;
-
 enum class TokenType {
     // Single-character tokens.
     LEFT_PAREN,

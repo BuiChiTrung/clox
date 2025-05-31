@@ -1,7 +1,7 @@
 #pragma once
 #include "clox/ast_interpreter/ast_interpreter.hpp"
 #include "clox/ast_interpreter/environment.hpp"
-#include "clox/common/token.hpp"
+#include "clox/common/constants.hpp"
 #include "clox/parser/stmt.hpp"
 
 #include <chrono>
