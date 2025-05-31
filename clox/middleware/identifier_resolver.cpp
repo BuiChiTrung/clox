@@ -1,4 +1,4 @@
-#include "clox/middleware/resolver.hpp"
+#include "clox/middleware/identifier_resolver.hpp"
 #include "clox/common/error_manager.hpp"
 #include "clox/common/token.hpp"
 #include "clox/parser/expr.hpp"
