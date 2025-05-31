@@ -1,5 +1,5 @@
+#include "clox/common/token.hpp"
 #include "clox/scanner/scanner.hpp"
-#include "clox/scanner/token.hpp"
 #include <gtest/gtest.h>
 
 // Test: scan_tokens should correctly parse an arithmetic expression

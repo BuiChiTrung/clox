@@ -1,6 +1,6 @@
 #pragma once
 #include "clox/ast_interpreter/environment.hpp"
-#include "clox/scanner/token.hpp"
+#include "clox/common/token.hpp"
 #include "expr.hpp"
 #include <memory>
 #include <vector>

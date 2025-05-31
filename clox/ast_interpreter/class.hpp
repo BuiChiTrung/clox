@@ -1,6 +1,6 @@
 #pragma once
 #include "clox/ast_interpreter/callable.hpp"
-#include "clox/error_manager/error_manager.hpp"
+#include "clox/common/error_manager.hpp"
 #include "clox/utils/helper.hpp"
 
 #include <memory>

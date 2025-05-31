@@ -1,4 +1,4 @@
-#include "clox/error_manager/error_manager.hpp"
+#include "clox/common/error_manager.hpp"
 #include <iostream>
 
 inline bool ErrorManager::had_static_err = false;

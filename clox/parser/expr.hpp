@@ -1,5 +1,5 @@
 #pragma once
-#include "clox/scanner/token.hpp"
+#include "clox/common/token.hpp"
 #include <memory>
 
 class UnaryExpr;

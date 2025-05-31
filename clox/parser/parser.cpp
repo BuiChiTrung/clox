@@ -1,9 +1,9 @@
 
 #include "clox/parser/parser.hpp"
-#include "clox/error_manager/error_manager.hpp"
+#include "clox/common/error_manager.hpp"
+#include "clox/common/token.hpp"
 #include "clox/parser/expr.hpp"
 #include "clox/parser/stmt.hpp"
-#include "clox/scanner/token.hpp"
 #include <memory>
 #include <vector>
 

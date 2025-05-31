@@ -2,10 +2,10 @@
 #include "clox/ast_interpreter/callable.hpp"
 #include "clox/ast_interpreter/class.hpp"
 #include "clox/ast_interpreter/environment.hpp"
-#include "clox/error_manager/error_manager.hpp"
+#include "clox/common/error_manager.hpp"
+#include "clox/common/token.hpp"
 #include "clox/parser/expr.hpp"
 #include "clox/parser/stmt.hpp"
-#include "clox/scanner/token.hpp"
 #include "clox/utils/helper.hpp"
 
 #include <iostream>

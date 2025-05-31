@@ -1,5 +1,5 @@
 #include "clox/ast_interpreter/environment.hpp"
-#include "clox/scanner/token.hpp"
+#include "clox/common/token.hpp"
 #include <memory>
 
 Environment::Environment() {

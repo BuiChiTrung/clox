@@ -1,24 +1,14 @@
 #pragma once
-#include <memory>
+
 #include <sys/types.h>
 
+#include "clox/common/expr_val.hpp"
 #include "clox/utils/magic_enum.hpp"
 #include <iomanip>
 #include <sstream>
 #include <string>
 
 const uint MAX_ARGS_NUM = 255;
-
-// TODO(trung.bc): check code structure here
-class LoxCallable;
-class LoxClass;
-class LoxInstance;
-
-// std::monostate to present nil in Lox
-constexpr std::monostate NIL{};
-using ExprVal =
-    std::variant<double, bool, std::string, std::shared_ptr<LoxCallable>,
-                 std::shared_ptr<LoxInstance>, std::monostate>;
 
 enum class TokenType {
     // Single-character tokens.

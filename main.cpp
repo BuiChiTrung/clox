@@ -1,9 +1,9 @@
 #include "clox/ast_interpreter/ast_interpreter.hpp"
-#include "clox/error_manager/error_manager.hpp"
+#include "clox/common/error_manager.hpp"
+#include "clox/common/token.hpp"
 #include "clox/middleware/resolver.hpp"
 #include "clox/parser/parser.hpp"
 #include "clox/scanner/scanner.hpp"
-#include "clox/scanner/token.hpp"
 
 #include <fstream>
 #include <iostream>
