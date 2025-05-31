@@ -11,16 +11,18 @@ class Parser {
 
     std::shared_ptr<Stmt> parse_declaration();
     std::shared_ptr<Stmt> parse_stmt();
-    std::shared_ptr<Stmt> parse_return_stmt();
-    std::shared_ptr<Stmt> parse_block_stmt();
-    std::shared_ptr<Stmt> parse_function_decl();
-    std::shared_ptr<Stmt> parse_class_decl();
-    std::shared_ptr<Stmt> parse_function();
+    std::shared_ptr<ReturnStmt> parse_return_stmt();
+    std::shared_ptr<BlockStmt> parse_block_stmt();
+    std::shared_ptr<FunctionDecl> parse_function_decl();
+    std::shared_ptr<ClassDecl> parse_class_decl();
+    std::shared_ptr<FunctionDecl> parse_function();
+    // return BlockStmt or WhileStmt
     std::shared_ptr<Stmt> parse_for_stmt();
-    std::shared_ptr<Stmt> parse_while_stmt();
-    std::shared_ptr<Stmt> parse_if_stmt();
-    std::shared_ptr<Stmt> parse_var_decl();
-    std::shared_ptr<Stmt> parse_print_stmt();
+    std::shared_ptr<WhileStmt> parse_while_stmt();
+    std::shared_ptr<IfStmt> parse_if_stmt();
+    std::shared_ptr<VarDecl> parse_var_decl();
+    std::shared_ptr<PrintStmt> parse_print_stmt();
+    // return SetClassFieldStmt or AssignStmt
     std::shared_ptr<Stmt> parse_assign_stmt();
     std::shared_ptr<Expr> parse_expr();
     std::shared_ptr<Expr> parse_logic_or_expr();

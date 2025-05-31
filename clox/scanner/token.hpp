@@ -4,7 +4,6 @@
 
 #include "clox/utils/magic_enum.hpp"
 #include <iomanip>
-#include <map>
 #include <sstream>
 #include <string>
 

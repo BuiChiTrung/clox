@@ -108,9 +108,9 @@ class IfStmt : public Stmt {
 class WhileStmt : public Stmt {
   public:
     std::shared_ptr<Expr> condition;
-    std::shared_ptr<Stmt> body;
+    std::shared_ptr<BlockStmt> body;
 
-    WhileStmt(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body)
+    WhileStmt(std::shared_ptr<Expr> condition, std::shared_ptr<BlockStmt> body)
         : condition(condition), body(body) {}
 
     void accept(IStmtVisitor &v) override { return v.visit_while_stmt(*this); }
@@ -120,12 +120,11 @@ class FunctionDecl : public Stmt {
   public:
     std::shared_ptr<Token> name;
     std::vector<std::shared_ptr<IdentifierExpr>> params;
-    // TODO(trung.bc): should this be std::shared_ptr<Block>
-    std::shared_ptr<Stmt> body;
+    std::shared_ptr<BlockStmt> body;
 
     FunctionDecl(std::shared_ptr<Token> name,
                  std::vector<std::shared_ptr<IdentifierExpr>> &params,
-                 std::shared_ptr<Stmt> body)
+                 std::shared_ptr<BlockStmt> body)
         : name(name), params(params), body(body) {}
 
     void accept(IStmtVisitor &v) override {

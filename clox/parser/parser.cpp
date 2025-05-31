@@ -73,7 +73,7 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
 }
 
 // returnStmt → return expression? ";"
-std::shared_ptr<Stmt> Parser::parse_return_stmt() {
+std::shared_ptr<ReturnStmt> Parser::parse_return_stmt() {
     assert_tok_and_advance(TokenType::RETURN, "Expected return statement");
 
     std::shared_ptr<Token> return_kw = get_prev_tok();
@@ -89,13 +89,13 @@ std::shared_ptr<Stmt> Parser::parse_return_stmt() {
 }
 
 // funcDecl → "fun" function;
-std::shared_ptr<Stmt> Parser::parse_function_decl() {
+std::shared_ptr<FunctionDecl> Parser::parse_function_decl() {
     assert_tok_and_advance(TokenType::FUNC, "Expected function declaration");
     return parse_function();
 }
 
 // classDecl -> "class" IDENTIFIER "{" function* "}"
-std::shared_ptr<Stmt> Parser::parse_class_decl() {
+std::shared_ptr<ClassDecl> Parser::parse_class_decl() {
     assert_tok_and_advance(TokenType::CLASS, "Expected class declaration");
     std::shared_ptr<Token> class_name =
         assert_tok_and_advance(TokenType::IDENTIFIER, "Expected class name");
@@ -106,7 +106,6 @@ std::shared_ptr<Stmt> Parser::parse_class_decl() {
     std::vector<std::shared_ptr<FunctionDecl>> methods{};
     while (!consumed_all_tokens() and !validate_token(TokenType::RIGHT_BRACE)) {
         auto method = parse_function();
-        // TODO(trung.bc): change parser return type
         methods.push_back(std::dynamic_pointer_cast<FunctionDecl>(method));
     }
 
@@ -117,7 +116,7 @@ std::shared_ptr<Stmt> Parser::parse_class_decl() {
 }
 
 // function -> IDENTIFIER "(" parameters ")" block
-std::shared_ptr<Stmt> Parser::parse_function() {
+std::shared_ptr<FunctionDecl> Parser::parse_function() {
     std::shared_ptr<Token> func_name =
         assert_tok_and_advance(TokenType::IDENTIFIER, "Expected function name");
 
@@ -133,7 +132,7 @@ std::shared_ptr<Stmt> Parser::parse_function() {
                               "of function params list to match '('");
     }
 
-    std::shared_ptr<Stmt> func_body = parse_block_stmt();
+    std::shared_ptr<BlockStmt> func_body = parse_block_stmt();
 
     return std::make_shared<FunctionDecl>(func_name, func_params, func_body);
 }
@@ -164,6 +163,7 @@ std::vector<std::shared_ptr<IdentifierExpr>> Parser::parse_func_params() {
 // forStmt → "for" (varDecl | assignStmt | ";") (expression)? ";" (assignStmt)?
 // block
 std::shared_ptr<Stmt> Parser::parse_for_stmt() {
+    // std::shared_ptr<Stmt> Parser::parse_for_stmt() {
     assert_tok_and_advance(TokenType::FOR, "Expected for loop");
 
     std::shared_ptr<Stmt> initializer;
@@ -202,17 +202,16 @@ std::shared_ptr<Stmt> Parser::parse_for_stmt() {
 }
 
 // whileStmt → "while" expression block
-std::shared_ptr<Stmt> Parser::parse_while_stmt() {
+std::shared_ptr<WhileStmt> Parser::parse_while_stmt() {
     assert_tok_and_advance(TokenType::WHILE, "Expected while loop");
-    auto condition = parse_expr();
-
-    auto body = parse_block_stmt();
+    std::shared_ptr<Expr> condition = parse_expr();
+    std::shared_ptr<BlockStmt> body = parse_block_stmt();
 
     return std::make_shared<WhileStmt>(condition, body);
 }
 
 // ifStmt -> "if" expression block ("elif" block)+ ("else" block)?
-std::shared_ptr<Stmt> Parser::parse_if_stmt() {
+std::shared_ptr<IfStmt> Parser::parse_if_stmt() {
     assert_tok_and_advance(TokenType::IF, "Expected if statement");
     static std::vector<std::shared_ptr<Expr>> conditions;
     static std::vector<std::shared_ptr<Stmt>> if_blocks;
@@ -233,7 +232,7 @@ std::shared_ptr<Stmt> Parser::parse_if_stmt() {
 }
 
 // block → "{" statement* "}"
-std::shared_ptr<Stmt> Parser::parse_block_stmt() {
+std::shared_ptr<BlockStmt> Parser::parse_block_stmt() {
     assert_tok_and_advance(TokenType::LEFT_BRACE,
                            "Expected block of statements wrapped inside '{}'");
 
@@ -254,7 +253,7 @@ std::shared_ptr<Stmt> Parser::parse_block_stmt() {
 }
 
 // varDecl → "var" IDENTIFIER ( "=" expression )? ";"
-std::shared_ptr<Stmt> Parser::parse_var_decl() {
+std::shared_ptr<VarDecl> Parser::parse_var_decl() {
     assert_tok_and_advance(TokenType::VAR, "Expected 'var'");
     assert_tok_and_advance(TokenType::IDENTIFIER, "Expected a variable name");
     std::shared_ptr<Token> tok_var = get_prev_tok();
@@ -273,7 +272,7 @@ std::shared_ptr<Stmt> Parser::parse_var_decl() {
 }
 
 // printStmt  → "print" expression ";"
-std::shared_ptr<Stmt> Parser::parse_print_stmt() {
+std::shared_ptr<PrintStmt> Parser::parse_print_stmt() {
     assert_tok_and_advance(TokenType::PRINT, "Expected 'print'");
     // assert_tok_and_advance(TokenType::LEFT_PAREN, "Expected '(' after
     // print");
