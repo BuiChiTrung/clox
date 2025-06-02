@@ -133,20 +133,30 @@ count(); // 2
 ```
 class FootballPlayer {
     fun do_sth() {
-        print(this);
+        print("Messi right foot is better than Ronaldo whole career.");
     }
     fun pass() {
-        var adj = "wonderful";
-        print("This is a " + adj + " " + this.skill);
+        print(this.skill);
+    }
+}
+print(FootballPlayer);
+
+// Inherit: super keyword to call superclass method in subclass in currently not supported.
+class Striker : FootballPlayer {
+    fun Striker(quality) {
+        this.quality = quality;
+    }
+    fun shoot() {
+        print("This is a " + this.quality + " shoot");
     }
 }
 
-var messi = FootballPlayer();
-print(FootballPlayer);
-print(messi);
+var yamal = Striker("Wonderful");
+print(yamal);
 
-messi.skill = "Through pass";
-messi.pass();
+yamal.skill = "Through pass";
+yamal.pass();
+yamal.shoot();
 ```
 
 **Interactive mode**: run the main without passing any lox source file `./build/main`

@@ -143,10 +143,15 @@ void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
     if (class_decl.super_class != nullptr) {
         ExprVal super_class_val =
             class_decl.super_class->accept(*this); // evaluate super class expr
-        auto lox_callable =
-            std::get<std::shared_ptr<LoxCallable>>(super_class_val);
-        super_class = std::dynamic_pointer_cast<LoxClass>(lox_callable);
-        if (!super_class) {
+        try {
+            auto lox_callable =
+                std::get<std::shared_ptr<LoxCallable>>(super_class_val);
+            super_class = std::dynamic_pointer_cast<LoxClass>(lox_callable);
+            if (!super_class) {
+                throw RuntimeException(class_decl.super_class->name,
+                                       "Superclass must be a defined class.");
+            }
+        } catch (std::bad_variant_access &) {
             throw RuntimeException(class_decl.super_class->name,
                                    "Superclass must be a defined class.");
         }
