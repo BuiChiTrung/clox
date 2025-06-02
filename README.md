@@ -1,27 +1,37 @@
 # clox
+
 This is a C++ implementation for Lox - a dynamic type programming language, inspired by the book Crafting Interpreters.
 
 ### Build the code
+
 Requirement: C++17 or newer.
+
 ```
 ./build_clox.sh
 ```
 
 ### Features with example snippets
+
 **Expression and statement**: `./build/main ./demo/expression_and_statement.lox`
+
 ```
-print "Hello world";
-print 5 + (3 * 2) - 4 / 2;
-print !(false or true);
+/*
+    This is a block of comments
+*/
+print(nil and "yes");
+print("Hello world");
+print(5 + (3 * 2) - 4 / 2);
+print(0 or 2);
 var a = "Moon ";
 var b = "Light";
 var c;
-print c;
+print(c);
 c = a + b;
-print c;
+print(c);
 ```
 
 **Variable scope**: `./build/main ./demo/variable_scope.lox`
+
 ```
 var a = "global a";
 var b = "global b";
@@ -31,40 +41,50 @@ var c = "global c";
   var b = "outer b";
   {
     var a = "inner a";
-    print a; // inner a
-    print b; // outer b
-    print c; // global c
+    print(a); // inner a
+    print(b); // outer b
+    print(c); // global c
   }
-  print a; // outer a
-  print b; // outer b
-  print c; // global c
+  print(a); // outer a
+  print(b); // outer b
+  print(c); // global c
 }
-print a; // global a
-print b; // global b
-print c; // global c
+print(a); // global a
+print(b); // global b
+print(c); // global c
 ```
 
 **Loop**: `./build/main ./demo/loop.lox`
+
 ```
 // Fibonacci program
 var a = 0;
 var temp;
 
 for var b = 1; a < 10000; b = temp + b; {
-  print a;
+  print(a);
   temp = a;
   a = b;
 }
+
+var c = 1;
+while c <= 10 {
+    print(c % 3.0);
+    c = c + 1;
+}
 ```
 
-**Report syntax error**: 
+**Report syntax error**:
+
 ```
 var a = 1;
 print a
 while a <= 10 {
     a = a + 1;
 ```
+
 `./build/main ./demo/parse_error_report.lox`
+
 ```
 [line 3] Error at 'while': Expected ; at the end of print statement
 [line 3] Error at '{': Expected close bracket '}' at the end of the block to match '{'
@@ -72,9 +92,10 @@ Parser error occurs
 ```
 
 **Function**: `./build/main ./demo/function.lox`
+
 ```
 // NORMAL FUNCTION
-print "Fibonacci";
+print("Fibonacci");
 fun fib(n) {
   if n <= 1 {
     return n;
@@ -83,13 +104,53 @@ fun fib(n) {
 }
 
 for var i = 0; i < 10; i = i + 1; {
-  print fib(i);
+  print(fib(i));
 }
 
 // LANGUAGE NATIVE FUNCTION
-print "Native function get current time: " + clock() + "s";
+print("Native function get current time: " + clock() + "s");
+
+// CLOSURE
+print("Closure");
+fun make_counter() {
+  var i = 0;
+
+  fun counter() {
+    i = i + 1;
+    print(i);
+  }
+
+  return counter;
+}
+
+var count = make_counter();
+count(); // 1
+count(); // 2
 ```
+
+**Class**: `./build/main ./demo/class.lox`
+
+```
+class FootballPlayer {
+    fun do_sth() {
+        print(this);
+    }
+    fun pass() {
+        var adj = "wonderful";
+        print("This is a " + adj + " " + this.skill);
+    }
+}
+
+var messi = FootballPlayer();
+print(FootballPlayer);
+print(messi);
+
+messi.skill = "Through pass";
+messi.pass();
+```
+
 **Interactive mode**: run the main without passing any lox source file `./build/main`
+
 ```
 Enter lines of text (Ctrl+D or Ctrl+Z to end):
 ==> var src = "Hello VietNam";
@@ -99,15 +160,16 @@ Hello VietNam
 2
 ```
 
-
-
 ### Run unit-tests
+
 Run a single unit-test
+
 ```
 cd build/tests && ./<test_file>
 ```
 
 Run all unit-tests
+
 ```
 ./run_test.sh
 ```
