@@ -10,7 +10,8 @@
 
 IdentifierResolver::IdentifierResolver(
     std::shared_ptr<AstInterpreter> interpreter)
-    : interpreter(interpreter), current_func_type(ResolveFuncType::NONE) {
+    : interpreter(interpreter), current_func_type(ResolveFuncType::NONE),
+      current_class_type(ResolveClassType::NONE) {
     scopes.emplace_back();
     for (const auto &identifier : interpreter->global_env->identifier_table) {
         scopes.back()[identifier.first] = true;

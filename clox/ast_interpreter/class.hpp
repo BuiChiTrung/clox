@@ -46,9 +46,12 @@ class LoxClass : public LoxCallable {
     // Class constructor, a method equal to class_name
     ExprVal invoke(AstInterpreter &interpreter,
                    std::vector<ExprVal> &args) override {
+        // Allocate memory for new instance
         auto lox_class_sp =
             std::shared_ptr<LoxClass>(this, smart_pointer_no_op_deleter);
         auto lox_instance = std::make_shared<LoxInstance>(lox_class_sp);
+
+        // Run the user-defined constructor if it exists
         auto constructor = get_method(name);
         if (constructor != nullptr) {
             constructor->bind_this_kw_to_class_method(*lox_instance);
@@ -78,10 +81,12 @@ class LoxInstance {
 
     ExprVal get_field(std::shared_ptr<Token> field_token) {
         std::string field_name = field_token->lexeme;
+        // Find prop
         if (props.count(field_name) > 0) {
             return props[field_name];
         }
 
+        // Find method
         if (field_name == lox_class->name) {
             throw RuntimeException(
                 field_token,

@@ -134,9 +134,10 @@ void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
     class_env->add_new_variable("this", NIL);
 
     for (auto method : class_decl.methods) {
-        auto lox_method = std::make_shared<LoxMethod>(method, env);
+        auto lox_method = std::make_shared<LoxMethod>(method, class_env);
         methods[method->name->lexeme] = lox_method;
     }
+
     auto lox_class =
         std::make_shared<LoxClass>(class_decl.name->lexeme, methods);
     env->add_new_variable(class_decl.name->lexeme, lox_class);
@@ -144,21 +145,21 @@ void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
 
 void AstInterpreter::visit_block_stmt(const BlockStmt &b,
                                       std::shared_ptr<Environment> block_env) {
-    auto cur_env = this->env;
+    auto cur_env = env;
     if (block_env == nullptr) {
         block_env = std::make_shared<Environment>(cur_env);
     }
 
-    this->env = block_env;
+    env = block_env;
     try {
         for (auto stmt : b.stmts) {
             stmt->accept(*this);
         }
     } catch (ReturnVal &r) {
-        this->env = cur_env;
+        env = cur_env;
         throw r;
     }
-    this->env = cur_env;
+    env = cur_env;
 }
 
 void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {

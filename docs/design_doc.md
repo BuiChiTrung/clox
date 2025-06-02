@@ -667,6 +667,7 @@ var a = "global";
 ```
 
 However, with implementation from previous chapters our printed result would be `global` then `block` because in the 2nd `showA()` call, we find `a` from scope2 => scope1 => scope0 and found a local `a` at scope1.
+=> Before interpreting, with each identifier usage we need a way to tell which identifier declaration it refers to using Semantics analysis.
 ### Semantics Analysis
 Revise from the 1st chapter, our compiler/intepreter go through the following steps:
 + **Syntactic analysis**: check a program is grammatically correct (done by parser)
@@ -737,6 +738,154 @@ class ClassDecl : public Stmt {
 ```
 **Resolver + Eval node:** check the src code
 ### Creating instance
+Support class constructor `ClassName()` by inheriting `LoxCallable`. 2 steps:
+1. Alloc mem for new instance. We have another class to present class instance: `LoxInstance`
+2. Run user defined constructor if it exists.
+### Properties on instance
+Support new token `.` which tell us that an instance property is accessed. `.` has the same precedence as `()` in func call expr. Ex: In expressions involving both `.` and `()`, such as `a.b()` or `a().b`, the operand or operator that appears earlier in the syntax is evaluated first.
+=> we put it in the grammar by updating `call` rule:
+```
+// call → primary ("(" arguments ")" | "." IDENTIFIER)*
+```
+**AST node**:
+```cpp
+class GetClassFieldExpr : public Expr {
+    std::shared_ptr<Expr> lox_instance;
+    std::shared_ptr<Token> field_token;
+};
+```
+**Resolver:** simple, look at src code
+**Eval node:** LoxInstace class provide an `unordered_map`: key - prop_name, value - prop value. When a prop is access, we find the value in this `unordered_map`
+
+We also need to support prop update operation
+**Parsing rule:** make change to assignmentStmt
+```
+// assignStmt -> (IDENTIFIER | call) "=" expression";" | exprStmt
+```
+**AST node:**
+```cpp
+class SetClassFieldStmt : public Stmt {
+    std::shared_ptr<Expr> lox_instance;
+    std::shared_ptr<Token> field_token;
+    std::shared_ptr<Expr> value;
+}
+```
+**Resolver:** simple, look at src code
+**Eval node:** update the prop `unordered_map` of lox instance.
+### Methods on class
+Support both cases below:
+```cpp
+var m = object.method;
+m(argument);
+```
+
+```cpp
+class Box {}
+
+fun notMethod(argument) {
+  print "called function with " + argument;
+}
+
+var box = Box();
+box.function = notMethod;
+box.function("argument");
+```
+
+Since we've already supported finding prop, func call syntax, there is no need to add need ast node, parsing rule to handle method invocation.
+
+Unlike the book, I created a new class `LoxMethod` inherit `LoxFunction`.
+
+**Resolver:** in class decl stmt, resolve all methods
+Update the LoxClass to store `unordered_map` of methods. When we look for an instance field, we first check the property then check methods by looking at this methods `unordered_map`.
+### This
+`this` evaluates to the instance that the method was called on.
+**Parsing rule:**
+```
+// primary → IDENTIFIER | "this" | NUMBER | STRING | "true" | "false" | "nil"
+```
+**AST node:** Inherit `IdentifierExpr` as there are some common methods between the 2 classes.
+```
+class ThisExpr : public IdentifierExpr {
+    std::shared_ptr<Token> name;
+};
+```
+**Resolver:**
+When resolving class, we add a new scope for the class and add identifier `this` to the class scope.
+```cpp
+void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
+    addScope(); // class scope
+    scopes.back()["this"] = true;
+    for (auto method : class_decl_stmt.methods) { ... }
+    closeScope();
+}
+```
+**Eval node:**
+Background: Both resovler and interpreter maintain a linked list of scope/env. In each scope, we have an `unordered_map` of identifier
++ resolver: key - identifier name, value - true/false (indicate if the identifier is resolved or not)
++ interpreter: key - identifier name, value - identifier value.
+![|475](Pasted%20image%2020250602100225.png)
+In order to correctly eval `this` kw, 2 chains of scope/env must be sync:
++ Add the class new env when interpreting the class:
+```cpp
+void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
+		...
+    auto class_env = std::make_shared<Environment>(env);
+    class_env->add_new_variable("this", NIL);
+
+    for (auto method : class_decl.methods) {
+        auto lox_method = std::make_shared<LoxMethod>(method, class_env);
+				...
+    }
+		...
+}
+```
++ Update the value of this in class env whenever a method is invoked.
+```cpp
+// LoxInstance
+ExprVal get_field(std::shared_ptr<Token> field_token) {
+		...
+		if (lox_class->methods.count(field_name)) {
+				auto method = lox_class->get_method(field_name);
+				method->bind_this_kw_to_class_method(*this);
+				return method;
+		}
+		...
+}
+
+// LoxMethod
+void bind_this_kw_to_class_method(LoxInstance &instance) {
+		// Use no-op deleter to make sure that "this" is not deallocate
+		// after shared_ptr run out of scope.
+		// parent_env = class_env
+		this->parent_env->identifier_table["this"] =
+				std::shared_ptr<LoxInstance>(&instance,
+																		 smart_pointer_no_op_deleter);
+}
+```
+ThisExpr inherit IdentifierExpr, we could reuse the func to eval IdentifierExpr
+```cpp
+ExprVal AstInterpreter::visit_this(const ThisExpr &this_expr) {
+    return evaluate_identifier(this_expr);
+}
+```
+### Constructors and Initializers
+Constructor is a pair of operations:
++ Allocate memory for new instance: done in Create instance section
++ Run the user-defined constructor if it exists: call `<class_name>()` func.
+Src code: `LoxClass::invoke`
+
+Special case: instance call Construtor directly. We raise runtime err in this case.
+```cpp
+class Foo {
+  Foo() {
+  }
+}
+
+var foo = Foo();
+print foo.init();
+```
+
+Not allow using `return` in constructor. Check in resolver.
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`
