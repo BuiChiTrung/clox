@@ -1,8 +1,8 @@
 class FootballPlayer {
-    init() {
+    fun do_sth() {
         print(this);
     }
-    pass() {
+    fun pass() {
         var adj = "wonderful";
         print("This is a " + adj + " " + this.skill);
     }
@@ -13,6 +13,4 @@ print(FootballPlayer);
 print(messi);
 
 messi.skill = "Through pass";
-if (1 == 1) {
-    messi.pass();
-}
+messi.pass();

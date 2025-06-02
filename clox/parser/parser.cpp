@@ -89,9 +89,8 @@ std::shared_ptr<ReturnStmt> Parser::parse_return_stmt() {
     return std::make_shared<ReturnStmt>(return_kw, expr);
 }
 
-// funcDecl → "fun" function;
+// funcDecl → function;
 std::shared_ptr<FunctionDecl> Parser::parse_function_decl() {
-    assert_tok_and_advance(TokenType::FUNC, "Expected function declaration");
     return parse_function();
 }
 
@@ -116,8 +115,9 @@ std::shared_ptr<ClassDecl> Parser::parse_class_decl() {
     return std::make_shared<ClassDecl>(class_name, methods);
 }
 
-// function -> IDENTIFIER "(" parameters ")" block
+// function -> "fun" IDENTIFIER "(" parameters ")" block
 std::shared_ptr<FunctionDecl> Parser::parse_function() {
+    assert_tok_and_advance(TokenType::FUNC, "Expected function declaration");
     std::shared_ptr<Token> func_name =
         assert_tok_and_advance(TokenType::IDENTIFIER, "Expected function name");
 
