@@ -22,6 +22,7 @@ enum class TokenType {
     SLASH,
     STAR,
     MOD,
+    EXTEND,
 
     // Operations
     BANG,

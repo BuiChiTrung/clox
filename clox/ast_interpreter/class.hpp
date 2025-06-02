@@ -25,15 +25,17 @@ class LoxMethod : public LoxFunction {
 class LoxClass : public LoxCallable {
   private:
     std::string name;
+    std::shared_ptr<LoxClass> super_class;
     std::unordered_map<std::string, std::shared_ptr<LoxMethod>> methods;
+
     friend class LoxInstance;
     friend class AstInterpreter;
 
   public:
     LoxClass(
-        std::string name,
+        std::string name, std::shared_ptr<LoxClass> super_class,
         std::unordered_map<std::string, std::shared_ptr<LoxMethod>> &methods)
-        : name(name), methods(methods) {}
+        : name(name), super_class(super_class), methods(methods) {}
 
     uint get_param_num() override {
         auto constructor = get_method(name);
@@ -61,10 +63,15 @@ class LoxClass : public LoxCallable {
     }
 
     std::shared_ptr<LoxMethod> get_method(std::string name) {
-        if (methods.count(name) == 0) {
-            return nullptr;
+        if (methods.count(name) > 0) {
+            return methods[name];
         }
-        return methods[name];
+
+        if (super_class != nullptr) {
+            return super_class->get_method(name);
+        }
+
+        return nullptr;
     }
 
     std::string to_string() const override { return "<Class " + name + ">"; }
@@ -93,13 +100,13 @@ class LoxInstance {
                 "Constructor cannot be called by a class instance.");
         }
 
-        if (lox_class->methods.count(field_name)) {
-            auto method = lox_class->get_method(field_name);
+        std::shared_ptr<LoxMethod> method = lox_class->get_method(field_name);
+        if (method != nullptr) {
             method->bind_this_kw_to_class_method(*this);
             return method;
         }
 
-        throw RuntimeException(field_token, "Instance field" + field_name +
+        throw RuntimeException(field_token, "Instance field " + field_name +
                                                 " does not exists.");
     }
 

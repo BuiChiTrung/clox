@@ -138,8 +138,23 @@ void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
         methods[method->name->lexeme] = lox_method;
     }
 
-    auto lox_class =
-        std::make_shared<LoxClass>(class_decl.name->lexeme, methods);
+    // Check if super class is defined and is a valid LoxClass
+    std::shared_ptr<LoxClass> super_class = nullptr;
+    if (class_decl.super_class != nullptr) {
+        ExprVal super_class_val =
+            class_decl.super_class->accept(*this); // evaluate super class expr
+        auto lox_callable =
+            std::get<std::shared_ptr<LoxCallable>>(super_class_val);
+        super_class = std::dynamic_pointer_cast<LoxClass>(lox_callable);
+        if (!super_class) {
+            throw RuntimeException(class_decl.super_class->name,
+                                   "Superclass must be a defined class.");
+        }
+    }
+
+    auto lox_class = std::make_shared<LoxClass>(class_decl.name->lexeme,
+                                                super_class, methods);
+
     env->add_new_variable(class_decl.name->lexeme, lox_class);
 }
 

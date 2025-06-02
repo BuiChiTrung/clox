@@ -52,6 +52,9 @@ void Scanner::scan_token() {
     case ';':
         add_token(TokenType::SEMICOLON);
         break;
+    case ':':
+        add_token(TokenType::EXTEND);
+        break;
     case '*':
         add_token(TokenType::STAR);
         break;

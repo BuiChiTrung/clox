@@ -92,6 +92,10 @@ void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
     declare_identifier(*class_decl_stmt.name);
     define_identifier(*class_decl_stmt.name);
 
+    if (class_decl_stmt.super_class != nullptr) {
+        class_decl_stmt.super_class->accept(*this);
+    }
+
     auto enclosing_class_type = current_class_type;
     current_class_type = ResolveClassType::CLASS;
 

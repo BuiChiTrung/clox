@@ -94,11 +94,24 @@ std::shared_ptr<FunctionDecl> Parser::parse_function_decl() {
     return parse_function();
 }
 
-// classDecl -> "class" IDENTIFIER "{" function* "}"
+// classDecl -> "class" IDENTIFIER (: IDENTIFIER)? "{" function* "}"
 std::shared_ptr<ClassDecl> Parser::parse_class_decl() {
     assert_tok_and_advance(TokenType::CLASS, "Expected class declaration");
     std::shared_ptr<Token> class_name =
         assert_tok_and_advance(TokenType::IDENTIFIER, "Expected class name");
+
+    // parse super class
+    std::shared_ptr<IdentifierExpr> super_class = nullptr;
+    if (validate_token_and_advance({TokenType::EXTEND})) {
+        std::shared_ptr<Token> super_class_name = assert_tok_and_advance(
+            TokenType::IDENTIFIER, "Expected super class name");
+        if (super_class_name->lexeme == class_name->lexeme) {
+            ErrorManager::handle_err(*super_class_name,
+                                     "Error: Class cannot extend itself: " +
+                                         super_class_name->lexeme);
+        }
+        super_class = std::make_shared<IdentifierExpr>(super_class_name);
+    }
 
     assert_tok_and_advance(TokenType::LEFT_BRACE,
                            "Expected '{' at the start of class body");
@@ -112,7 +125,7 @@ std::shared_ptr<ClassDecl> Parser::parse_class_decl() {
     assert_tok_and_advance(TokenType::RIGHT_BRACE,
                            "Expected '}' at the end of class body");
 
-    return std::make_shared<ClassDecl>(class_name, methods);
+    return std::make_shared<ClassDecl>(class_name, super_class, methods);
 }
 
 // function -> "fun" IDENTIFIER "(" parameters ")" block

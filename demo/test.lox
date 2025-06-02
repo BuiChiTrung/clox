@@ -1,18 +1,26 @@
 class FootballPlayer {
-    init() {
-        print(this);
+    fun do_sth() {
+        print("Messi right foot is better than Ronaldo whole career.");
     }
-    pass() {
-        var adj = "wonderful";
-        print("This is a " + adj + " " + this.skill);
+    fun pass() {
+        print(this.skill);
     }
 }
-
-var messi = FootballPlayer();
 print(FootballPlayer);
-print(messi);
 
-messi.skill = "Through pass";
-if (1 == 1) {
-    messi.pass();
+// Inherit
+class Striker : FootballPlayer {
+    fun Striker(quality) {
+        this.quality = quality;
+    }
+    fun shoot() {
+        print("This is a " + this.quality + " shoot");
+    }
 }
+
+var yamal = Striker("Wonderful");
+print(yamal);
+
+yamal.skill = "Through pass";
+yamal.pass();
+yamal.shoot();

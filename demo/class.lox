@@ -7,9 +7,13 @@ class FootballPlayer {
         print("This is a " + adj + " " + this.skill);
     }
 }
-
-var messi = FootballPlayer();
 print(FootballPlayer);
+
+class Striker : FootballPlayer {
+
+}
+
+var messi = Striker();
 print(messi);
 
 messi.skill = "Through pass";
