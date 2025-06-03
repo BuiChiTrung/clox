@@ -1,5 +1,6 @@
 #pragma once
 #include "clox/ast_interpreter/callable.hpp"
+#include "clox/common/constants.hpp"
 #include "clox/common/error_manager.hpp"
 #include "clox/utils/helper.hpp"
 
@@ -38,14 +39,14 @@ class LoxClass : public LoxCallable {
         : name(name), super_class(super_class), methods(methods) {}
 
     uint get_param_num() override {
-        auto constructor = get_method(name);
-        if (constructor == nullptr) {
+        auto initializer = get_method(INIT_METHOD);
+        if (initializer == nullptr) {
             return 0;
         }
-        return constructor->get_param_num();
+        return initializer->get_param_num();
     }
 
-    // Class constructor, a method equal to class_name
+    // Class constructor
     ExprVal invoke(AstInterpreter &interpreter,
                    std::vector<ExprVal> &args) override {
         // Allocate memory for new instance
@@ -53,11 +54,11 @@ class LoxClass : public LoxCallable {
             std::shared_ptr<LoxClass>(this, smart_pointer_no_op_deleter);
         auto lox_instance = std::make_shared<LoxInstance>(lox_class_sp);
 
-        // Run the user-defined constructor if it exists
-        auto constructor = get_method(name);
-        if (constructor != nullptr) {
-            constructor->bind_this_kw_to_class_method(*lox_instance);
-            constructor->invoke(interpreter, args);
+        // Run the user-defined initializer if it exists
+        auto initializer = get_method(INIT_METHOD);
+        if (initializer != nullptr) {
+            initializer->bind_this_kw_to_class_method(*lox_instance);
+            initializer->invoke(interpreter, args);
         }
         return lox_instance;
     }
@@ -94,12 +95,6 @@ class LoxInstance {
         }
 
         // Find method
-        if (field_name == lox_class->name) {
-            throw RuntimeException(
-                field_token,
-                "Constructor cannot be called by a class instance.");
-        }
-
         std::shared_ptr<LoxMethod> method = lox_class->get_method(field_name);
         if (method != nullptr) {
             method->bind_this_kw_to_class_method(*this);

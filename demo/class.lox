@@ -10,7 +10,7 @@ print(FootballPlayer);
 
 // Inherit: super keyword to call superclass method in subclass in currently not supported.
 class Striker : FootballPlayer {
-    fun Striker(quality) {
+    fun init(quality) {
         this.quality = quality;
     }
     fun shoot() {
