@@ -171,9 +171,9 @@ IdentifierResolver::visit_identifier(const IdentifierExpr &identifier_expr) {
 }
 
 ExprVal IdentifierResolver::visit_this(const ThisExpr &this_expr) {
-    if (current_class_type != ResolveClassType::CLASS) {
-        ErrorManager::handle_err(*this_expr.token,
-                                 "Can't return from outside a class method.");
+    if (current_class_type == ResolveClassType::NONE) {
+        ErrorManager::handle_err(
+            *this_expr.token, "Can't use 'this' from outside a class method.");
     }
     resolve_identifier(this_expr);
     return NIL;
@@ -197,8 +197,8 @@ void IdentifierResolver::resolve_identifier(
     const IdentifierExpr &identifier_expr) {
     for (int i = scopes.size() - 1; i >= 0; --i) {
         if (scopes[i].count(identifier_expr.token->lexeme) != 0) {
-            interpreter->resolve_identifier(identifier_expr,
-                                            scopes.size() - 1 - i);
+            interpreter->update_identifier_scope_depth_map(
+                identifier_expr, scopes.size() - 1 - i);
             return;
         }
     }

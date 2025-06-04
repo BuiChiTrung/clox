@@ -81,7 +81,7 @@ void AstInterpreter::visit_assign_stmt(const AssignStmt &a) {
     // env->assign_new_value_to_variable(a.var->name, new_value);
 
     const IdentifierExpr *ptr = a.var.get();
-    int depth = identifier_scope_depth[ptr];
+    int depth = identifier_scope_depth_map[ptr];
     move_up_env(depth)->identifier_table[a.var->token->lexeme] = new_value;
 }
 
@@ -219,26 +219,20 @@ void AstInterpreter::visit_set_class_field(
 
 ExprVal
 AstInterpreter::visit_identifier(const IdentifierExpr &identifier_expr) {
-    return evaluate_identifier(identifier_expr);
+    int depth = get_identifier_depth(identifier_expr);
+    return move_up_env(depth)->identifier_table[identifier_expr.token->lexeme];
 }
 
 ExprVal AstInterpreter::visit_this(const ThisExpr &this_expr) {
-    return evaluate_identifier(this_expr);
+    int depth = get_identifier_depth(this_expr);
+    return move_up_env(depth)->identifier_table["this"];
 }
 
 ExprVal AstInterpreter::visit_super(const SuperExpr &super_expr) {
-    // Find super class of current class
-    // TODO(trung.bc): duplicate code
-    const IdentifierExpr *ptr = &super_expr;
-    if (identifier_scope_depth.count(ptr) == 0) {
-        throw RuntimeException(ptr->token,
-                               "Reference to non-exist identifier: " +
-                                   ptr->token->lexeme);
-    }
+    int depth = get_identifier_depth(super_expr);
 
-    int depth = identifier_scope_depth[ptr];
-    ExprVal superclass_expr_val =
-        move_up_env(depth)->identifier_table[ptr->token->lexeme];
+    // Find super class of current class
+    ExprVal superclass_expr_val = move_up_env(depth)->identifier_table["super"];
     std::shared_ptr<LoxClass> superclass =
         cast_expr_val_to_lox_class(superclass_expr_val);
     if (!superclass) {
@@ -263,20 +257,6 @@ ExprVal AstInterpreter::visit_super(const SuperExpr &super_expr) {
     method->bind_this_kw_to_class_method(*lox_instance);
 
     return method;
-}
-
-ExprVal
-AstInterpreter::evaluate_identifier(const IdentifierExpr &identifier_expr_ptr) {
-    const IdentifierExpr *ptr = &identifier_expr_ptr;
-    if (identifier_scope_depth.count(ptr) == 0) {
-        throw RuntimeException(ptr->token,
-                               "Reference to non-exist identifier: " +
-                                   ptr->token->lexeme);
-    }
-
-    int depth = identifier_scope_depth[ptr];
-
-    return move_up_env(depth)->identifier_table[ptr->token->lexeme];
 }
 
 ExprVal AstInterpreter::visit_literal(const LiteralExpr &l) { return l.value; }
@@ -500,9 +480,21 @@ void AstInterpreter::check_number_operands(std::shared_ptr<Token> tok,
     }
 }
 
-void AstInterpreter::resolve_identifier(const IdentifierExpr &identifier_expr,
-                                        int depth) {
-    identifier_scope_depth[&identifier_expr] = depth;
+void AstInterpreter::update_identifier_scope_depth_map(
+    const IdentifierExpr &identifier_expr, int depth) {
+    identifier_scope_depth_map[&identifier_expr] = depth;
+}
+
+uint AstInterpreter::get_identifier_depth(
+    const IdentifierExpr &identifier_expr) {
+    const IdentifierExpr *ptr = &identifier_expr;
+    if (identifier_scope_depth_map.count(ptr) == 0) {
+        throw RuntimeException(ptr->token,
+                               "Reference to non-exist identifier: " +
+                                   ptr->token->lexeme);
+    }
+
+    return identifier_scope_depth_map[ptr];
 }
 
 std::shared_ptr<Environment> AstInterpreter::move_up_env(int depth) {

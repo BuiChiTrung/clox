@@ -42,10 +42,6 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     std::shared_ptr<LoxClass> cast_expr_val_to_lox_class(ExprVal &);
 
-    // Use pointer to support polymorphism: downcast from ThisExpr to
-    // IdentifierExpr
-    ExprVal evaluate_identifier(const IdentifierExpr &);
-
     ExprVal visit_literal(const LiteralExpr &) override;
 
     ExprVal visit_grouping(const GroupExpr &) override;
@@ -69,13 +65,15 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
     void check_int_operands(std::shared_ptr<Token> tok, const ExprVal &left,
                             const ExprVal &right);
 
-    std::shared_ptr<Environment> move_up_env(int depth);
-    std::shared_ptr<Environment> env;
-    std::unordered_map<const IdentifierExpr *, int> identifier_scope_depth;
-    const std::shared_ptr<Environment> global_env;
     // Use with Resolver class to resolve in which scope an identifier (var or
     // func) is defined
-    void resolve_identifier(const IdentifierExpr &, int depth);
+    void update_identifier_scope_depth_map(const IdentifierExpr &, int depth);
+    uint get_identifier_depth(const IdentifierExpr &);
+    std::shared_ptr<Environment> move_up_env(int depth);
+
+    std::shared_ptr<Environment> env;
+    std::unordered_map<const IdentifierExpr *, int> identifier_scope_depth_map;
+    const std::shared_ptr<Environment> global_env;
 
   public:
     const bool is_interactive_mode;

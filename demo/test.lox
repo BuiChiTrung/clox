@@ -12,7 +12,8 @@ class B : A {
   }
 
   fun test() {
-    super.init();
+    // Error: not exist method in superclass
+    // super.do_sth();
     super.method();
   }
 }
