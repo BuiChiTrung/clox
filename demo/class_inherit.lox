@@ -25,3 +25,6 @@ class B : A {
 B().test();
 class C : B {}
 C().test();
+
+// Error: class cannot inherit itself
+// class D : D {}

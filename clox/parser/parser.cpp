@@ -64,6 +64,9 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
     if (validate_token(TokenType::FOR)) {
         return parse_for_stmt();
     }
+    if (validate_token(TokenType::BREAK)) {
+        return parse_break_stmt();
+    }
     if (validate_token(TokenType::IF)) {
         return parse_if_stmt();
     }
@@ -222,6 +225,14 @@ std::shared_ptr<WhileStmt> Parser::parse_while_stmt() {
     std::shared_ptr<BlockStmt> body = parse_block_stmt();
 
     return std::make_shared<WhileStmt>(condition, body);
+}
+
+std::shared_ptr<BreakStmt> Parser::parse_break_stmt() {
+    assert_tok_and_advance(TokenType::BREAK, "Expected break keyword.");
+    std::shared_ptr<Token> break_kw = get_prev_tok();
+    assert_tok_and_advance(TokenType::SEMICOLON,
+                           "Expected ; at the end of break statement");
+    return std::make_shared<BreakStmt>(break_kw);
 }
 
 // ifStmt -> "if" expression block ("elif" block)+ ("else" block)?

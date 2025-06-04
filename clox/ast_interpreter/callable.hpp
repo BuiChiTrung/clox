@@ -59,7 +59,7 @@ class LoxFunction : public LoxCallable {
         auto block = std::dynamic_pointer_cast<BlockStmt>(func_stmt->body);
         try {
             interpreter.visit_block_stmt(*block, func_env);
-        } catch (ReturnVal r) {
+        } catch (ReturnKwException r) {
             return r.return_val;
         }
 

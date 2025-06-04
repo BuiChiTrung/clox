@@ -11,7 +11,8 @@
 IdentifierResolver::IdentifierResolver(
     std::shared_ptr<AstInterpreter> interpreter)
     : interpreter(interpreter), current_func_type(ResolveFuncType::NONE),
-      current_class_type(ResolveClassType::NONE) {
+      current_class_type(ResolveClassType::NONE),
+      current_loop_type(ResolveLoopType::NONE) {
     scopes.emplace_back();
     for (const auto &identifier : interpreter->global_env->identifier_table) {
         scopes.back()[identifier.first] = true;
@@ -81,7 +82,18 @@ void IdentifierResolver::visit_if_stmt(const IfStmt &if_stmt) {
 
 void IdentifierResolver::visit_while_stmt(const WhileStmt &while_stmt) {
     while_stmt.condition->accept(*this);
+    ResolveLoopType enclosing_loop_type = current_loop_type;
+    current_loop_type = ResolveLoopType::WHILE;
     while_stmt.body->accept(*this);
+    current_loop_type = enclosing_loop_type;
+}
+
+void IdentifierResolver::visit_break_stmt(const BreakStmt &break_stmt) {
+    if (current_loop_type == ResolveLoopType::NONE) {
+        ErrorManager::handle_err(
+            *break_stmt.break_kw,
+            "Error: 'break' statement can only be used inside a loop.");
+    }
 }
 
 void IdentifierResolver::visit_function_decl(FunctionDecl &func_decl_stmt) {

@@ -32,6 +32,8 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     void visit_return_stmt(const ReturnStmt &) override;
 
+    void visit_break_stmt(const BreakStmt &) override;
+
     void visit_set_class_field(const SetClassFieldStmt &) override;
 
     ExprVal visit_identifier(const IdentifierExpr &) override;

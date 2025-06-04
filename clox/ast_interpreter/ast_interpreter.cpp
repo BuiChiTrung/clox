@@ -45,7 +45,6 @@ void AstInterpreter::interpret_program(
 
 ExprVal AstInterpreter::evaluate_expr(Expr &expr) { return expr.accept(*this); }
 
-// TODO(trung.bc): move to expr_val.hpp
 inline std::string exprval_to_string(const ExprVal &value) {
     return std::visit(
         [](auto &&arg) -> std::string {
@@ -117,8 +116,16 @@ void AstInterpreter::visit_if_stmt(const IfStmt &i) {
 
 void AstInterpreter::visit_while_stmt(const WhileStmt &w) {
     while (cast_literal_to_bool(evaluate_expr(*w.condition))) {
-        w.body->accept(*this);
+        try {
+            w.body->accept(*this);
+        } catch (BreakKwException &) {
+            return; // Break out of the loop
+        }
     }
+}
+
+void AstInterpreter::visit_break_stmt(const BreakStmt &) {
+    throw BreakKwException();
 }
 
 void AstInterpreter::visit_function_decl(FunctionDecl &func_decl) {
@@ -176,9 +183,9 @@ AstInterpreter::cast_expr_val_to_lox_class(ExprVal &expr_val) {
 
 void AstInterpreter::visit_block_stmt(const BlockStmt &b,
                                       std::shared_ptr<Environment> block_env) {
-    auto cur_env = env;
+    auto enclosing_env = env;
     if (block_env == nullptr) {
-        block_env = std::make_shared<Environment>(cur_env);
+        block_env = std::make_shared<Environment>(enclosing_env);
     }
 
     env = block_env;
@@ -186,11 +193,11 @@ void AstInterpreter::visit_block_stmt(const BlockStmt &b,
         for (auto stmt : b.stmts) {
             stmt->accept(*this);
         }
-    } catch (ReturnVal &r) {
-        env = cur_env;
+    } catch (ReturnKwException &r) {
+        env = enclosing_env;
         throw r;
     }
-    env = cur_env;
+    env = enclosing_env;
 }
 
 void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {
@@ -199,7 +206,7 @@ void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {
         return_val = evaluate_expr(*r.expr);
     }
 
-    throw ReturnVal(return_val);
+    throw ReturnKwException(return_val);
 }
 
 void AstInterpreter::visit_set_class_field(

@@ -19,6 +19,12 @@ enum class ResolveClassType {
     SUBCLASS,
 };
 
+enum class ResolveLoopType {
+    NONE,
+    FOR,
+    WHILE,
+};
+
 class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
   private:
     void resolve_stmts(const std::vector<std::shared_ptr<Stmt>> &stmts);
@@ -38,6 +44,8 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
     void visit_if_stmt(const IfStmt &) override;
 
     void visit_while_stmt(const WhileStmt &) override;
+
+    void visit_break_stmt(const BreakStmt &) override;
 
     void visit_function_decl(FunctionDecl &) override;
 
@@ -65,11 +73,6 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_binary(const BinaryExpr &) override;
 
-    std::shared_ptr<AstInterpreter> interpreter;
-    std::vector<std::unordered_map<std::string, bool>> scopes;
-    ResolveFuncType current_func_type;
-    ResolveClassType current_class_type;
-
     void addScope();
     void closeScope();
 
@@ -78,6 +81,12 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
 
     void resolve_identifier(const IdentifierExpr &);
     void resolve_function(const FunctionDecl &, ResolveFuncType);
+
+    std::shared_ptr<AstInterpreter> interpreter;
+    std::vector<std::unordered_map<std::string, bool>> scopes;
+    ResolveFuncType current_func_type;
+    ResolveClassType current_class_type;
+    ResolveLoopType current_loop_type;
 
   public:
     IdentifierResolver(std::shared_ptr<AstInterpreter> interpreter);

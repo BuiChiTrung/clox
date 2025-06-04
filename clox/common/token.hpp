@@ -47,6 +47,7 @@ enum class TokenType {
     FALSE,
     FUNC,
     FOR,
+    BREAK,
     IF,
     NIL,
     OR,
@@ -70,7 +71,7 @@ const std::unordered_map<std::string, TokenType> reserved_kws = {
     {"print", TokenType::PRINT}, {"return", TokenType::RETURN},
     {"super", TokenType::SUPER}, {"this", TokenType::THIS},
     {"true", TokenType::TRUE},   {"var", TokenType::VAR},
-    {"while", TokenType::WHILE},
+    {"while", TokenType::WHILE}, {"break", TokenType::BREAK},
 };
 
 class Token {

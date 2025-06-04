@@ -12,6 +12,7 @@ class AssignStmt;
 class BlockStmt;
 class IfStmt;
 class WhileStmt;
+class BreakStmt;
 class FunctionDecl;
 class ReturnStmt;
 class ClassDecl;
@@ -29,6 +30,7 @@ class IStmtVisitor {
                      std::shared_ptr<Environment> block_env = nullptr) = 0;
     virtual void visit_if_stmt(const IfStmt &) = 0;
     virtual void visit_while_stmt(const WhileStmt &) = 0;
+    virtual void visit_break_stmt(const BreakStmt &) = 0;
     virtual void visit_return_stmt(const ReturnStmt &) = 0;
     virtual void visit_class_decl(const ClassDecl &) = 0;
     virtual void visit_set_class_field(const SetClassFieldStmt &) = 0;
@@ -116,6 +118,16 @@ class WhileStmt : public Stmt {
     void accept(IStmtVisitor &v) override { return v.visit_while_stmt(*this); }
 };
 
+class BreakStmt : public Stmt {
+  public:
+    std::shared_ptr<Token> break_kw;
+
+    BreakStmt(std::shared_ptr<Token> break_kw) : break_kw(break_kw) {}
+    void accept(IStmtVisitor &v) override { return v.visit_break_stmt(*this); }
+};
+
+class BreakKwException : public std::exception {};
+
 class FunctionDecl : public Stmt {
   public:
     std::shared_ptr<Token> name;
@@ -143,10 +155,10 @@ class ReturnStmt : public Stmt {
     void accept(IStmtVisitor &v) override { return v.visit_return_stmt(*this); }
 };
 
-class ReturnVal : std::exception {
+class ReturnKwException : std::exception {
   public:
     ExprVal return_val;
-    ReturnVal(ExprVal return_val) : return_val(return_val) {}
+    ReturnKwException(ExprVal return_val) : return_val(return_val) {}
 };
 
 class ClassDecl : public Stmt {
