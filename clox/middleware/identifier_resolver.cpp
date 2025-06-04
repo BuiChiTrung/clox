@@ -93,6 +93,11 @@ void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
     define_identifier(*class_decl_stmt.name);
 
     if (class_decl_stmt.superclass != nullptr) {
+        if (class_decl_stmt.superclass->token->lexeme ==
+            class_decl_stmt.name->lexeme) {
+            ErrorManager::handle_err(*class_decl_stmt.superclass->token,
+                                     "Error: Class cannot extend itself.");
+        }
         class_decl_stmt.superclass->accept(*this);
     }
 

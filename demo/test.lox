@@ -25,3 +25,5 @@ class B : A {
 B().test();
 class C : B {}
 C().test();
+
+class D : D {}

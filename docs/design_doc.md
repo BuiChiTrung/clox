@@ -875,6 +875,75 @@ Constructor is a pair of operations:
 Src code: `LoxClass::invoke`
 
 Not allow using `return` in `init()`. Check in resolver.
+## Inheritance
+### Superclass and subclass
+Term: superclass (base class), subclass (derived class)
+**Parsing rule:** `:` used to inherit.
+```
+// classDecl -> "class" IDENTIFIER (: IDENTIFIER)? "{" function* "}"
+```
+**AST node:**
+```cpp
+class ClassDecl : public Stmt {
+    std::shared_ptr<Token> name;
+    std::shared_ptr<IdentifierExpr> superclass;
+    std::vector<std::shared_ptr<FunctionDecl>> methods;
+}
+```
+**Resolver:** add a line of code to resolve superclass and check edge case: a class inherit itself.
+**Eval node:**
++ Store `superclass` in `LoxClass`
++ Check if super class is defined and is a valid LoxClass. This cannot be done in resolver because we can only evaluate superclass at runtime.
+```cpp
+var NotAClass = "I am totally not a class";
+class Subclass < NotAClass {} // ?!
+```
+
+```cpp
+void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
+		...
+    if (class_decl.superclass != nullptr) {
+        ExprVal superclass_expr_val =
+            class_decl.superclass->accept(*this); // evaluate super class expr
+        superclass = cast_expr_val_to_lox_class(superclass_expr_val);
+        if (!superclass) {
+            throw RuntimeException(class_decl.superclass->token,
+                                   "Superclass must be a defined class.");
+        }
+    }
+		...
+}
+```
+### Inherit method
+```cpp
+class Doughnut {
+  fun cook() {
+    print("Fry until golden brown.");
+  }
+}
+
+class BostonCream : Doughnut {}
+
+BostonCream().cook();
+```
+
+In dynamic type language, it's pretty simple as we don't have to worry about memory layout as in static type language. 
+```cpp
+// class.hpp
+std::shared_ptr<LoxMethod> get_method(std::string name) {
+		// Check method exist in the current class
+		if (methods.count(name) > 0) {
+				return methods[name];
+		}
+
+		// Check method exist in the superclass
+		if (superclass != nullptr) {
+				return superclass->get_method(name);
+		}
+
+		return nullptr;
+}
+```
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`
