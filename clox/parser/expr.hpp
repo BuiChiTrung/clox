@@ -10,6 +10,7 @@ class IdentifierExpr;
 class FuncCallExpr;
 class GetClassFieldExpr;
 class ThisExpr;
+class SuperExpr;
 
 // Use visitor design pattern to pack all the logic of override function for all
 // Exp subclass in a seperate Visitor class.
@@ -23,6 +24,7 @@ class IExprVisitor {
     virtual ExprVal visit_func_call(const FuncCallExpr &) = 0;
     virtual ExprVal visit_get_class_field(const GetClassFieldExpr &) = 0;
     virtual ExprVal visit_this(const ThisExpr &) = 0;
+    virtual ExprVal visit_super(const SuperExpr &) = 0;
 };
 
 class Expr {
@@ -87,9 +89,9 @@ class UnaryExpr : public Expr {
 
 class IdentifierExpr : public Expr {
   public:
-    std::shared_ptr<Token> name;
+    std::shared_ptr<Token> token;
 
-    IdentifierExpr(std::shared_ptr<Token> name) : name(name) {}
+    IdentifierExpr(std::shared_ptr<Token> token) : token(token) {}
 
     ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_identifier(*this);
@@ -101,6 +103,19 @@ class ThisExpr : public IdentifierExpr {
     using IdentifierExpr::IdentifierExpr;
     ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_this(*this);
+    }
+};
+
+class SuperExpr : public IdentifierExpr {
+  public:
+    std::shared_ptr<IdentifierExpr> method;
+
+    SuperExpr(std::shared_ptr<Token> token,
+              std::shared_ptr<IdentifierExpr> method)
+        : IdentifierExpr(token), method(method) {}
+
+    ExprVal accept(IExprVisitor &visitor) override {
+        return visitor.visit_super(*this);
     }
 };
 

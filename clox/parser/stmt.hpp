@@ -152,13 +152,13 @@ class ReturnVal : std::exception {
 class ClassDecl : public Stmt {
   public:
     std::shared_ptr<Token> name;
-    std::shared_ptr<IdentifierExpr> super_class;
+    std::shared_ptr<IdentifierExpr> superclass;
     std::vector<std::shared_ptr<FunctionDecl>> methods;
 
     ClassDecl(std::shared_ptr<Token> name,
-              std::shared_ptr<IdentifierExpr> super_class,
+              std::shared_ptr<IdentifierExpr> superclass,
               std::vector<std::shared_ptr<FunctionDecl>> &methods)
-        : name(name), super_class(super_class), methods(methods) {}
+        : name(name), superclass(superclass), methods(methods) {}
 
     void accept(IStmtVisitor &v) override { return v.visit_class_decl(*this); }
 };

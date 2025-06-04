@@ -52,7 +52,7 @@ class LoxFunction : public LoxCallable {
         // defined in the func scope
         auto func_env = std::make_shared<Environment>(parent_env);
         for (int i = 0; i < func_stmt->params.size(); ++i) {
-            func_env->add_new_variable(func_stmt->params[i]->name->lexeme,
+            func_env->add_new_variable(func_stmt->params[i]->token->lexeme,
                                        args[i]);
         }
 

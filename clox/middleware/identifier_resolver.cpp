@@ -92,8 +92,8 @@ void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
     declare_identifier(*class_decl_stmt.name);
     define_identifier(*class_decl_stmt.name);
 
-    if (class_decl_stmt.super_class != nullptr) {
-        class_decl_stmt.super_class->accept(*this);
+    if (class_decl_stmt.superclass != nullptr) {
+        class_decl_stmt.superclass->accept(*this);
     }
 
     auto enclosing_class_type = current_class_type;
@@ -101,11 +101,15 @@ void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
 
     addScope(); // class scope
     scopes.back()["this"] = true;
+    if (class_decl_stmt.superclass != nullptr) {
+        current_class_type = ResolveClassType::SUBCLASS;
+        scopes.back()["super"] = true;
+    }
     for (auto method : class_decl_stmt.methods) {
-        bool is_constructor =
+        bool is_initializer =
             method->name->lexeme == class_decl_stmt.name->lexeme;
-        if (is_constructor) {
-            resolve_function(*method, ResolveFuncType::CONSTRUCTOR);
+        if (is_initializer) {
+            resolve_function(*method, ResolveFuncType::INITIALIZER);
         } else {
             resolve_function(*method, ResolveFuncType::METHOD);
         }
@@ -125,7 +129,7 @@ void IdentifierResolver::resolve_function(const FunctionDecl &func_decl_stmt,
 
     addScope();
     for (auto param : func_decl_stmt.params) {
-        define_identifier(*param->name);
+        define_identifier(*param->token);
     }
     std::shared_ptr<BlockStmt> func_body =
         std::dynamic_pointer_cast<BlockStmt>(func_decl_stmt.body);
@@ -140,9 +144,9 @@ void IdentifierResolver::visit_return_stmt(const ReturnStmt &return_stmt) {
         ErrorManager::handle_err(*return_stmt.return_kw,
                                  "Cannot return from outside a function.");
     }
-    if (current_func_type == ResolveFuncType::CONSTRUCTOR) {
+    if (current_func_type == ResolveFuncType::INITIALIZER) {
         ErrorManager::handle_err(*return_stmt.return_kw,
-                                 "Cannot return inside the class constructor.");
+                                 "Cannot return inside the class initializer.");
     }
     return_stmt.expr->accept(*this);
 }
@@ -155,10 +159,10 @@ void IdentifierResolver::visit_set_class_field(
 
 ExprVal
 IdentifierResolver::visit_identifier(const IdentifierExpr &identifier_expr) {
-    if (scopes.back().count(identifier_expr.name->lexeme) != 0 and
-        scopes.back()[identifier_expr.name->lexeme] == false) {
+    if (scopes.back().count(identifier_expr.token->lexeme) != 0 and
+        scopes.back()[identifier_expr.token->lexeme] == false) {
         ErrorManager::handle_err(
-            identifier_expr.name->line,
+            identifier_expr.token->line,
             "Can't read local variable in its own initializer.");
     }
 
@@ -168,17 +172,31 @@ IdentifierResolver::visit_identifier(const IdentifierExpr &identifier_expr) {
 
 ExprVal IdentifierResolver::visit_this(const ThisExpr &this_expr) {
     if (current_class_type != ResolveClassType::CLASS) {
-        ErrorManager::handle_err(*this_expr.name,
+        ErrorManager::handle_err(*this_expr.token,
                                  "Can't return from outside a class method.");
     }
     resolve_identifier(this_expr);
     return NIL;
 }
 
+ExprVal IdentifierResolver::visit_super(const SuperExpr &super_expr) {
+    if (current_class_type == ResolveClassType::NONE) {
+        ErrorManager::handle_err(
+            *super_expr.token, "Can't use 'super' outside a subclass method.");
+    } else if (current_class_type != ResolveClassType::SUBCLASS) {
+        ErrorManager::handle_err(
+            *super_expr.token,
+            "Can't use 'super' inside a class with no super class.");
+    }
+
+    resolve_identifier(super_expr);
+    return NIL;
+}
+
 void IdentifierResolver::resolve_identifier(
     const IdentifierExpr &identifier_expr) {
     for (int i = scopes.size() - 1; i >= 0; --i) {
-        if (scopes[i].count(identifier_expr.name->lexeme) != 0) {
+        if (scopes[i].count(identifier_expr.token->lexeme) != 0) {
             interpreter->resolve_identifier(identifier_expr,
                                             scopes.size() - 1 - i);
             return;
@@ -228,9 +246,9 @@ void IdentifierResolver::addScope() {
 void IdentifierResolver::closeScope() { scopes.pop_back(); }
 
 /*
-Adds identifier to the innermost scope so that it shadows any outer one and so
-that we know the variable exists. We mark it as “not ready yet” by binding its
-name to false in the scope map.
+Adds identifier to the innermost scope so that it shadows any outer one and
+so that we know the variable exists. We mark it as “not ready yet” by
+binding its name to false in the scope map.
 */
 void IdentifierResolver::declare_identifier(const Token &identifier_name) {
     if (scopes.back().count(identifier_name.lexeme) != 0) {

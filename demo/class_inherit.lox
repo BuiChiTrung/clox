@@ -1,7 +1,5 @@
 class A {
   fun method() {
-    // Error: cannot use super outside a subclass method.
-    // super.init();
     print("A method");
   }
 }
@@ -12,14 +10,9 @@ class B : A {
   }
 
   fun test() {
-    super.init();
     super.method();
   }
 }
-
-
-// Error: cannot use super outside a subclass method.
-// super.do_sth();
 
 B().test();
 class C : B {}

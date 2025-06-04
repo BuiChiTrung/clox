@@ -8,15 +8,15 @@ enum class ResolveFuncType {
     NONE,
     FUNCTION,
     METHOD,
-    // Constructor is a special method (not allow return_kw, etc). It
+    // Initializer is a special method (not allow return_kw, etc). It
     // should be a seperate type.
-    CONSTRUCTOR,
+    INITIALIZER,
 };
 
 enum class ResolveClassType {
     NONE,
     CLASS,
-    // SUB_CLASS
+    SUBCLASS,
 };
 
 class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
@@ -49,7 +49,9 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_identifier(const IdentifierExpr &) override;
 
-    ExprVal visit_this(const ThisExpr &this_expr) override;
+    ExprVal visit_this(const ThisExpr &) override;
+
+    ExprVal visit_super(const SuperExpr &) override;
 
     ExprVal visit_literal(const LiteralExpr &) override;
 

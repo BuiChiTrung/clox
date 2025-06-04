@@ -38,6 +38,10 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_this(const ThisExpr &this_expr) override;
 
+    ExprVal visit_super(const SuperExpr &super_expr) override;
+
+    std::shared_ptr<LoxClass> cast_expr_val_to_lox_class(ExprVal &);
+
     // Use pointer to support polymorphism: downcast from ThisExpr to
     // IdentifierExpr
     ExprVal evaluate_identifier(const IdentifierExpr &);

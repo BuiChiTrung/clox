@@ -26,7 +26,7 @@ class LoxMethod : public LoxFunction {
 class LoxClass : public LoxCallable {
   private:
     std::string name;
-    std::shared_ptr<LoxClass> super_class;
+    std::shared_ptr<LoxClass> superclass;
     std::unordered_map<std::string, std::shared_ptr<LoxMethod>> methods;
 
     friend class LoxInstance;
@@ -34,9 +34,9 @@ class LoxClass : public LoxCallable {
 
   public:
     LoxClass(
-        std::string name, std::shared_ptr<LoxClass> super_class,
+        std::string name, std::shared_ptr<LoxClass> superclass,
         std::unordered_map<std::string, std::shared_ptr<LoxMethod>> &methods)
-        : name(name), super_class(super_class), methods(methods) {}
+        : name(name), superclass(superclass), methods(methods) {}
 
     uint get_param_num() override {
         auto initializer = get_method(INIT_METHOD);
@@ -68,8 +68,8 @@ class LoxClass : public LoxCallable {
             return methods[name];
         }
 
-        if (super_class != nullptr) {
-            return super_class->get_method(name);
+        if (superclass != nullptr) {
+            return superclass->get_method(name);
         }
 
         return nullptr;

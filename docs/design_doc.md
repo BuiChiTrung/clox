@@ -740,7 +740,7 @@ class ClassDecl : public Stmt {
 ### Creating instance
 Support class constructor `ClassName()` by inheriting `LoxCallable`. 2 steps:
 1. Alloc mem for new instance. We have another class to present class instance: `LoxInstance`
-2. Run user defined constructor if it exists.
+2. Run user defined initializer: `init()` if it exists.
 ### Properties on instance
 Support new token `.` which tell us that an instance property is accessed. `.` has the same precedence as `()` in func call expr. Ex: In expressions involving both `.` and `()`, such as `a.b()` or `a().b`, the operand or operator that appears earlier in the syntax is evaluated first.
 => we put it in the grammar by updating `call` rule:
@@ -871,21 +871,10 @@ ExprVal AstInterpreter::visit_this(const ThisExpr &this_expr) {
 ### Constructors and Initializers
 Constructor is a pair of operations:
 + Allocate memory for new instance: done in Create instance section
-+ Run the user-defined constructor if it exists: call `<class_name>()` func.
++ Run the user-defined constructor if it exists: call `init()`
 Src code: `LoxClass::invoke`
 
-Special case: instance call Construtor directly. We raise runtime err in this case.
-```cpp
-class Foo {
-  Foo() {
-  }
-}
-
-var foo = Foo();
-print foo.init();
-```
-
-Not allow using `return` in constructor. Check in resolver.
+Not allow using `return` in `init()`. Check in resolver.
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`

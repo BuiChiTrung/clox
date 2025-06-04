@@ -45,6 +45,7 @@ void AstInterpreter::interpret_program(
 
 ExprVal AstInterpreter::evaluate_expr(Expr &expr) { return expr.accept(*this); }
 
+// TODO(trung.bc): move to expr_val.hpp
 inline std::string exprval_to_string(const ExprVal &value) {
     return std::visit(
         [](auto &&arg) -> std::string {
@@ -81,7 +82,7 @@ void AstInterpreter::visit_assign_stmt(const AssignStmt &a) {
 
     const IdentifierExpr *ptr = a.var.get();
     int depth = identifier_scope_depth[ptr];
-    move_up_env(depth)->identifier_table[a.var->name->lexeme] = new_value;
+    move_up_env(depth)->identifier_table[a.var->token->lexeme] = new_value;
 }
 
 void AstInterpreter::visit_print_stmt(const PrintStmt &p) {
@@ -139,28 +140,38 @@ void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
     }
 
     // Check if super class is defined and is a valid LoxClass
-    std::shared_ptr<LoxClass> super_class = nullptr;
-    if (class_decl.super_class != nullptr) {
-        ExprVal super_class_val =
-            class_decl.super_class->accept(*this); // evaluate super class expr
-        try {
-            auto lox_callable =
-                std::get<std::shared_ptr<LoxCallable>>(super_class_val);
-            super_class = std::dynamic_pointer_cast<LoxClass>(lox_callable);
-            if (!super_class) {
-                throw RuntimeException(class_decl.super_class->name,
-                                       "Superclass must be a defined class.");
-            }
-        } catch (std::bad_variant_access &) {
-            throw RuntimeException(class_decl.super_class->name,
+    std::shared_ptr<LoxClass> superclass = nullptr;
+    if (class_decl.superclass != nullptr) {
+        ExprVal superclass_expr_val =
+            class_decl.superclass->accept(*this); // evaluate super class expr
+        superclass = cast_expr_val_to_lox_class(superclass_expr_val);
+        if (!superclass) {
+            throw RuntimeException(class_decl.superclass->token,
                                    "Superclass must be a defined class.");
         }
+
+        class_env->add_new_variable("super", superclass);
     }
 
     auto lox_class = std::make_shared<LoxClass>(class_decl.name->lexeme,
-                                                super_class, methods);
+                                                superclass, methods);
 
     env->add_new_variable(class_decl.name->lexeme, lox_class);
+}
+
+std::shared_ptr<LoxClass>
+AstInterpreter::cast_expr_val_to_lox_class(ExprVal &expr_val) {
+    try {
+        auto lox_callable = std::get<std::shared_ptr<LoxCallable>>(expr_val);
+        auto superclass = std::dynamic_pointer_cast<LoxClass>(lox_callable);
+        if (superclass) {
+            return superclass;
+        }
+    } catch (std::bad_variant_access &) {
+        return nullptr;
+    }
+
+    return nullptr;
 }
 
 void AstInterpreter::visit_block_stmt(const BlockStmt &b,
@@ -215,18 +226,57 @@ ExprVal AstInterpreter::visit_this(const ThisExpr &this_expr) {
     return evaluate_identifier(this_expr);
 }
 
+ExprVal AstInterpreter::visit_super(const SuperExpr &super_expr) {
+    // Find super class of current class
+    // TODO(trung.bc): duplicate code
+    const IdentifierExpr *ptr = &super_expr;
+    if (identifier_scope_depth.count(ptr) == 0) {
+        throw RuntimeException(ptr->token,
+                               "Reference to non-exist identifier: " +
+                                   ptr->token->lexeme);
+    }
+
+    int depth = identifier_scope_depth[ptr];
+    ExprVal superclass_expr_val =
+        move_up_env(depth)->identifier_table[ptr->token->lexeme];
+    std::shared_ptr<LoxClass> superclass =
+        cast_expr_val_to_lox_class(superclass_expr_val);
+    if (!superclass) {
+        throw RuntimeException(super_expr.token,
+                               "Super can only be used in a subclass.");
+    }
+
+    // Find LoxInstance super refer to. "this" and "super" both stored in the
+    // class_env.
+    ExprVal lox_instance_expr_val =
+        move_up_env(depth)->identifier_table["this"];
+    auto lox_instance =
+        std::get<std::shared_ptr<LoxInstance>>(lox_instance_expr_val);
+
+    // Find method invoked by super
+    auto method = superclass->get_method(super_expr.method->token->lexeme);
+    if (!method) {
+        throw RuntimeException(super_expr.method->token,
+                               "Superclass does not have method " +
+                                   super_expr.method->token->lexeme);
+    }
+    method->bind_this_kw_to_class_method(*lox_instance);
+
+    return method;
+}
+
 ExprVal
 AstInterpreter::evaluate_identifier(const IdentifierExpr &identifier_expr_ptr) {
     const IdentifierExpr *ptr = &identifier_expr_ptr;
     if (identifier_scope_depth.count(ptr) == 0) {
-        throw RuntimeException(ptr->name,
+        throw RuntimeException(ptr->token,
                                "Reference to non-exist identifier: " +
-                                   ptr->name->lexeme);
+                                   ptr->token->lexeme);
     }
 
     int depth = identifier_scope_depth[ptr];
 
-    return move_up_env(depth)->identifier_table[ptr->name->lexeme];
+    return move_up_env(depth)->identifier_table[ptr->token->lexeme];
 }
 
 ExprVal AstInterpreter::visit_literal(const LiteralExpr &l) { return l.value; }

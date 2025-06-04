@@ -1,26 +1,29 @@
 class FootballPlayer {
-    fun do_sth() {
-        print("Messi right foot is better than Ronaldo whole career.");
+    fun init(quality) {
+        this.quality = quality;
     }
     fun pass() {
-        print(this.skill);
+        print("This is a " + this.quality + " pass");
+    }
+    fun print_truth() {
+        print("Messi right foot is better than Ronaldo whole career.");
     }
 }
 print(FootballPlayer);
 
-// Inherit: super keyword to call superclass method in subclass in currently not supported.
+// Class inherit
 class Striker : FootballPlayer {
-    fun init(quality) {
-        this.quality = quality;
+    fun init(quality, skill) {
+        super.init(quality);
+        this.skill = skill;
     }
     fun shoot() {
-        print("This is a " + this.quality + " shoot");
+        print(this.skill);
     }
 }
 
-var yamal = Striker("Wonderful");
+var yamal = Striker("Wonderful", "Curl shot");
 print(yamal);
 
-yamal.skill = "Through pass";
 yamal.pass();
 yamal.shoot();
