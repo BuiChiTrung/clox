@@ -13,6 +13,7 @@ class BlockStmt;
 class IfStmt;
 class WhileStmt;
 class BreakStmt;
+class ContinueStmt;
 class FunctionDecl;
 class ReturnStmt;
 class ClassDecl;
@@ -31,6 +32,7 @@ class IStmtVisitor {
     virtual void visit_if_stmt(const IfStmt &) = 0;
     virtual void visit_while_stmt(const WhileStmt &) = 0;
     virtual void visit_break_stmt(const BreakStmt &) = 0;
+    virtual void visit_continue_stmt(const ContinueStmt &) = 0;
     virtual void visit_return_stmt(const ReturnStmt &) = 0;
     virtual void visit_class_decl(const ClassDecl &) = 0;
     virtual void visit_set_class_field(const SetClassFieldStmt &) = 0;
@@ -127,6 +129,18 @@ class BreakStmt : public Stmt {
 };
 
 class BreakKwException : public std::exception {};
+class ContinueStmt : public Stmt {
+  public:
+    std::shared_ptr<Token> continue_kw;
+
+    ContinueStmt(std::shared_ptr<Token> continue_kw)
+        : continue_kw(continue_kw) {}
+    void accept(IStmtVisitor &v) override {
+        return v.visit_continue_stmt(*this);
+    }
+};
+
+class ContinueKwException : public std::exception {};
 
 class FunctionDecl : public Stmt {
   public:

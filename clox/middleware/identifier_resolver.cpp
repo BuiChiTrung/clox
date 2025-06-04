@@ -96,6 +96,15 @@ void IdentifierResolver::visit_break_stmt(const BreakStmt &break_stmt) {
     }
 }
 
+void IdentifierResolver::visit_continue_stmt(
+    const ContinueStmt &continue_stmt) {
+    if (current_loop_type == ResolveLoopType::NONE) {
+        ErrorManager::handle_err(
+            *continue_stmt.continue_kw,
+            "Error: 'continue' statement can only be used inside a loop.");
+    }
+}
+
 void IdentifierResolver::visit_function_decl(FunctionDecl &func_decl_stmt) {
     resolve_function(func_decl_stmt, ResolveFuncType::FUNCTION);
 }

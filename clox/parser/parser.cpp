@@ -67,6 +67,9 @@ std::shared_ptr<Stmt> Parser::parse_stmt() {
     if (validate_token(TokenType::BREAK)) {
         return parse_break_stmt();
     }
+    if (validate_token(TokenType::CONTINUE)) {
+        return parse_continue_stmt();
+    }
     if (validate_token(TokenType::IF)) {
         return parse_if_stmt();
     }
@@ -179,6 +182,15 @@ std::vector<std::shared_ptr<IdentifierExpr>> Parser::parse_func_params() {
 
 // forStmt → "for" (varDecl | assignStmt | ";") (expression)? ";" (assignStmt)?
 // block
+/* Equivalent to:
+    {
+        initializer;
+        while (condition) {
+            body;
+            increment;
+        }
+    }
+*/
 std::shared_ptr<Stmt> Parser::parse_for_stmt() {
     // std::shared_ptr<Stmt> Parser::parse_for_stmt() {
     assert_tok_and_advance(TokenType::FOR, "Expected for loop");
@@ -212,7 +224,7 @@ std::shared_ptr<Stmt> Parser::parse_for_stmt() {
     std::shared_ptr<WhileStmt> while_stmt(new WhileStmt(condition, body));
     if (initializer != nullptr) {
         std::vector<std::shared_ptr<Stmt>> stmts = {initializer, while_stmt};
-        std::shared_ptr<BlockStmt> for_stmt(new BlockStmt(stmts));
+        auto for_stmt = std::make_shared<BlockStmt>(stmts);
         return for_stmt;
     }
     return while_stmt;
@@ -233,6 +245,14 @@ std::shared_ptr<BreakStmt> Parser::parse_break_stmt() {
     assert_tok_and_advance(TokenType::SEMICOLON,
                            "Expected ; at the end of break statement");
     return std::make_shared<BreakStmt>(break_kw);
+}
+
+std::shared_ptr<ContinueStmt> Parser::parse_continue_stmt() {
+    assert_tok_and_advance(TokenType::CONTINUE, "Expected continue keyword.");
+    std::shared_ptr<Token> continue_kw = get_prev_tok();
+    assert_tok_and_advance(TokenType::SEMICOLON,
+                           "Expected ; at the end of continue statement");
+    return std::make_shared<ContinueStmt>(continue_kw);
 }
 
 // ifStmt -> "if" expression block ("elif" block)+ ("else" block)?

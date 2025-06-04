@@ -118,6 +118,8 @@ void AstInterpreter::visit_while_stmt(const WhileStmt &w) {
     while (cast_literal_to_bool(evaluate_expr(*w.condition))) {
         try {
             w.body->accept(*this);
+        } catch (ContinueKwException &) {
+            continue;
         } catch (BreakKwException &) {
             return; // Break out of the loop
         }
@@ -126,6 +128,10 @@ void AstInterpreter::visit_while_stmt(const WhileStmt &w) {
 
 void AstInterpreter::visit_break_stmt(const BreakStmt &) {
     throw BreakKwException();
+}
+
+void AstInterpreter::visit_continue_stmt(const ContinueStmt &) {
+    throw ContinueKwException();
 }
 
 void AstInterpreter::visit_function_decl(FunctionDecl &func_decl) {
@@ -193,6 +199,12 @@ void AstInterpreter::visit_block_stmt(const BlockStmt &b,
         for (auto stmt : b.stmts) {
             stmt->accept(*this);
         }
+    } catch (BreakKwException &b) {
+        env = enclosing_env;
+        throw b;
+    } catch (ContinueKwException &c) {
+        env = enclosing_env;
+        throw c;
     } catch (ReturnKwException &r) {
         env = enclosing_env;
         throw r;

@@ -20,6 +20,7 @@ class Parser {
     std::shared_ptr<Stmt> parse_for_stmt();
     std::shared_ptr<WhileStmt> parse_while_stmt();
     std::shared_ptr<BreakStmt> parse_break_stmt();
+    std::shared_ptr<ContinueStmt> parse_continue_stmt();
     std::shared_ptr<IfStmt> parse_if_stmt();
     std::shared_ptr<VarDecl> parse_var_decl();
     std::shared_ptr<PrintStmt> parse_print_stmt();

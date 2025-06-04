@@ -26,13 +26,15 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     void visit_while_stmt(const WhileStmt &) override;
 
+    void visit_break_stmt(const BreakStmt &) override;
+
+    void visit_continue_stmt(const ContinueStmt &) override;
+
     void visit_function_decl(FunctionDecl &) override;
 
     void visit_class_decl(const ClassDecl &) override;
 
     void visit_return_stmt(const ReturnStmt &) override;
-
-    void visit_break_stmt(const BreakStmt &) override;
 
     void visit_set_class_field(const SetClassFieldStmt &) override;
 
