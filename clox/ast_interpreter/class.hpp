@@ -4,6 +4,7 @@
 #include "clox/common/error_manager.hpp"
 #include "clox/utils/helper.hpp"
 
+#include <iostream>
 #include <memory>
 #include <sys/types.h>
 
