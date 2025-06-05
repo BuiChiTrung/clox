@@ -1,4 +1,5 @@
 #include "clox/ast_interpreter/ast_interpreter.hpp"
+#include "clox/middleware/identifier_resolver.hpp"
 #include "clox/parser/parser.hpp"
 #include "clox/scanner/scanner.hpp"
 #include <gtest/gtest.h>
@@ -50,4 +51,15 @@ TEST_F(AstInterpreterTest, EvaluatesBinaryExpression) {
     evaluateExpression("\"Hello, \" + \"world!\"",
                        std::string("Hello, world!"));
     evaluateExpression("true == false", false);
+}
+
+TEST_F(AstInterpreterTest, EvaluatesComparisonExpression) {
+    evaluateExpression("5 < 10", true);
+    evaluateExpression("10 > 5", true);
+    evaluateExpression("5 <= 5", true);
+    evaluateExpression("5 >= 5", true);
+    evaluateExpression("5 == 5", true);
+    evaluateExpression("5 != 6", true);
+    evaluateExpression("\"abc\" < \"def\"", true);
+    evaluateExpression("\"abc\" > \"def\"", false);
 }

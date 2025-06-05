@@ -88,6 +88,9 @@ class AssignStmt : public Stmt {
 class BlockStmt : public Stmt {
   public:
     std::vector<std::shared_ptr<Stmt>> stmts;
+    // This is used when we exec continue statement in a for loop, run this
+    // statement to increment the loop variable before jumping out from the
+    // block scope
     std::shared_ptr<Stmt> for_loop_increment = nullptr;
 
     BlockStmt(const std::vector<std::shared_ptr<Stmt>> &stmts) : stmts(stmts) {}

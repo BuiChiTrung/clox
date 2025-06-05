@@ -199,6 +199,8 @@ void AstInterpreter::visit_block_stmt(const BlockStmt &b,
         for (auto stmt : b.stmts) {
             stmt->accept(*this);
         }
+        // The most convenient way to jump out from a stack of function call is
+        // throwing exception.
     } catch (BreakKwException &b) {
         env = enclosing_env;
         throw b;
