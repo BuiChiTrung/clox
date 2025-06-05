@@ -37,7 +37,10 @@ RuntimeException::RuntimeException(std::shared_ptr<Token> tok,
 
 const char *RuntimeException::what() const noexcept {
     // Construct the error message dynamically
-    formattedMessage = message + " at line " + std::to_string(tok->line) +
-                       ", near '" + tok->lexeme + "'";
+    formattedMessage = message;
+    if (tok != nullptr) {
+        formattedMessage += " at line " + std::to_string(tok->line) +
+                            ", near '" + tok->lexeme + "'";
+    }
     return formattedMessage.c_str();
 }

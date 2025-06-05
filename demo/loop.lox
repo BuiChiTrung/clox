@@ -6,7 +6,7 @@ for var b = 1; a < 1000000; b = temp + b; {
   print(a);
   temp = a;
   a = b;
-  if (a > 50000) {
+  if a > 50000 {
     break;
   }
 }

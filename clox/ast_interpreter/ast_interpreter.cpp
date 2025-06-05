@@ -17,7 +17,7 @@ AstInterpreter::AstInterpreter(const bool is_interactive_mode)
     : global_env(std::make_shared<Environment>()),
       is_interactive_mode(is_interactive_mode) {
     env = global_env;
-    global_env->add_new_variable("clock", std::make_shared<ClockNativeFunc>());
+    global_env->add_identifier("clock", std::make_shared<ClockNativeFunc>());
 }
 
 // func to test if the interpreter can exec a single expression
@@ -77,11 +77,11 @@ void AstInterpreter::visit_expr_stmt(const ExprStmt &e) {
 
 void AstInterpreter::visit_assign_stmt(const AssignStmt &a) {
     ExprVal new_value = evaluate_expr(*a.value);
-    // env->assign_new_value_to_variable(a.var->name, new_value);
 
     const IdentifierExpr *ptr = a.var.get();
     int depth = identifier_scope_depth_map[ptr];
-    move_up_env(depth)->identifier_table[a.var->token->lexeme] = new_value;
+    move_up_env(depth)->update_identifier(a.var->token->lexeme, new_value,
+                                          a.var->token);
 }
 
 void AstInterpreter::visit_print_stmt(const PrintStmt &p) {
@@ -94,7 +94,7 @@ void AstInterpreter::visit_var_decl(const VarDecl &v) {
     if (v.initializer != nullptr) {
         var_value = evaluate_expr(*v.initializer);
     }
-    env->add_new_variable(v.var_name->lexeme, var_value);
+    env->add_identifier(v.var_name->lexeme, var_value);
 }
 
 void AstInterpreter::visit_if_stmt(const IfStmt &i) {
@@ -138,14 +138,14 @@ void AstInterpreter::visit_function_decl(FunctionDecl &func_decl) {
     auto func_decl_sp =
         std::shared_ptr<FunctionDecl>(&func_decl, smart_pointer_no_op_deleter);
     auto func = std::make_shared<LoxFunction>(func_decl_sp, env);
-    env->add_new_variable(func_decl.name->lexeme, func);
+    env->add_identifier(func_decl.name->lexeme, func);
 }
 
 void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
     std::unordered_map<std::string, std::shared_ptr<LoxMethod>> methods = {};
 
     auto class_env = std::make_shared<Environment>(env);
-    class_env->add_new_variable("this", NIL);
+    class_env->add_identifier("this", NIL);
 
     for (auto method : class_decl.methods) {
         auto lox_method = std::make_shared<LoxMethod>(method, class_env);
@@ -163,13 +163,13 @@ void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
                                    "Superclass must be a defined class.");
         }
 
-        class_env->add_new_variable("super", superclass);
+        class_env->add_identifier("super", superclass);
     }
 
     auto lox_class = std::make_shared<LoxClass>(class_decl.name->lexeme,
                                                 superclass, methods);
 
-    env->add_new_variable(class_decl.name->lexeme, lox_class);
+    env->add_identifier(class_decl.name->lexeme, lox_class);
 }
 
 std::shared_ptr<LoxClass>
@@ -203,6 +203,9 @@ void AstInterpreter::visit_block_stmt(const BlockStmt &b,
         env = enclosing_env;
         throw b;
     } catch (ContinueKwException &c) {
+        if (b.for_loop_increment) {
+            b.for_loop_increment->accept(*this);
+        }
         env = enclosing_env;
         throw c;
     } catch (ReturnKwException &r) {
@@ -239,19 +242,21 @@ void AstInterpreter::visit_set_class_field(
 ExprVal
 AstInterpreter::visit_identifier(const IdentifierExpr &identifier_expr) {
     int depth = get_identifier_depth(identifier_expr);
-    return move_up_env(depth)->identifier_table[identifier_expr.token->lexeme];
+    return move_up_env(depth)->get_identifier(identifier_expr.token->lexeme,
+                                              identifier_expr.token);
 }
 
 ExprVal AstInterpreter::visit_this(const ThisExpr &this_expr) {
     int depth = get_identifier_depth(this_expr);
-    return move_up_env(depth)->identifier_table["this"];
+    return move_up_env(depth)->get_identifier("this", this_expr.token);
 }
 
 ExprVal AstInterpreter::visit_super(const SuperExpr &super_expr) {
     int depth = get_identifier_depth(super_expr);
 
     // Find super class of current class
-    ExprVal superclass_expr_val = move_up_env(depth)->identifier_table["super"];
+    ExprVal superclass_expr_val =
+        move_up_env(depth)->get_identifier("super", super_expr.token);
     std::shared_ptr<LoxClass> superclass =
         cast_expr_val_to_lox_class(superclass_expr_val);
     if (!superclass) {
@@ -262,7 +267,7 @@ ExprVal AstInterpreter::visit_super(const SuperExpr &super_expr) {
     // Find LoxInstance super refer to. "this" and "super" both stored in the
     // class_env.
     ExprVal lox_instance_expr_val =
-        move_up_env(depth)->identifier_table["this"];
+        move_up_env(depth)->get_identifier("this", super_expr.token);
     auto lox_instance =
         std::get<std::shared_ptr<LoxInstance>>(lox_instance_expr_val);
 

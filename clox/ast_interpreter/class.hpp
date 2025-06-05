@@ -17,9 +17,11 @@ class LoxMethod : public LoxFunction {
     void bind_this_kw_to_class_method(LoxInstance &instance) {
         // Use no-op deleter to make sure that "this" is not deallocate
         // after shared_ptr run out of scope.
-        this->parent_env->identifier_table["this"] =
+        this->parent_env->update_identifier(
+            "this",
             std::shared_ptr<LoxInstance>(&instance,
-                                         smart_pointer_no_op_deleter);
+                                         smart_pointer_no_op_deleter),
+            nullptr);
     }
 };
 

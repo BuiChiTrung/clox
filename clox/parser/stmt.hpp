@@ -88,6 +88,7 @@ class AssignStmt : public Stmt {
 class BlockStmt : public Stmt {
   public:
     std::vector<std::shared_ptr<Stmt>> stmts;
+    std::shared_ptr<Stmt> for_loop_increment = nullptr;
 
     BlockStmt(const std::vector<std::shared_ptr<Stmt>> &stmts) : stmts(stmts) {}
 

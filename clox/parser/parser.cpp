@@ -216,12 +216,13 @@ std::shared_ptr<Stmt> Parser::parse_for_stmt() {
         increment = parse_assign_stmt();
     }
 
-    auto body = std::dynamic_pointer_cast<BlockStmt>(parse_block_stmt());
+    std::shared_ptr<BlockStmt> body = parse_block_stmt();
     if (increment != nullptr) {
         body->stmts.push_back(increment);
+        body->for_loop_increment = increment;
     }
 
-    std::shared_ptr<WhileStmt> while_stmt(new WhileStmt(condition, body));
+    auto while_stmt = std::make_shared<WhileStmt>(condition, body);
     if (initializer != nullptr) {
         std::vector<std::shared_ptr<Stmt>> stmts = {initializer, while_stmt};
         auto for_stmt = std::make_shared<BlockStmt>(stmts);
@@ -258,8 +259,8 @@ std::shared_ptr<ContinueStmt> Parser::parse_continue_stmt() {
 // ifStmt -> "if" expression block ("elif" block)+ ("else" block)?
 std::shared_ptr<IfStmt> Parser::parse_if_stmt() {
     assert_tok_and_advance(TokenType::IF, "Expected if statement");
-    static std::vector<std::shared_ptr<Expr>> conditions;
-    static std::vector<std::shared_ptr<Stmt>> if_blocks;
+    std::vector<std::shared_ptr<Expr>> conditions;
+    std::vector<std::shared_ptr<Stmt>> if_blocks;
     conditions.push_back(parse_expr());
     if_blocks.push_back(parse_block_stmt());
 

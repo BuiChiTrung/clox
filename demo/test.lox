@@ -1,17 +1,32 @@
 var i = 0;
 
-while (i < 10) {
+while i < 10 {
     i = i + 1;
 
-    // Skip even numbers
-    if (i % 2 == 0) {
+    if i % 2 == 0 {
         continue;
     }
 
     print(i);
 
-    if (i == 7) {
+    if i == 7 {
         print("Reached 7, breaking loop!");
+        break;
+    }
+}
+
+for var j = 0; j <= 12; j = j + 1; {
+    if j % 2 == 0 {
+        if j % 3 == 0 {
+          continue;
+        }
+        if j % 3 == 1 {
+          print(j);
+        }
+    }
+    
+    if j == 11 {
+        print("Reached 11, breaking loop!");
         break;
     }
 }
