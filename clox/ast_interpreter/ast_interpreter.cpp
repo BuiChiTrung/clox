@@ -2,6 +2,8 @@
 #include "clox/ast_interpreter/callable.hpp"
 #include "clox/ast_interpreter/class.hpp"
 #include "clox/ast_interpreter/environment.hpp"
+#include "clox/ast_interpreter/helper.hpp"
+#include "clox/ast_interpreter/native_function.hpp"
 #include "clox/common/constants.hpp"
 #include "clox/common/error_manager.hpp"
 #include "clox/common/token.hpp"
@@ -18,6 +20,7 @@ AstInterpreter::AstInterpreter(const bool is_interactive_mode)
       is_interactive_mode(is_interactive_mode) {
     env = global_env;
     global_env->add_identifier("clock", std::make_shared<ClockNativeFunc>());
+    global_env->add_identifier("print", std::make_shared<PrintNativeFunc>());
 }
 
 // func to test if the interpreter can exec a single expression
@@ -45,29 +48,6 @@ void AstInterpreter::interpret_program(
 
 ExprVal AstInterpreter::evaluate_expr(Expr &expr) { return expr.accept(*this); }
 
-inline std::string exprval_to_string(const ExprVal &value) {
-    return std::visit(
-        [](auto &&arg) -> std::string {
-            using T = std::decay_t<decltype(arg)>;
-
-            if constexpr (std::is_same_v<T, bool>) {
-                return arg ? "true" : "false";
-            } else if constexpr (std::is_same_v<T, double>) {
-                return double_to_string(arg);
-            } else if constexpr (std::is_same_v<T, std::string>) {
-                return arg;
-            } else if constexpr (std::is_same_v<T,
-                                                std::shared_ptr<LoxCallable>> ||
-                                 std::is_same_v<T,
-                                                std::shared_ptr<LoxInstance>>) {
-                return arg ? arg->to_string() : "nil";
-            } else {
-                return "nil";
-            }
-        },
-        value);
-}
-
 void AstInterpreter::visit_expr_stmt(const ExprStmt &e) {
     ExprVal val = evaluate_expr(*e.expr);
     if (is_interactive_mode) {
@@ -82,11 +62,6 @@ void AstInterpreter::visit_assign_stmt(const AssignStmt &a) {
     int depth = identifier_scope_depth_map[ptr];
     move_up_env(depth)->update_identifier(a.var->token->lexeme, new_value,
                                           a.var->token);
-}
-
-void AstInterpreter::visit_print_stmt(const PrintStmt &p) {
-    ExprVal val = evaluate_expr(*p.expr);
-    std::cout << exprval_to_string(val) << std::endl;
 }
 
 void AstInterpreter::visit_var_decl(const VarDecl &v) {
@@ -300,8 +275,9 @@ ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &f) {
     }
 
     auto func = std::get<std::shared_ptr<LoxCallable>>(callee);
+    uint param_num = func->get_param_num();
     // Check func number of params = number of args passed to it.
-    if (func->get_param_num() != f.args.size()) {
+    if (param_num != f.args.size() && param_num != UNLIMITED_ARGS_NUM) {
         throw RuntimeException(
             f.close_parenthesis,
             "Expected " + std::to_string(func->get_param_num()) +

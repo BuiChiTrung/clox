@@ -5,18 +5,15 @@ class Person {
   }
 }
 
-var manh = Person();
-manh.name = "MAnh";
-
 var bill = Person();
 bill.name = "Bill";
+var method = bill.sayName;
+method();
 
+var manh = Person();
+manh.name = "MAnh";
 bill.sayName = manh.sayName;
 bill.sayName(); 
-
-/*
-var method = manh.sayName;
-method();
 
 fun do_sth(argument) {
     print("argument");
@@ -24,4 +21,3 @@ fun do_sth(argument) {
 
 manh.x = do_sth;
 manh.x("argument");
-*/

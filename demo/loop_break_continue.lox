@@ -10,7 +10,7 @@ while i < 10 {
     print(i);
 
     if i == 7 {
-        print("Reached 7, breaking loop!");
+        print("Reached", i, "breaking loop!");
         break;
     }
 }
@@ -26,7 +26,7 @@ for var j = 0; j <= 12; j = j + 1; {
     }
     
     if j == 11 {
-        print("Reached 11, breaking loop!");
+        print("Reached", j, "breaking loop!");
         break;
     }
 }

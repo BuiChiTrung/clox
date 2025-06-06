@@ -52,9 +52,6 @@ std::shared_ptr<Stmt> Parser::parse_declaration() {
 // statement → block | forStmt | whileStmt | ifStmt | exprStmt | printStmt |
 // assignStmt | returnStmt
 std::shared_ptr<Stmt> Parser::parse_stmt() {
-    if (validate_token(TokenType::PRINT)) {
-        return parse_print_stmt();
-    }
     if (validate_token(TokenType::LEFT_BRACE)) {
         return parse_block_stmt();
     }
@@ -315,19 +312,6 @@ std::shared_ptr<VarDecl> Parser::parse_var_decl() {
         "Expected ; at the end of variable declaration statement");
 
     return std::make_shared<VarDecl>(tok_var, var_initializer);
-}
-
-// printStmt  → "print" expression ";"
-std::shared_ptr<PrintStmt> Parser::parse_print_stmt() {
-    assert_tok_and_advance(TokenType::PRINT, "Expected 'print'");
-    // assert_tok_and_advance(TokenType::LEFT_PAREN, "Expected '(' after
-    // print");
-    std::shared_ptr<PrintStmt> stmt(new PrintStmt(parse_expr()));
-    // assert_tok_and_advance(TokenType::RIGHT_PAREN, "Expected ')' after
-    // print");
-    assert_tok_and_advance(TokenType::SEMICOLON,
-                           "Expected ; at the end of print statement");
-    return stmt;
 }
 
 // assignStmt -> (IDENTIFIER | call) "=" expression";" | exprStmt
@@ -619,8 +603,8 @@ void Parser::panic_mode_synchornize() {
         case TokenType::FOR:
         case TokenType::IF:
         case TokenType::WHILE:
-        case TokenType::PRINT:
         case TokenType::RETURN:
+        // TODO(trung.bc): check this
         case TokenType::LEFT_BRACE:
             return;
         default:

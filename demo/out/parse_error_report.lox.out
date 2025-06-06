@@ -1,3 +1,3 @@
-[line 3] Error at 'while': Expected ; at the end of print statement
+[line 2] Error at 'a': Expected ; at the end of assign statement
 [line 3] Error at '{': Expected close bracket '}' at the end of the block to match '{'
 Parser error occurs

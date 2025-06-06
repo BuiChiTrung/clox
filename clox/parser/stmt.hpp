@@ -24,7 +24,6 @@ class IStmtVisitor {
     virtual void visit_var_decl(const VarDecl &) = 0;
     virtual void visit_function_decl(FunctionDecl &) = 0;
     virtual void visit_expr_stmt(const ExprStmt &) = 0;
-    virtual void visit_print_stmt(const PrintStmt &) = 0;
     virtual void visit_assign_stmt(const AssignStmt &) = 0;
     virtual void
     visit_block_stmt(const BlockStmt &b,
@@ -52,15 +51,6 @@ class ExprStmt : public Stmt {
     ExprStmt(std::shared_ptr<Expr> expr) : expr(expr) {};
 
     void accept(IStmtVisitor &v) override { return v.visit_expr_stmt(*this); }
-};
-
-class PrintStmt : public Stmt {
-  public:
-    std::shared_ptr<Expr> expr;
-
-    PrintStmt(std::shared_ptr<Expr> expr) : expr(expr) {};
-
-    void accept(IStmtVisitor &v) override { return v.visit_print_stmt(*this); }
 };
 
 class VarDecl : public Stmt {

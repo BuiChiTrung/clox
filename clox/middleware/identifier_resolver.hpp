@@ -33,8 +33,6 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
 
     void visit_assign_stmt(const AssignStmt &) override;
 
-    void visit_print_stmt(const PrintStmt &) override;
-
     void visit_var_decl(const VarDecl &) override;
 
     void

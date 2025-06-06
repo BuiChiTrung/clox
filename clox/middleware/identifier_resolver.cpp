@@ -40,10 +40,6 @@ void IdentifierResolver::visit_assign_stmt(const AssignStmt &assign_stmt) {
     resolve_identifier(*assign_stmt.var);
 }
 
-void IdentifierResolver::visit_print_stmt(const PrintStmt &print_stmt) {
-    print_stmt.expr->accept(*this);
-}
-
 void IdentifierResolver::visit_var_decl(const VarDecl &var_decl_stmt) {
     /*
        Need a pair of func declare and define to handle a special case: var is

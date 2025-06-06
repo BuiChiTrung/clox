@@ -4,7 +4,6 @@
 #include "clox/common/constants.hpp"
 #include "clox/parser/stmt.hpp"
 
-#include <chrono>
 #include <memory>
 #include <string>
 #include <sys/types.h>
@@ -18,19 +17,6 @@ class LoxCallable {
                            std::vector<ExprVal> &args) = 0;
 
     virtual std::string to_string() const = 0;
-};
-
-class ClockNativeFunc : public LoxCallable {
-  public:
-    ExprVal invoke(AstInterpreter &interpreter,
-                   std::vector<ExprVal> &args) override {
-        auto now = std::chrono::system_clock::now();
-        std::chrono::duration<double> unix_time = now.time_since_epoch();
-
-        return unix_time.count();
-    }
-
-    std::string to_string() const override { return "<native-fn clock>"; }
 };
 
 class LoxFunction : public LoxCallable {

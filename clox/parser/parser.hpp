@@ -23,7 +23,6 @@ class Parser {
     std::shared_ptr<ContinueStmt> parse_continue_stmt();
     std::shared_ptr<IfStmt> parse_if_stmt();
     std::shared_ptr<VarDecl> parse_var_decl();
-    std::shared_ptr<PrintStmt> parse_print_stmt();
     // return SetClassFieldStmt or AssignStmt
     std::shared_ptr<Stmt> parse_assign_stmt();
     std::shared_ptr<Expr> parse_expr();

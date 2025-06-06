@@ -51,7 +51,6 @@ enum class TokenType {
     IF,
     NIL,
     OR,
-    PRINT,
     RETURN,
     SUPER,
     THIS,
@@ -64,16 +63,15 @@ enum class TokenType {
 };
 
 const std::unordered_map<std::string, TokenType> reserved_kws = {
-    {"and", TokenType::AND},           {"class", TokenType::CLASS},
-    {"else", TokenType::ELSE},         {"elif", TokenType::ELIF},
-    {"false", TokenType::FALSE},       {"for", TokenType::FOR},
-    {"fun", TokenType::FUNC},          {"if", TokenType::IF},
-    {"nil", TokenType::NIL},           {"or", TokenType::OR},
-    {"print", TokenType::PRINT},       {"return", TokenType::RETURN},
-    {"super", TokenType::SUPER},       {"this", TokenType::THIS},
-    {"true", TokenType::TRUE},         {"var", TokenType::VAR},
-    {"while", TokenType::WHILE},       {"break", TokenType::BREAK},
-    {"continue", TokenType::CONTINUE},
+    {"and", TokenType::AND},       {"class", TokenType::CLASS},
+    {"else", TokenType::ELSE},     {"elif", TokenType::ELIF},
+    {"false", TokenType::FALSE},   {"for", TokenType::FOR},
+    {"fun", TokenType::FUNC},      {"if", TokenType::IF},
+    {"nil", TokenType::NIL},       {"or", TokenType::OR},
+    {"return", TokenType::RETURN}, {"super", TokenType::SUPER},
+    {"this", TokenType::THIS},     {"true", TokenType::TRUE},
+    {"var", TokenType::VAR},       {"while", TokenType::WHILE},
+    {"break", TokenType::BREAK},   {"continue", TokenType::CONTINUE},
 };
 
 class Token {
