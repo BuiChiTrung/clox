@@ -944,6 +944,99 @@ std::shared_ptr<LoxMethod> get_method(std::string name) {
 		return nullptr;
 }
 ```
+### Calling super method
+`super` keyword: Use to call overriden method in superclass in the method of subclass.
+```cpp
+class Doughnut {
+  cook() {
+    print "Fry until golden brown.";
+  }
+}
+
+class BostonCream < Doughnut {
+  cook() {
+    super.cook();
+    print "Pipe full of custard and coat with chocolate.";
+  }
+}
+
+BostonCream().cook();
+```
+**Parsing rule:** super must go with `.<method>`
+```
+// primary → IDENTIFIER | "this" | NUMBER | STRING | "true" | "false" | "nil" |
+// "super".IDENTIFIER | "(" expression ")"
+```
+**AST Node:** Inherit IdentifierExpr to inherit `resolve_identifier` method
+```cpp
+class SuperExpr : public IdentifierExpr {
+    std::shared_ptr<IdentifierExpr> method;
+}
+```
+**Resolver:** resolve it to the superclass of the class containing the `super`.
+Similar to `this`, we add `super` to the class env if it's a subclass.
+```cpp
+void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
+		...
+    addScope(); // class scope
+    scopes.back()["this"] = true;
+    if (class_decl_stmt.superclass != nullptr) {
+        current_class_type = ResolveClassType::SUBCLASS;
+        scopes.back()["super"] = true;
+    }
+    closeScope();
+		...
+}
+
+```
+Utilize `resolve_identifier` method to resolve `IdentifierExpr`: look for `super` in the chain of scope.
+```cpp
+ExprVal IdentifierResolver::visit_super(const SuperExpr &super_expr) {
+    resolve_identifier(super_expr);
+    return NIL;
+}
+```
+**Eval node:** Similar to how we handle `this`. 2 chains of scope/env in resolver, interpreter must be sync. We add `super` to the class env in interpreter while interpreting class declaration. However, different from `this`, `super` always point to the same class.
+```cpp
+void AstInterpreter::visit_class_decl(const ClassDecl &class_decl) {
+		...
+    auto class_env = std::make_shared<Environment>(env);
+    class_env->add_identifier("this", NIL);
+
+    // Check if super class is defined and is a valid LoxClass
+    if (class_decl.superclass != nullptr) {
+				ExprVal superclass_expr_val =
+            class_decl.superclass->accept(*this); // evaluate super class expr
+        superclass = cast_expr_val_to_lox_class(superclass_expr_val);
+        class_env->add_identifier("super", superclass);
+    }
+		...
+}
+```
+When interpreting `super` kw, there are 3 steps:
++ Find the superclass `super` refer to by looking at the scope/env chain (similar to other identifier).
++ Find the class instance which invoke the method call. In other word, `this`. As we define `this`, `super` in the same class env. In the prev step, we already know the scope different from the current scope in which `super` keyword is used in the class env => we can get `this` - class instance.
++ Find method invoked.
+Check the func `AstInterpreter::visit_super` for detail.
+**Check invalid usage of `super`**:
++ Used in a non subclass
++ Used outside a method body
+Check in resolver:
+```cpp
+ExprVal IdentifierResolver::visit_super(const SuperExpr &super_expr) {
+    if (current_class_type == ResolveClassType::NONE) {
+        ErrorManager::handle_err(
+            *super_expr.token, "Can't use 'super' outside a subclass method.");
+    } else if (current_class_type != ResolveClassType::SUBCLASS) {
+        ErrorManager::handle_err(
+            *super_expr.token,
+            "Can't use 'super' inside a class with no super class.");
+    }
+
+    resolve_identifier(super_expr);
+    return NIL;
+}
+```
 ## Compile and linking
 Compiler convert a source language to a lower level target language (the target doesn't necessary to be assembly)
 Compiler triplet: naming convention for what a program can run on. Structure: machine-vendor-operatingsystem, ex: `x86_64-linux-gnu`

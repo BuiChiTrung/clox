@@ -510,7 +510,7 @@ std::vector<std::shared_ptr<Expr>> Parser::parse_func_call_arguments() {
 }
 
 // primary → IDENTIFIER | "this" | NUMBER | STRING | "true" | "false" | "nil" |
-// "(" expression ")"
+// "super".IDENTIFIER | "(" expression ")"
 std::shared_ptr<Expr> Parser::parse_primary() {
     if (validate_token_and_advance({TokenType::IDENTIFIER})) {
         return std::make_shared<IdentifierExpr>(get_prev_tok());
