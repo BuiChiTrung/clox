@@ -122,13 +122,13 @@ class SuperExpr : public IdentifierExpr {
 class FuncCallExpr : public Expr {
   public:
     std::shared_ptr<Expr> callee;
-    std::shared_ptr<Token> close_parenthesis;
+    std::shared_ptr<Token> func_token;
     std::vector<std::shared_ptr<Expr>> args;
 
     FuncCallExpr(std::shared_ptr<Expr> callee,
-                 std::shared_ptr<Token> close_parenthesis,
+                 std::shared_ptr<Token> func_token,
                  std::vector<std::shared_ptr<Expr>> &args)
-        : callee(callee), close_parenthesis(close_parenthesis), args(args) {}
+        : callee(callee), func_token(func_token), args(args) {}
 
     ExprVal accept(IExprVisitor &visitor) override {
         return visitor.visit_func_call(*this);

@@ -1,9 +1,9 @@
 #include "ast_interpreter.hpp"
-#include "clox/ast_interpreter/callable.hpp"
-#include "clox/ast_interpreter/class.hpp"
+#include "clox/ast_interpreter/callable/callable.hpp"
+#include "clox/ast_interpreter/callable/class.hpp"
+#include "clox/ast_interpreter/callable/native_function.hpp"
 #include "clox/ast_interpreter/environment.hpp"
 #include "clox/ast_interpreter/helper.hpp"
-#include "clox/ast_interpreter/native_function.hpp"
 #include "clox/common/constants.hpp"
 #include "clox/common/error_manager.hpp"
 #include "clox/common/token.hpp"
@@ -21,6 +21,12 @@ AstInterpreter::AstInterpreter(const bool is_interactive_mode)
     env = global_env;
     global_env->add_identifier("clock", std::make_shared<ClockNativeFunc>());
     global_env->add_identifier("print", std::make_shared<PrintNativeFunc>());
+    global_env->add_identifier("read", std::make_shared<ReadNativeFunc>());
+    global_env->add_identifier("readline",
+                               std::make_shared<ReadlineNativeFunc>());
+    global_env->add_identifier("bool", std::make_shared<BoolCastNativeFunc>());
+    global_env->add_identifier("str", std::make_shared<StringCastNativeFunc>());
+    global_env->add_identifier("num", std::make_shared<DoubleCastNativeFunc>());
 }
 
 // func to test if the interpreter can exec a single expression
@@ -48,51 +54,51 @@ void AstInterpreter::interpret_program(
 
 ExprVal AstInterpreter::evaluate_expr(Expr &expr) { return expr.accept(*this); }
 
-void AstInterpreter::visit_expr_stmt(const ExprStmt &e) {
-    ExprVal val = evaluate_expr(*e.expr);
+void AstInterpreter::visit_expr_stmt(const ExprStmt &expr_stmt) {
+    ExprVal val = evaluate_expr(*expr_stmt.expr);
     if (is_interactive_mode) {
-        std::cout << exprval_to_string(val) << std::endl;
+        std::cout << cast_expr_val_to_string(val) << std::endl;
     }
 }
 
-void AstInterpreter::visit_assign_stmt(const AssignStmt &a) {
-    ExprVal new_value = evaluate_expr(*a.value);
+void AstInterpreter::visit_assign_stmt(const AssignStmt &assign_stmt) {
+    ExprVal new_value = evaluate_expr(*assign_stmt.value);
 
-    const IdentifierExpr *ptr = a.var.get();
+    const IdentifierExpr *ptr = assign_stmt.var.get();
     int depth = identifier_scope_depth_map[ptr];
-    move_up_env(depth)->update_identifier(a.var->token->lexeme, new_value,
-                                          a.var->token);
+    move_up_env(depth)->update_identifier(assign_stmt.var->token->lexeme,
+                                          new_value, assign_stmt.var->token);
 }
 
-void AstInterpreter::visit_var_decl(const VarDecl &v) {
+void AstInterpreter::visit_var_decl(const VarDecl &var_decl) {
     ExprVal var_value = NIL;
-    if (v.initializer != nullptr) {
-        var_value = evaluate_expr(*v.initializer);
+    if (var_decl.initializer != nullptr) {
+        var_value = evaluate_expr(*var_decl.initializer);
     }
-    env->add_identifier(v.var_name->lexeme, var_value);
+    env->add_identifier(var_decl.var_name->lexeme, var_value);
 }
 
-void AstInterpreter::visit_if_stmt(const IfStmt &i) {
+void AstInterpreter::visit_if_stmt(const IfStmt &if_stmt) {
     bool exec_else_block = true;
 
-    for (int j = 0; j < i.conditions.size(); ++j) {
-        ExprVal expr_val = evaluate_expr(*i.conditions[j]);
-        if (cast_literal_to_bool(expr_val)) {
-            i.if_blocks[j]->accept(*this);
+    for (int j = 0; j < if_stmt.conditions.size(); ++j) {
+        ExprVal expr_val = evaluate_expr(*if_stmt.conditions[j]);
+        if (cast_expr_val_to_bool(expr_val)) {
+            if_stmt.if_blocks[j]->accept(*this);
             exec_else_block = false;
             break;
         }
     }
 
-    if (exec_else_block && i.else_block != nullptr) {
-        i.else_block->accept(*this);
+    if (exec_else_block && if_stmt.else_block != nullptr) {
+        if_stmt.else_block->accept(*this);
     }
 }
 
-void AstInterpreter::visit_while_stmt(const WhileStmt &w) {
-    while (cast_literal_to_bool(evaluate_expr(*w.condition))) {
+void AstInterpreter::visit_while_stmt(const WhileStmt &while_stmt) {
+    while (cast_expr_val_to_bool(evaluate_expr(*while_stmt.condition))) {
         try {
-            w.body->accept(*this);
+            while_stmt.body->accept(*this);
         } catch (ContinueKwException &) {
             continue;
         } catch (BreakKwException &) {
@@ -162,7 +168,7 @@ AstInterpreter::cast_expr_val_to_lox_class(ExprVal &expr_val) {
     return nullptr;
 }
 
-void AstInterpreter::visit_block_stmt(const BlockStmt &b,
+void AstInterpreter::visit_block_stmt(const BlockStmt &block_stmt,
                                       std::shared_ptr<Environment> block_env) {
     auto enclosing_env = env;
     if (block_env == nullptr) {
@@ -171,7 +177,7 @@ void AstInterpreter::visit_block_stmt(const BlockStmt &b,
 
     env = block_env;
     try {
-        for (auto stmt : b.stmts) {
+        for (auto stmt : block_stmt.stmts) {
             stmt->accept(*this);
         }
         // The most convenient way to jump out from a stack of function call is
@@ -180,8 +186,8 @@ void AstInterpreter::visit_block_stmt(const BlockStmt &b,
         env = enclosing_env;
         throw b;
     } catch (ContinueKwException &c) {
-        if (b.for_loop_increment) {
-            b.for_loop_increment->accept(*this);
+        if (block_stmt.for_loop_increment) {
+            block_stmt.for_loop_increment->accept(*this);
         }
         env = enclosing_env;
         throw c;
@@ -192,10 +198,10 @@ void AstInterpreter::visit_block_stmt(const BlockStmt &b,
     env = enclosing_env;
 }
 
-void AstInterpreter::visit_return_stmt(const ReturnStmt &r) {
+void AstInterpreter::visit_return_stmt(const ReturnStmt &return_stmt) {
     ExprVal return_val = NIL;
-    if (r.expr != nullptr) {
-        return_val = evaluate_expr(*r.expr);
+    if (return_stmt.expr != nullptr) {
+        return_val = evaluate_expr(*return_stmt.expr);
     }
 
     throw ReturnKwException(return_val);
@@ -260,37 +266,45 @@ ExprVal AstInterpreter::visit_super(const SuperExpr &super_expr) {
     return method;
 }
 
-ExprVal AstInterpreter::visit_literal(const LiteralExpr &l) { return l.value; }
-
-ExprVal AstInterpreter::visit_grouping(const GroupExpr &g) {
-    return evaluate_expr(*g.expr);
+ExprVal AstInterpreter::visit_literal(const LiteralExpr &literal_expr) {
+    return literal_expr.value;
 }
 
-ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &f) {
-    ExprVal callee = evaluate_expr(*f.callee);
+ExprVal AstInterpreter::visit_grouping(const GroupExpr &group_expr) {
+    return evaluate_expr(*group_expr.expr);
+}
+
+ExprVal AstInterpreter::visit_func_call(const FuncCallExpr &func_call_expr) {
+    ExprVal callee = evaluate_expr(*func_call_expr.callee);
 
     if (!std::holds_alternative<std::shared_ptr<LoxCallable>>(callee)) {
-        throw RuntimeException(f.close_parenthesis,
+        throw RuntimeException(func_call_expr.func_token,
                                "Can only call functions and class's method.");
     }
 
     auto func = std::get<std::shared_ptr<LoxCallable>>(callee);
     uint param_num = func->get_param_num();
     // Check func number of params = number of args passed to it.
-    if (param_num != f.args.size() && param_num != UNLIMITED_ARGS_NUM) {
+    if (param_num != func_call_expr.args.size() &&
+        param_num != UNLIMITED_ARGS_NUM) {
         throw RuntimeException(
-            f.close_parenthesis,
+            func_call_expr.func_token,
             "Expected " + std::to_string(func->get_param_num()) +
                 " args to be passed to the function, but got " +
-                std::to_string(f.args.size()));
+                std::to_string(func_call_expr.args.size()));
     }
 
     std::vector<ExprVal> arg_vals{};
-    for (auto arg : f.args) {
+    for (auto arg : func_call_expr.args) {
         arg_vals.push_back(evaluate_expr(*arg));
     }
 
-    return func->invoke(*this, arg_vals);
+    try {
+        return func->invoke(*this, arg_vals);
+    } catch (RuntimeException &runtime_err) {
+        throw RuntimeException(func_call_expr.func_token,
+                               runtime_err.get_message());
+    }
 }
 
 ExprVal AstInterpreter::visit_get_class_field(const GetClassFieldExpr &expr) {
@@ -306,31 +320,32 @@ ExprVal AstInterpreter::visit_get_class_field(const GetClassFieldExpr &expr) {
     return lox_instance->get_field(expr.field_token);
 }
 
-ExprVal AstInterpreter::visit_unary(const UnaryExpr &u) {
-    ExprVal right = evaluate_expr(*u.operand);
+ExprVal AstInterpreter::visit_unary(const UnaryExpr &unary_expr) {
+    ExprVal right = evaluate_expr(*unary_expr.operand);
 
-    switch (u.operation->type) {
+    switch (unary_expr.operation->type) {
     case TokenType::BANG:
-        return !cast_literal_to_bool(right);
+        return !cast_expr_val_to_bool(right);
     case TokenType::MINUS:
-        check_number_operand(u.operation, right);
+        assert_expr_val_number(unary_expr.operation, right);
         return -std::get<double>(right);
     default:
-        ErrorManager::handle_err(u.operation->line, "Invalid unary expression");
+        ErrorManager::handle_err(unary_expr.operation->line,
+                                 "Invalid unary expression");
         return NIL;
     }
 }
 
-ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
-    ExprVal left = evaluate_expr(*b.left_operand);
-    ExprVal right = evaluate_expr(*b.right_operand);
+ExprVal AstInterpreter::visit_binary(const BinaryExpr &binary_expr) {
+    ExprVal left = evaluate_expr(*binary_expr.left_operand);
+    ExprVal right = evaluate_expr(*binary_expr.right_operand);
 
     auto left_double_ptr = std::get_if<double>(&left);
     auto right_double_ptr = std::get_if<double>(&right);
     auto left_string_ptr = std::get_if<std::string>(&left);
     auto right_string_ptr = std::get_if<std::string>(&right);
 
-    switch (b.operation->type) {
+    switch (binary_expr.operation->type) {
     // Special case: + op can be used to concate 2 strings
     case TokenType::PLUS:
         if (left_double_ptr && right_double_ptr) {
@@ -345,21 +360,21 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_double_ptr) {
             return *left_string_ptr + double_to_string(*right_double_ptr);
         }
-        throw RuntimeException(b.operation,
+        throw RuntimeException(binary_expr.operation,
                                "Operands must be number or string");
     case TokenType::MINUS:
-        check_number_operands(b.operation, left, right);
+        assert_expr_vals_number(binary_expr.operation, left, right);
         return *left_double_ptr - *right_double_ptr;
     case TokenType::STAR:
-        check_number_operands(b.operation, left, right);
+        assert_expr_vals_number(binary_expr.operation, left, right);
         return *left_double_ptr * *right_double_ptr;
     case TokenType::MOD:
-        check_int_operands(b.operation, left, right);
+        assert_expr_vals_int(binary_expr.operation, left, right);
         return double(int(*left_double_ptr) % int(*right_double_ptr));
     case TokenType::SLASH:
-        check_number_operands(b.operation, left, right);
+        assert_expr_vals_number(binary_expr.operation, left, right);
         if (*right_double_ptr == 0) {
-            throw RuntimeException(b.operation, "Devide by 0");
+            throw RuntimeException(binary_expr.operation, "Devide by 0");
         }
         return *left_double_ptr / *right_double_ptr;
     case TokenType::GREATER:
@@ -369,7 +384,7 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_string_ptr) {
             return *left_string_ptr > *right_string_ptr;
         }
-        throw RuntimeException(b.operation,
+        throw RuntimeException(binary_expr.operation,
                                "Expected compare 2 numbers or 2 strings");
     case TokenType::LESS:
         if (left_double_ptr && right_double_ptr) {
@@ -378,7 +393,7 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_string_ptr) {
             return *left_string_ptr < *right_string_ptr;
         }
-        throw RuntimeException(b.operation,
+        throw RuntimeException(binary_expr.operation,
                                "Expected compare 2 numbers or 2 strings");
     case TokenType::GREATER_EQUAL:
         if (left_double_ptr && right_double_ptr) {
@@ -387,7 +402,7 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_string_ptr) {
             return *left_string_ptr >= *right_string_ptr;
         }
-        throw RuntimeException(b.operation,
+        throw RuntimeException(binary_expr.operation,
                                "Expected compare 2 numbers or 2 strings");
     case TokenType::LESS_EQUAL:
         if (left_double_ptr && right_double_ptr) {
@@ -396,89 +411,28 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &b) {
         if (left_string_ptr && right_string_ptr) {
             return *left_string_ptr <= *right_string_ptr;
         }
-        throw RuntimeException(b.operation,
+        throw RuntimeException(binary_expr.operation,
                                "Expected compare 2 numbers or 2 strings");
     // Special case: support compare mixed type another type with bool
     case TokenType::BANG_EQUAL:
-        return !is_equal(left, right);
+        return !is_expr_vals_equal(left, right);
     case TokenType::EQUAL_EQUAL:
-        return is_equal(left, right);
+        return is_expr_vals_equal(left, right);
     // Special case: we may know the result after evaluating the left expr
     case TokenType::AND:
-        if (!cast_literal_to_bool(left)) {
+        if (!cast_expr_val_to_bool(left)) {
             return false;
         }
-        return cast_literal_to_bool(right);
+        return cast_expr_val_to_bool(right);
     case TokenType::OR:
-        if (cast_literal_to_bool(left)) {
+        if (cast_expr_val_to_bool(left)) {
             return true;
         }
-        return cast_literal_to_bool(right);
+        return cast_expr_val_to_bool(right);
     default:
-        ErrorManager::handle_err(b.operation->line,
+        ErrorManager::handle_err(binary_expr.operation->line,
                                  "Invalid binary expression");
         return NIL;
-    }
-}
-
-bool AstInterpreter::cast_literal_to_bool(const ExprVal &val) {
-    if (const auto boolPtr(std::get_if<bool>(&val)); boolPtr) {
-        return *boolPtr;
-    }
-    if (const auto doublePtr(std::get_if<double>(&val)); doublePtr) {
-        return *doublePtr != 0;
-    }
-    if (const auto strPtr(std::get_if<std::string>(&val)); strPtr) {
-        return strPtr->length() != 0;
-    }
-    if (std::holds_alternative<std::monostate>(val)) {
-        return false;
-    }
-
-    ErrorManager::handle_err(0, "Unsupported type to cast to bool");
-    exit(1);
-}
-
-bool AstInterpreter::is_equal(const ExprVal &left, const ExprVal &right) {
-    if (std::holds_alternative<bool>(left) ||
-        std::holds_alternative<bool>(right)) {
-        return cast_literal_to_bool(left) == cast_literal_to_bool(right);
-    }
-
-    // Compare variant: Type check then value check.
-    return left == right;
-}
-
-void AstInterpreter::check_number_operand(std::shared_ptr<Token> tok,
-                                          const ExprVal &right) {
-    if (!std::holds_alternative<double>(right)) {
-        throw RuntimeException(tok, "Right operand must be a number");
-    }
-}
-
-void AstInterpreter::check_int_operands(std::shared_ptr<Token> tok,
-                                        const ExprVal &left,
-                                        const ExprVal &right) {
-    check_number_operands(tok, left, right);
-
-    double left_double = std::get<double>(left);
-    if (static_cast<int>(left_double) != left_double) {
-        throw RuntimeException(tok, "Left operand must be an int");
-    }
-    double right_double = std::get<double>(right);
-    if (static_cast<int>(right_double) != right_double) {
-        throw RuntimeException(tok, "Right operand must be an int");
-    }
-}
-
-void AstInterpreter::check_number_operands(std::shared_ptr<Token> tok,
-                                           const ExprVal &left,
-                                           const ExprVal &right) {
-    if (!std::holds_alternative<double>(right)) {
-        throw RuntimeException(tok, "Right operand must be a number");
-    }
-    if (!std::holds_alternative<double>(left)) {
-        throw RuntimeException(tok, "Left operand must be a number");
     }
 }
 

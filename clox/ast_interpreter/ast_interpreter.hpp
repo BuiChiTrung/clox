@@ -1,6 +1,5 @@
 #pragma once
 #include "clox/ast_interpreter/environment.hpp"
-#include "clox/common/token.hpp"
 #include "clox/parser/expr.hpp"
 #include "clox/parser/stmt.hpp"
 #include <memory>
@@ -38,9 +37,9 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
 
     ExprVal visit_identifier(const IdentifierExpr &) override;
 
-    ExprVal visit_this(const ThisExpr &this_expr) override;
+    ExprVal visit_this(const ThisExpr &) override;
 
-    ExprVal visit_super(const SuperExpr &super_expr) override;
+    ExprVal visit_super(const SuperExpr &) override;
 
     std::shared_ptr<LoxClass> cast_expr_val_to_lox_class(ExprVal &);
 
@@ -55,17 +54,6 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
     ExprVal visit_unary(const UnaryExpr &) override;
 
     ExprVal visit_binary(const BinaryExpr &) override;
-
-    bool cast_literal_to_bool(const ExprVal &val);
-
-    bool is_equal(const ExprVal &left, const ExprVal &right);
-
-    void check_number_operand(std::shared_ptr<Token> tok, const ExprVal &right);
-
-    void check_number_operands(std::shared_ptr<Token> tok, const ExprVal &left,
-                               const ExprVal &right);
-    void check_int_operands(std::shared_ptr<Token> tok, const ExprVal &left,
-                            const ExprVal &right);
 
     // Use with Resolver class to resolve in which scope an identifier (var or
     // func) is defined

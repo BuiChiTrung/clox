@@ -495,6 +495,11 @@ Lox doesn’t _need_ `for` loops, they just make some common code patterns mo
 Instead of create new type of node in the syntax tree for `for(initializer; condition; increment)` loop we reuse the `while` loop: 
 for_stmt = BlockStmt(initializer, WhileStmt(condition, {while_body, increment}))
 ## Functions
+Summary: 
+When we interprete a function declaration, we create `LoxFunction` obj, create a new entry in the identifer table:
++ Key: function name
++ Value: `LoxFunction` obj
+When we interprete a function call expr, get `LoxFunction` obj out from the identifier table, call `invoke` (take func argument as param) method of `LoxFunction` obj.
 ### Function call
 Supported syntax: nested call `doSth(1, 2)()`. The callee: `doSth`, `doSth(1, 2)` are expression that evaluated as a function.
 **Parsing rule**: function call has higher precedence than unary

@@ -5,14 +5,12 @@
 
 class RuntimeException : public std::exception {
   private:
-    mutable std::string
-        formattedMessage; // Store the full formatted error message
     std::string message;
     std::shared_ptr<Token> tok;
 
   public:
     RuntimeException(std::shared_ptr<Token> tok, std::string message);
-    const char *what() const noexcept override;
+    std::string get_message() const;
     friend class ErrorManager;
 };
 

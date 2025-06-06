@@ -1,0 +1,14 @@
+// Read input from keyboard
+/*
+var a = read();
+var b = read();
+var c = readline();
+print(a, b, c);
+*/
+
+// Cast type
+fun func() {}
+print(bool(12), num("aa2.9"), str(func));
+
+// Clock: current timestamp
+print(clock());

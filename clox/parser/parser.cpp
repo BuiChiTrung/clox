@@ -450,15 +450,15 @@ std::shared_ptr<Expr> Parser::parse_call() {
     std::shared_ptr<Expr> call_expr = parse_primary();
 
     while (true) {
+        std::shared_ptr<Token> func_token = get_prev_tok();
         if (validate_token_and_advance({TokenType::LEFT_PAREN})) {
             std::vector<std::shared_ptr<Expr>> arguments =
                 parse_func_call_arguments();
 
             assert_tok_and_advance(TokenType::RIGHT_PAREN,
                                    "Expected ')' after function invocation");
-            std::shared_ptr<Token> right_paren = get_prev_tok();
 
-            call_expr = std::make_shared<FuncCallExpr>(call_expr, right_paren,
+            call_expr = std::make_shared<FuncCallExpr>(call_expr, func_token,
                                                        arguments);
         } else if (validate_token_and_advance({TokenType::DOT})) {
             std::shared_ptr<Token> field = assert_tok_and_advance(
@@ -597,14 +597,15 @@ void Parser::panic_mode_synchornize() {
         case TokenType::SEMICOLON:
             advance();
             return;
-        case TokenType::CLASS:
         case TokenType::FUNC:
+        case TokenType::RETURN:
         case TokenType::VAR:
+        case TokenType::BREAK:
+        case TokenType::CONTINUE:
+        case TokenType::CLASS:
         case TokenType::FOR:
         case TokenType::IF:
         case TokenType::WHILE:
-        case TokenType::RETURN:
-        // TODO(trung.bc): check this
         case TokenType::LEFT_BRACE:
             return;
         default:

@@ -1,5 +1,5 @@
 #pragma once
-#include "clox/ast_interpreter/callable.hpp"
+#include "clox/ast_interpreter/callable/callable.hpp"
 #include "clox/common/constants.hpp"
 #include "clox/common/error_manager.hpp"
 #include "clox/utils/helper.hpp"
@@ -11,7 +11,7 @@ class LoxMethod : public LoxFunction {
   public:
     using LoxFunction::LoxFunction;
     std::string to_string() const override {
-        return "<Method " + func_stmt->name->lexeme + ">";
+        return "<method " + func_stmt->name->lexeme + ">";
     }
 
     void bind_this_kw_to_class_method(LoxInstance &instance) {

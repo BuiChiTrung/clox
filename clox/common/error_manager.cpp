@@ -20,6 +20,10 @@ void ErrorManager::handle_err(const Token &tok, std::string msg) {
 
 void ErrorManager::handle_runtime_err(const RuntimeException &err) {
     had_runtime_err = true;
+    if (err.tok == nullptr) {
+        std::cout << "Runtime error: " << err.message << std::endl;
+        return;
+    }
     handle_err(*err.tok, err.message);
 }
 
@@ -35,12 +39,4 @@ RuntimeException::RuntimeException(std::shared_ptr<Token> tok,
                                    std::string message)
     : message(message), tok(tok) {}
 
-const char *RuntimeException::what() const noexcept {
-    // Construct the error message dynamically
-    formattedMessage = message;
-    if (tok != nullptr) {
-        formattedMessage += " at line " + std::to_string(tok->line) +
-                            ", near '" + tok->lexeme + "'";
-    }
-    return formattedMessage.c_str();
-}
+std::string RuntimeException::get_message() const { return message; }

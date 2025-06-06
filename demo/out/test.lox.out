@@ -1,3 +1,2 @@
-Bill
-MAnh
-argument
+[line 1] Error at 'num': Cannot cast string to double
+Runtime error occurs

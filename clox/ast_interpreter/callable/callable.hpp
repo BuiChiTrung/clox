@@ -53,6 +53,6 @@ class LoxFunction : public LoxCallable {
     }
 
     std::string to_string() const override {
-        return "<fn " + func_stmt->name->lexeme + ">";
+        return "<function " + func_stmt->name->lexeme + ">";
     }
 };
