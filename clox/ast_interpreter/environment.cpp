@@ -2,11 +2,7 @@
 #include "clox/common/error_manager.hpp"
 #include <memory>
 
-// TODO(trung.bc): should use default constructor or init in hpp
-Environment::Environment() {
-    identifier_table = {};
-    parent_scope_env = nullptr;
-}
+Environment::Environment() {}
 
 Environment::Environment(std::shared_ptr<Environment> parent_scope_env)
     : parent_scope_env(parent_scope_env) {}

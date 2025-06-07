@@ -8,8 +8,8 @@
 // Scan the whole file or a single line to return a vector of tokens
 class Scanner {
   private:
-    std::string src;
-    std::vector<std::shared_ptr<Token>> tokens;
+    std::string src = "";
+    std::vector<std::shared_ptr<Token>> tokens = {};
     uint lexeme_start_pos = 0;
     uint current_pos = 0;
     uint line = 1;

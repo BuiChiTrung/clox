@@ -7,6 +7,11 @@
 
 class AstInterpreter : public IExprVisitor, public IStmtVisitor {
   private:
+    std::shared_ptr<Environment> env = nullptr;
+    std::unordered_map<const IdentifierExpr *, int> identifier_scope_depth_map =
+        {};
+    const std::shared_ptr<Environment> global_env = nullptr;
+
     ExprVal evaluate_expr(Expr &expr);
 
     void visit_expr_stmt(const ExprStmt &) override;
@@ -60,10 +65,6 @@ class AstInterpreter : public IExprVisitor, public IStmtVisitor {
     void update_identifier_scope_depth_map(const IdentifierExpr &, int depth);
     uint get_identifier_depth(const IdentifierExpr &);
     std::shared_ptr<Environment> move_up_env(int depth);
-
-    std::shared_ptr<Environment> env;
-    std::unordered_map<const IdentifierExpr *, int> identifier_scope_depth_map;
-    const std::shared_ptr<Environment> global_env;
 
   public:
     const bool is_interactive_mode;
