@@ -330,8 +330,8 @@ ExprVal AstInterpreter::visit_unary(const UnaryExpr &unary_expr) {
         assert_expr_val_number(unary_expr.operation, right);
         return -std::get<double>(right);
     default:
-        ErrorManager::handle_err(unary_expr.operation->line,
-                                 "Invalid unary expression");
+        throw RuntimeException(unary_expr.operation,
+                               "Invalid unary expression");
         return NIL;
     }
 }
@@ -430,8 +430,8 @@ ExprVal AstInterpreter::visit_binary(const BinaryExpr &binary_expr) {
         }
         return cast_expr_val_to_bool(right);
     default:
-        ErrorManager::handle_err(binary_expr.operation->line,
-                                 "Invalid binary expression");
+        throw RuntimeException(binary_expr.operation,
+                               "Invalid binary expression");
         return NIL;
     }
 }

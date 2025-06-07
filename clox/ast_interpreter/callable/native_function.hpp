@@ -24,7 +24,7 @@ class PrintNativeFunc : public LoxCallable {
         for (int i = 0; i < args.size(); ++i) {
             std::cout << cast_expr_val_to_string(args[i]);
             if (i < args.size() - 1) {
-                std::cout << " "; // Print space between args
+                std::cout << " ";
             }
         }
         std::cout << std::endl;

@@ -14,8 +14,8 @@ Parser::Parser(const std::vector<std::shared_ptr<Token>> &tokens)
 std::shared_ptr<Expr> Parser::parse_single_expr() {
     try {
         return parse_expr();
-    } catch (ParserException &err) {
-        ErrorManager::handle_parser_err(err);
+    } catch (StaticException &err) {
+        ErrorManager::handle_static_err(err);
         return nullptr;
     }
 }
@@ -42,8 +42,8 @@ std::shared_ptr<Stmt> Parser::parse_declaration() {
             return parse_class_decl();
         }
         return parse_stmt();
-    } catch (ParserException &err) {
-        ErrorManager::handle_parser_err(err);
+    } catch (StaticException &err) {
+        ErrorManager::handle_static_err(err);
         panic_mode_synchornize();
         return nullptr;
     }
@@ -109,9 +109,9 @@ std::shared_ptr<ClassDecl> Parser::parse_class_decl() {
         std::shared_ptr<Token> superclass_name = assert_tok_and_advance(
             TokenType::IDENTIFIER, "Expected super class name");
         if (superclass_name->lexeme == class_name->lexeme) {
-            ErrorManager::handle_err(*superclass_name,
-                                     "Error: Class cannot extend itself: " +
-                                         superclass_name->lexeme);
+            throw StaticException(superclass_name,
+                                  "Class cannot extend itself: " +
+                                      superclass_name->lexeme);
         }
         superclass = std::make_shared<IdentifierExpr>(superclass_name);
     }
@@ -144,7 +144,7 @@ std::shared_ptr<FunctionDecl> Parser::parse_function() {
         parse_func_params();
 
     if (!validate_token_and_advance({TokenType::RIGHT_PAREN})) {
-        throw ParserException(left_parenthesis,
+        throw StaticException(left_parenthesis,
                               "Expected ')' at the end "
                               "of function params list to match '('");
     }
@@ -168,10 +168,9 @@ std::vector<std::shared_ptr<IdentifierExpr>> Parser::parse_func_params() {
     } while (validate_token_and_advance({TokenType::COMMA}));
 
     if (params.size() > MAX_ARGS_NUM) {
-        ErrorManager::handle_err(
-            *get_cur_tok(),
-            "Error: Number of params for function exceed limit " +
-                std::to_string(MAX_ARGS_NUM));
+        throw StaticException(get_cur_tok(),
+                              "Number of params for function exceed limit " +
+                                  std::to_string(MAX_ARGS_NUM));
     }
 
     return params;
@@ -287,7 +286,7 @@ std::shared_ptr<BlockStmt> Parser::parse_block_stmt() {
     }
 
     if (!validate_token_and_advance({TokenType::RIGHT_BRACE})) {
-        throw ParserException(left_brace,
+        throw StaticException(left_brace,
                               "Expected close bracket '}' at the end "
                               "of the block to match '{'");
     }
@@ -325,7 +324,7 @@ std::shared_ptr<Stmt> Parser::parse_assign_stmt() {
         auto get_class_field_expr =
             std::dynamic_pointer_cast<GetClassFieldExpr>(expr);
         if (!identifier_expr && !get_class_field_expr) {
-            throw ParserException(get_cur_tok(),
+            throw StaticException(get_cur_tok(),
                                   "Expected to assign new value to a variable "
                                   "or instance property");
         }
@@ -484,8 +483,8 @@ std::vector<std::shared_ptr<Expr>> Parser::parse_func_call_arguments() {
     } while (validate_token_and_advance({TokenType::COMMA}));
 
     if (args.size() > MAX_ARGS_NUM) {
-        ErrorManager::handle_err(
-            *get_cur_tok(),
+        throw StaticException(
+            get_cur_tok(),
             "Error: Number of arguments for function call exceed limit " +
                 std::to_string(MAX_ARGS_NUM));
     }
@@ -532,7 +531,7 @@ std::shared_ptr<Expr> Parser::parse_primary() {
         return std::make_shared<GroupExpr>(expr);
     }
 
-    throw ParserException(get_cur_tok(),
+    throw StaticException(get_cur_tok(),
                           "Parsering primary error: Expect expression");
 }
 
@@ -572,7 +571,7 @@ std::shared_ptr<Token> Parser::get_cur_tok() {
 
 std::shared_ptr<Token> Parser::get_prev_tok() {
     if (current_tok_pos - 1 < 0) {
-        throw ParserException(get_cur_tok(),
+        throw StaticException(get_cur_tok(),
                               "Error: get previous token at invalid position");
     }
     return tokens.at(current_tok_pos - 1);
@@ -581,7 +580,7 @@ std::shared_ptr<Token> Parser::get_prev_tok() {
 std::shared_ptr<Token> Parser::assert_tok_and_advance(TokenType type,
                                                       std::string msg) {
     if (!validate_token(type)) {
-        throw ParserException(get_cur_tok(), msg);
+        throw StaticException(get_cur_tok(), msg);
     }
     return advance();
 }

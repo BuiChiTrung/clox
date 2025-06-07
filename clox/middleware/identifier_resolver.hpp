@@ -76,7 +76,7 @@ class IdentifierResolver : public IExprVisitor, public IStmtVisitor {
     void addScope();
     void closeScope();
 
-    void declare_identifier(const Token &var_name);
+    void declare_identifier(Token &identifier_name);
     void define_identifier(const Token &var_name);
 
     void resolve_identifier(const IdentifierExpr &);

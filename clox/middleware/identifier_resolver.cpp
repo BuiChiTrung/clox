@@ -4,6 +4,8 @@
 #include "clox/common/token.hpp"
 #include "clox/parser/expr.hpp"
 #include "clox/parser/stmt.hpp"
+#include "clox/utils/helper.hpp"
+#include <iostream>
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -27,7 +29,12 @@ void IdentifierResolver::resolve_program(
 void IdentifierResolver::resolve_stmts(
     const std::vector<std::shared_ptr<Stmt>> &stmts) {
     for (auto &stmt : stmts) {
-        stmt->accept(*this);
+        try {
+            stmt->accept(*this);
+        } catch (StaticException &err) {
+            ErrorManager::handle_static_err(err);
+            continue;
+        }
     }
 }
 
@@ -86,18 +93,18 @@ void IdentifierResolver::visit_while_stmt(const WhileStmt &while_stmt) {
 
 void IdentifierResolver::visit_break_stmt(const BreakStmt &break_stmt) {
     if (current_loop_type == ResolveLoopType::NONE) {
-        ErrorManager::handle_err(
-            *break_stmt.break_kw,
-            "Error: 'break' statement can only be used inside a loop.");
+        throw StaticException(
+            break_stmt.break_kw,
+            "'Break' statement can only be used inside a loop.");
     }
 }
 
 void IdentifierResolver::visit_continue_stmt(
     const ContinueStmt &continue_stmt) {
     if (current_loop_type == ResolveLoopType::NONE) {
-        ErrorManager::handle_err(
-            *continue_stmt.continue_kw,
-            "Error: 'continue' statement can only be used inside a loop.");
+        throw StaticException(
+            continue_stmt.continue_kw,
+            "'Continue' statement can only be used inside a loop.");
     }
 }
 
@@ -112,8 +119,8 @@ void IdentifierResolver::visit_class_decl(const ClassDecl &class_decl_stmt) {
     if (class_decl_stmt.superclass != nullptr) {
         if (class_decl_stmt.superclass->token->lexeme ==
             class_decl_stmt.name->lexeme) {
-            ErrorManager::handle_err(*class_decl_stmt.superclass->token,
-                                     "Error: Class cannot extend itself.");
+            throw StaticException(class_decl_stmt.superclass->token,
+                                  "Class cannot extend itself.");
         }
         class_decl_stmt.superclass->accept(*this);
     }
@@ -163,12 +170,12 @@ void IdentifierResolver::resolve_function(const FunctionDecl &func_decl_stmt,
 
 void IdentifierResolver::visit_return_stmt(const ReturnStmt &return_stmt) {
     if (current_func_type == ResolveFuncType::NONE) {
-        ErrorManager::handle_err(*return_stmt.return_kw,
-                                 "Cannot return from outside a function.");
+        throw StaticException(return_stmt.return_kw,
+                              "Cannot return from outside a function.");
     }
     if (current_func_type == ResolveFuncType::INITIALIZER) {
-        ErrorManager::handle_err(*return_stmt.return_kw,
-                                 "Cannot return inside the class initializer.");
+        throw StaticException(return_stmt.return_kw,
+                              "Cannot return inside the class initializer.");
     }
     return_stmt.expr->accept(*this);
 }
@@ -183,8 +190,8 @@ ExprVal
 IdentifierResolver::visit_identifier(const IdentifierExpr &identifier_expr) {
     if (scopes.back().count(identifier_expr.token->lexeme) != 0 and
         scopes.back()[identifier_expr.token->lexeme] == false) {
-        ErrorManager::handle_err(
-            identifier_expr.token->line,
+        throw StaticException(
+            identifier_expr.token,
             "Can't read local variable in its own initializer.");
     }
 
@@ -194,8 +201,8 @@ IdentifierResolver::visit_identifier(const IdentifierExpr &identifier_expr) {
 
 ExprVal IdentifierResolver::visit_this(const ThisExpr &this_expr) {
     if (current_class_type == ResolveClassType::NONE) {
-        ErrorManager::handle_err(
-            *this_expr.token, "Can't use 'this' from outside a class method.");
+        throw StaticException(this_expr.token,
+                              "Can't use 'this' from outside a class method.");
     }
     resolve_identifier(this_expr);
     return NIL;
@@ -203,11 +210,11 @@ ExprVal IdentifierResolver::visit_this(const ThisExpr &this_expr) {
 
 ExprVal IdentifierResolver::visit_super(const SuperExpr &super_expr) {
     if (current_class_type == ResolveClassType::NONE) {
-        ErrorManager::handle_err(
-            *super_expr.token, "Can't use 'super' outside a subclass method.");
+        throw StaticException(super_expr.token,
+                              "Can't use 'super' outside a subclass method.");
     } else if (current_class_type != ResolveClassType::SUBCLASS) {
-        ErrorManager::handle_err(
-            *super_expr.token,
+        throw StaticException(
+            super_expr.token,
             "Can't use 'super' inside a class with no super class.");
     }
 
@@ -272,12 +279,14 @@ Adds identifier to the innermost scope so that it shadows any outer one and
 so that we know the variable exists. We mark it as “not ready yet” by
 binding its name to false in the scope map.
 */
-void IdentifierResolver::declare_identifier(const Token &identifier_name) {
+void IdentifierResolver::declare_identifier(Token &identifier_name) {
     if (scopes.back().count(identifier_name.lexeme) != 0) {
-        ErrorManager::handle_err(identifier_name.line,
-                                 "Variable with name " +
-                                     identifier_name.lexeme +
-                                     " already declared in this scope.");
+        std::cout << "Huhu" << std::endl;
+        throw StaticException(
+            std::shared_ptr<Token>(&identifier_name,
+                                   smart_pointer_no_op_deleter),
+            "Variable with name " + identifier_name.lexeme +
+                " already declared in this scope.");
     }
     scopes.back()[identifier_name.lexeme] = false;
 }
