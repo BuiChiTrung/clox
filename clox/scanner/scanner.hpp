@@ -26,4 +26,5 @@ class Scanner {
     void parse_str();
     void parse_num();
     void parse_identifier();
+    void move_to_next_pos();
 };

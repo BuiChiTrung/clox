@@ -22,7 +22,7 @@ bool Scanner::is_end_of_src() {
 
 void Scanner::scan_token() {
     char c = src.at(current_pos);
-    current_pos++;
+    move_to_next_pos();
 
     switch (c) {
     case '(':
@@ -78,7 +78,7 @@ void Scanner::scan_token() {
     case '/':
         if (next_char_is('/')) {
             while (!is_end_of_src() && src.at(current_pos) != '\n') {
-                current_pos++;
+                move_to_next_pos();
             }
         } else if (next_char_is('*')) {
             while (current_pos < src.length() - 1 &&
@@ -87,12 +87,13 @@ void Scanner::scan_token() {
                 if (src.at(current_pos) == '\n') {
                     line++;
                 }
-                current_pos++;
+                move_to_next_pos();
             }
             if (current_pos == src.length() - 1) {
-                current_pos += 1;
+                move_to_next_pos();
             } else { // found */ to close block of cmts
-                current_pos += 2;
+                move_to_next_pos();
+                move_to_next_pos();
             }
         } else {
             add_token(TokenType::SLASH);
@@ -134,7 +135,7 @@ bool Scanner::next_char_is(char expected) {
     }
 
     if (src.at(current_pos) == expected) {
-        current_pos++;
+        move_to_next_pos();
         return true;
     }
 
@@ -148,7 +149,7 @@ void Scanner::parse_str() {
         if (src.at(current_pos) == '\n') {
             line++;
         }
-        current_pos++;
+        move_to_next_pos();
     }
 
     if (is_end_of_src()) {
@@ -158,20 +159,20 @@ void Scanner::parse_str() {
 
     std::string str = src.substr(str_start_pos, current_pos - str_start_pos);
     add_token(TokenType::STRING, str);
-    current_pos++;
+    move_to_next_pos();
 }
 
 void Scanner::parse_num() {
     uint str_start_pos = current_pos - 1;
 
     while (!is_end_of_src() and std::isdigit(src.at(current_pos))) {
-        current_pos++;
+        move_to_next_pos();
     }
 
     if (!is_end_of_src() && src.at(current_pos) == '.') {
-        current_pos++;
+        move_to_next_pos();
         while (!is_end_of_src() and std::isdigit(src.at(current_pos))) {
-            current_pos++;
+            move_to_next_pos();
         }
     }
 
@@ -186,7 +187,7 @@ void Scanner::parse_identifier() {
 
     while (!is_end_of_src() &&
            (std::isalnum(src.at(current_pos)) || src.at(current_pos) == '_')) {
-        current_pos++;
+        move_to_next_pos();
     }
 
     std::string identifier_str =
@@ -197,3 +198,5 @@ void Scanner::parse_identifier() {
         add_token(reserved_kws.at(identifier_str));
     }
 }
+
+void Scanner::move_to_next_pos() { current_pos++; }
