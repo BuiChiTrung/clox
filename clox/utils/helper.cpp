@@ -43,3 +43,7 @@ std::string double_to_string(double num) {
 }
 
 void smart_pointer_no_op_deleter(void *) {}
+
+bool is_double_int(double num) {
+    return std::floor(num) == num && std::isfinite(num);
+}

@@ -1,6 +1,7 @@
 #include "ast_interpreter.hpp"
 #include "clox/ast_interpreter/callable/callable.hpp"
 #include "clox/ast_interpreter/callable/class.hpp"
+#include "clox/ast_interpreter/callable/list.hpp"
 #include "clox/ast_interpreter/callable/native_function.hpp"
 #include "clox/ast_interpreter/environment.hpp"
 #include "clox/ast_interpreter/helper.hpp"
@@ -27,6 +28,13 @@ AstInterpreter::AstInterpreter(const bool is_interactive_mode)
     global_env->add_identifier("bool", std::make_shared<BoolCastNativeFunc>());
     global_env->add_identifier("str", std::make_shared<StringCastNativeFunc>());
     global_env->add_identifier("num", std::make_shared<DoubleCastNativeFunc>());
+
+    // List is a special builtin class that is defined in the global env
+    auto list_env = std::make_shared<Environment>(global_env);
+    // List method requires "this", which will refer a ListInstance (contains
+    // data vector) in the interpreter process
+    list_env->add_identifier("this", NIL);
+    global_env->add_identifier("List", std::make_shared<List>(list_env));
 }
 
 // func to test if the interpreter can exec a single expression

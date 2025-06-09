@@ -17,7 +17,7 @@ class LoxMethod : public LoxFunction {
     void bind_this_kw_to_class_method(LoxInstance &instance) {
         // Use no-op deleter to make sure that "this" is not deallocate
         // after shared_ptr run out of scope.
-        this->parent_env->update_identifier(
+        this->enclosing_env->update_identifier(
             "this",
             std::shared_ptr<LoxInstance>(&instance,
                                          smart_pointer_no_op_deleter),
@@ -26,15 +26,16 @@ class LoxMethod : public LoxFunction {
 };
 
 class LoxClass : public LoxCallable {
-  private:
-    std::string name;
-    std::shared_ptr<LoxClass> superclass;
-    std::unordered_map<std::string, std::shared_ptr<LoxMethod>> methods;
+  protected:
+    std::string name = "";
+    std::shared_ptr<LoxClass> superclass = nullptr;
+    std::unordered_map<std::string, std::shared_ptr<LoxMethod>> methods = {};
 
     friend class LoxInstance;
     friend class AstInterpreter;
 
   public:
+    LoxClass() {}
     LoxClass(
         std::string name, std::shared_ptr<LoxClass> superclass,
         std::unordered_map<std::string, std::shared_ptr<LoxMethod>> &methods)
@@ -107,7 +108,7 @@ class LoxInstance {
                                                 " does not exists.");
     }
 
-    std::string to_string() const {
+    virtual std::string to_string() const {
         return "<Instance " + lox_class->name + ">";
     }
 };

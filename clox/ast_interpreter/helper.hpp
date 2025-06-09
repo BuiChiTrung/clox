@@ -1,6 +1,7 @@
 #pragma once
 #include "clox/ast_interpreter/callable/callable.hpp"
 #include "clox/ast_interpreter/callable/class.hpp"
+#include "clox/ast_interpreter/callable/list.hpp"
 #include "clox/common/error_manager.hpp"
 #include "clox/common/expr_val.hpp"
 #include <string>
@@ -106,3 +107,18 @@ inline void assert_expr_vals_int(std::shared_ptr<Token> tok,
         throw RuntimeException(tok, "Right operand must be an int");
     }
 }
+
+// inline std::shared_ptr<ListInstance>
+// cast_expr_val_to_list_instance(const ExprVal &expr_val) {
+//     auto lox_instance = std::get<std::shared_ptr<LoxInstance>>(expr_val);
+//     if (!lox_instance) {
+//         return nullptr;
+//     }
+
+//     auto list_instance =
+//     std::static_pointer_cast<ListInstance>(lox_instance); if (!list_instance)
+//     {
+//         return nullptr;
+//     }
+//     return list_instance;
+// }

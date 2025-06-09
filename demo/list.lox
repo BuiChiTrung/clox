@@ -1,0 +1,12 @@
+// Currently, "[]" notation for list initialization, accessment is not support.
+var list = List(1, 2, 3);
+
+list.push(4);
+print(list);
+
+list.pop();
+print(list);
+
+print(list.at(1));
+
+print(list.size());
