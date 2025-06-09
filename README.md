@@ -1,5 +1,7 @@
 # clox
 
+[![Repo Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)](https://github.com/BuiChiTrung/clox) [![GitHub license](https://img.shields.io/github/license/BuiChiTrung/clox)](https://github.com/BuiChiTrung/clox/blob/main/LICENSE)
+
 This is a C++ implementation for Lox - a dynamic type programming language, inspired by the book Crafting Interpreters.
 
 ### Build the code
@@ -150,7 +152,7 @@ print(list.at(1));
 print(list.size());
 ```
 
-**Class**: `./build/main ./demo/class.lox`
+**Class (inheritance supported)**: `./build/main ./demo/class.lox`
 
 ```
 class FootballPlayer {
