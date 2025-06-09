@@ -1,7 +1,6 @@
 #pragma once
 #include "clox/ast_interpreter/callable/callable.hpp"
 #include "clox/ast_interpreter/callable/class.hpp"
-#include "clox/ast_interpreter/callable/list.hpp"
 #include "clox/common/error_manager.hpp"
 #include "clox/common/expr_val.hpp"
 #include <string>
@@ -65,6 +64,10 @@ inline double cast_expr_val_to_double(const ExprVal &val) {
     }
 
     throw RuntimeException(nullptr, "Unsupported type to cast to double");
+}
+
+inline double cast_expr_val_to_int(const ExprVal &val) {
+    return static_cast<int>(cast_expr_val_to_double(val));
 }
 
 inline bool is_expr_vals_equal(const ExprVal &left, const ExprVal &right) {

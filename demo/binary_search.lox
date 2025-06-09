@@ -1,12 +1,11 @@
-var nums = List(1, 2, 2, 4, 7, 8, 9, 9, 9, 10);
+var nums = List(1, 2, 2, 4, 7, 9, 9, 9, 10);
 
 var low = 0;
 var high = nums.size() - 1;
-var val = 9;
+var val = 8;
 
 while low <= high {
     var mid = int((low + high) / 2);
-    print(mid);
     if nums.at(mid) < val {
         low = mid + 1;
     } else {
@@ -14,4 +13,4 @@ while low <= high {
     }
 }
 
-print(high, nums.at(high));
+print("Index of smallest element greater or equal than " + val + ":",  "nums[" + low + "] =", nums.at(low));

@@ -128,6 +128,28 @@ count(); // 1
 count(); // 2
 ```
 
+**List**: `./build/main ./demo/list.lox`
+
+```
+// Currently, "[]" notation for list initialization, accessment is not support.
+// Create list
+var list = List(1, 2, 3);
+
+// Push element to list
+list.push(4);
+print(list);
+
+// Pop last element from the list
+list.pop();
+print(list);
+
+// Access an element in the list
+print(list.at(1));
+
+// Check list size
+print(list.size());
+```
+
 **Class**: `./build/main ./demo/class.lox`
 
 ```

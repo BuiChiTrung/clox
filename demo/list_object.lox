@@ -1,0 +1,14 @@
+class Movie {
+    fun init(name) {
+        this.name = name;
+    }
+}
+
+var m1 = Movie("Avatar");
+
+var movies = List();
+movies.push(m1);
+
+// Shallow copy
+m1.name = "Bvatar";
+print(movies.at(0).name, m1.name);

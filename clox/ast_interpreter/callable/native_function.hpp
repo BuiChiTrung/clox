@@ -95,3 +95,15 @@ class DoubleCastNativeFunc : public LoxCallable {
 
     uint get_param_num() override { return 1; }
 };
+
+class IntCastNativeFunc : public LoxCallable {
+  public:
+    ExprVal invoke(AstInterpreter &interpreter,
+                   std::vector<ExprVal> &args) override {
+        return cast_expr_val_to_int(args[0]);
+    }
+
+    std::string to_string() const override { return "<native-fn int>"; }
+
+    uint get_param_num() override { return 1; }
+};

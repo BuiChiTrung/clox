@@ -28,6 +28,7 @@ AstInterpreter::AstInterpreter(const bool is_interactive_mode)
     global_env->add_identifier("bool", std::make_shared<BoolCastNativeFunc>());
     global_env->add_identifier("str", std::make_shared<StringCastNativeFunc>());
     global_env->add_identifier("num", std::make_shared<DoubleCastNativeFunc>());
+    global_env->add_identifier("int", std::make_shared<IntCastNativeFunc>());
 
     // List is a special builtin class that is defined in the global env
     auto list_env = std::make_shared<Environment>(global_env);
